@@ -22,8 +22,8 @@ const Navbar = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
       <nav className="container-page flex items-center justify-between h-16">
-        <Link to="/" className="font-display font-bold text-xl tracking-tight text-foreground">
-          Econsult <span className="text-primary">Africa</span>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop */}

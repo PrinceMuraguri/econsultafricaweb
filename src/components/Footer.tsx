@@ -34,8 +34,8 @@ const Footer = () => {
       <div className="container-page py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
-            <Link to="/" className="font-display font-bold text-lg tracking-tight text-foreground">
-              Econsult <span className="text-primary">Africa</span>
+            <Link to="/" className="flex items-center gap-2">
+              <img src={logo} alt="Econsult Africa" className="h-14 w-auto" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
               Strategic economic intelligence for organizations navigating the Kenyan market.

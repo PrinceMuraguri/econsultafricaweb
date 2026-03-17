@@ -381,7 +381,7 @@ const Index = () => {
                 Recent intelligence.
               </motion.h2>
             </div>
-            <Link to="/insights" className="hidden md:inline-flex text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+            <Link to="/insights" className="hidden md:inline-flex text-sm font-medium text-primary hover:text-accent transition-colors">
               View all <ArrowRight className="ml-1 w-4 h-4" />
             </Link>
           </div>

@@ -82,7 +82,7 @@ const Kenya2026 = () => {
                     {loading ? "Processing…" : "Purchase the Report"} <ArrowRight className="ml-1" />
                   </Button>
                   <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
-                    <Link to="/contact">Request a Sample</Link>
+                    <Link to="/sample-report">Browse the Sample</Link>
                   </Button>
                 </div>
               </motion.div>

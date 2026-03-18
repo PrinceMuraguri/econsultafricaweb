@@ -11,6 +11,7 @@ import Insights from "./pages/Insights.tsx";
 import ResearchDecode from "./pages/ResearchDecode.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
+import SampleReport from "./pages/SampleReport.tsx";
 import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import NotFound from "./pages/NotFound.tsx";
 

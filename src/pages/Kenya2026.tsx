@@ -24,6 +24,36 @@ const benefits = [
 ];
 
 const Kenya2026 = () => {
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
+
+  const handlePurchase = async () => {
+    if (!email) {
+      toast({ title: "Email required", description: "Please enter your email to proceed.", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-checkout", {
+        body: {
+          email,
+          callback_url: `${window.location.origin}/purchase-success`,
+        },
+      });
+      if (error) throw error;
+      if (data?.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err: any) {
+      toast({ title: "Checkout failed", description: err.message || "Something went wrong.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Layout>
       <section className="section-padding">

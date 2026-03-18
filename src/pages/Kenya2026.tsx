@@ -69,13 +69,22 @@ const Kenya2026 = () => {
               <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
                 The definitive macroeconomic intelligence report for organizations operating in Kenya. Projections, sector analysis, and strategic frameworks — calibrated for decision-makers.
               </motion.p>
-              <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="flex flex-col sm:flex-row gap-4 mb-12">
-                <Button variant="hero" size="lg" className="hover-sink">
-                  Purchase the Report <ArrowRight className="ml-1" />
-                </Button>
-                <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
-                  <Link to="/contact">Request a Sample</Link>
-                </Button>
+              <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="space-y-4 mb-12">
+                <input
+                  type="email"
+                  placeholder="Enter your email to purchase"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full max-w-md px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button variant="hero" size="lg" className="hover-sink" onClick={handlePurchase} disabled={loading}>
+                    {loading ? "Processing…" : "Purchase the Report"} <ArrowRight className="ml-1" />
+                  </Button>
+                  <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
+                    <Link to="/contact">Request a Sample</Link>
+                  </Button>
+                </div>
               </motion.div>
 
               <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={4}>

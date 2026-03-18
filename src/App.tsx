@@ -11,6 +11,7 @@ import Insights from "./pages/Insights.tsx";
 import ResearchDecode from "./pages/ResearchDecode.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
+import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/research-decode" element={<ResearchDecode />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/purchase-success" element={<PurchaseSuccess />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

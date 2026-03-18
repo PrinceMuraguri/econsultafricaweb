@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, FileText, BarChart3, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -21,6 +24,36 @@ const benefits = [
 ];
 
 const Kenya2026 = () => {
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
+
+  const handlePurchase = async () => {
+    if (!email) {
+      toast({ title: "Email required", description: "Please enter your email to proceed.", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paystack-checkout", {
+        body: {
+          email,
+          callback_url: `${window.location.origin}/purchase-success`,
+        },
+      });
+      if (error) throw error;
+      if (data?.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err: any) {
+      toast({ title: "Checkout failed", description: err.message || "Something went wrong.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Layout>
       <section className="section-padding">
@@ -36,13 +69,22 @@ const Kenya2026 = () => {
               <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
                 The definitive macroeconomic intelligence report for organizations operating in Kenya. Projections, sector analysis, and strategic frameworks — calibrated for decision-makers.
               </motion.p>
-              <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="flex flex-col sm:flex-row gap-4 mb-12">
-                <Button variant="hero" size="lg" className="hover-sink">
-                  Purchase the Report <ArrowRight className="ml-1" />
-                </Button>
-                <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
-                  <Link to="/contact">Request a Sample</Link>
-                </Button>
+              <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="space-y-4 mb-12">
+                <input
+                  type="email"
+                  placeholder="Enter your email to purchase"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full max-w-md px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button variant="hero" size="lg" className="hover-sink" onClick={handlePurchase} disabled={loading}>
+                    {loading ? "Processing…" : "Purchase the Report"} <ArrowRight className="ml-1" />
+                  </Button>
+                  <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
+                    <Link to="/contact">Request a Sample</Link>
+                  </Button>
+                </div>
               </motion.div>
 
               <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={4}>
@@ -78,8 +120,8 @@ const Kenya2026 = () => {
                   <p className="font-mono text-xs opacity-60 mb-1">Starting from</p>
                   <p className="font-display text-4xl font-bold mb-1">$495</p>
                   <p className="text-xs opacity-60 mb-6">Single organization license</p>
-                  <Button variant="gold" size="lg" className="w-full hover-sink">
-                    Purchase Now
+                  <Button variant="gold" size="lg" className="w-full hover-sink" onClick={handlePurchase} disabled={loading}>
+                    {loading ? "Processing…" : "Purchase Now"}
                   </Button>
                 </div>
               </div>

@@ -120,8 +120,8 @@ const Kenya2026 = () => {
                   <p className="font-mono text-xs opacity-60 mb-1">Starting from</p>
                   <p className="font-display text-4xl font-bold mb-1">$495</p>
                   <p className="text-xs opacity-60 mb-6">Single organization license</p>
-                  <Button variant="gold" size="lg" className="w-full hover-sink">
-                    Purchase Now
+                  <Button variant="gold" size="lg" className="w-full hover-sink" onClick={handlePurchase} disabled={loading}>
+                    {loading ? "Processing…" : "Purchase Now"}
                   </Button>
                 </div>
               </div>

@@ -3,91 +3,216 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, BarChart3, Users, Briefcase, Zap, Globe } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5, ease: [0.2, 0, 0, 1] as const } }),
 };
 
-const filters = ["All", "Country Reports", "Sector Briefs"];
+const tiers = [
+  {
+    tier: "Free",
+    badge: "Lead Generation",
+    icon: FileText,
+    title: "Sample Report Preview",
+    description: "Selected pages from the Kenya 2026 Economic Outlook. Get a taste of what decision-grade economic intelligence looks like.",
+    price: "Free",
+    cta: "Browse the Sample",
+    href: "/sample-report",
+    featured: false,
+  },
+  {
+    tier: "Core",
+    badge: "Flagship",
+    icon: Globe,
+    title: "Kenya 2026 Economic Outlook",
+    description: "120+ page flagship report. GDP, inflation, currency, fiscal policy, and 10 sector deep-dives. The definitive intelligence product for Kenya.",
+    price: "$495",
+    priceNote: "Single organization license",
+    cta: "Buy Report",
+    href: "/kenya-2026",
+    featured: true,
+  },
+  {
+    tier: "Sector",
+    badge: "Focused",
+    icon: BarChart3,
+    title: "Sector Insight Reports",
+    description: "Shorter, sharper, sector-specific analysis. Tourism, financial services, agriculture, energy — with opportunity and risk mapping.",
+    price: "$95 – $250",
+    priceNote: "Per sector report",
+    cta: "Inquire",
+    href: "/contact",
+    featured: false,
+  },
+  {
+    tier: "Custom",
+    badge: "Tailored",
+    icon: Briefcase,
+    title: "Organization-Specific Economic Brief",
+    description: "We translate the macroeconomic environment into insights tailored specifically to your organization, sector, and strategy.",
+    price: "$1,000 – $5,000+",
+    priceNote: "Scope-dependent",
+    cta: "Request a Brief",
+    href: "/contact",
+    featured: false,
+  },
+  {
+    tier: "Executive",
+    badge: "Advisory",
+    icon: Users,
+    title: "Executive Strategy Briefings",
+    description: "We present the insights directly to your leadership team, break them down, and answer your questions in real time. Virtual or in-person.",
+    price: "$1,500 – $10,000+",
+    priceNote: "Session-based pricing",
+    cta: "Book a Briefing",
+    href: "/contact",
+    featured: false,
+  },
+  {
+    tier: "Retainer",
+    badge: "Ongoing",
+    icon: Zap,
+    title: "Intelligence Access Retainer",
+    description: "Ongoing insights, priority updates, and direct advisory access. Stay ahead of economic shifts — not reacting to them.",
+    price: "$300 – $1,000/mo",
+    priceNote: "Monthly or annual",
+    cta: "Discuss Access",
+    href: "/contact",
+    featured: false,
+  },
+];
 
-const products = [
-  { title: "Kenya 2026 Economic Outlook", price: "$495", description: "120+ page flagship report covering GDP, inflation, currency, fiscal policy, and 10 sector deep-dives. The definitive intelligence product for Kenya.", type: "Country Reports", featured: true, href: "/kenya-2026" },
-  { title: "Tourism Sector Brief — Kenya", price: "$195", description: "Post-pandemic recovery trajectory, revenue forecasts, regulatory landscape, and opportunity mapping for Kenya's tourism sector.", type: "Sector Briefs", featured: false, href: "/contact" },
-  { title: "Financial Services Brief — Kenya", price: "$195", description: "Banking sector health, fintech disruption, digital lending regulation, and capital markets outlook.", type: "Sector Briefs", featured: false, href: "/contact" },
-  { title: "Agriculture Sector Brief — Kenya", price: "$195", description: "Climate risk analysis, horticulture export dynamics, value chain mapping, and food security projections.", type: "Sector Briefs", featured: false, href: "/contact" },
-  { title: "Energy & Infrastructure Brief — Kenya", price: "$195", description: "Geothermal expansion, renewable energy targets, and infrastructure pipeline analysis.", type: "Sector Briefs", featured: false, href: "/contact" },
-  { title: "South Africa 2026 Outlook", price: "Coming Soon", description: "Fiscal trajectory, mining sector outlook, energy crisis analysis, and policy risk framework.", type: "Country Reports", featured: false, href: "#" },
-  { title: "Nigeria 2026 Outlook", price: "Coming Soon", description: "Currency dynamics, oil dependency analysis, diversification signals, and growth corridor mapping.", type: "Country Reports", featured: false, href: "#" },
+const sectorReports = [
+  { title: "Kenya Banking Sector Outlook", price: "$195", type: "Financial Services" },
+  { title: "Africa Tourism Sector Brief", price: "$150", type: "Tourism" },
+  { title: "Kenya Agriculture Outlook", price: "$195", type: "Agriculture" },
+  { title: "Energy & Infrastructure Brief", price: "$195", type: "Energy" },
 ];
 
 const Products = () => {
-  const [activeFilter, setActiveFilter] = useState("All");
-
-  const filtered = products.filter((p) => activeFilter === "All" || p.type === activeFilter);
-
   return (
     <Layout>
+      {/* Hero */}
       <section className="section-padding">
         <div className="container-page">
-          <div className="max-w-3xl mb-12">
-            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0} className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Products</motion.p>
-            <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1} className="text-4xl md:text-5xl font-bold text-foreground leading-[1.1] mb-6">
-              Explore Our Reports & Products
+          <div className="max-w-3xl mb-16">
+            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0}
+              className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Products</motion.p>
+            <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1}
+              className="text-4xl md:text-5xl font-bold text-foreground leading-[1.1] mb-6">
+              Economic Intelligence. On Demand.
             </motion.h1>
-            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed">
-              Premium economic intelligence products designed for strategic decision-makers across African markets.
+            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}
+              className="text-lg text-muted-foreground leading-relaxed">
+              Explore our growing library of reports, insights, and strategic tools designed for decision-makers operating in Africa.
             </motion.p>
           </div>
 
-          {/* Filters */}
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="flex gap-2 mb-10 flex-wrap">
-            {filters.map((f) => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`px-4 py-2 rounded-pill text-sm font-medium transition-colors ${
-                  activeFilter === f
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background border border-border text-muted-foreground hover:text-primary hover:border-primary/30"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((product, i) => (
+          {/* Product Tiers */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tiers.map((tier, i) => (
               <motion.div
-                key={product.title}
+                key={tier.title}
                 initial="hidden" whileInView="visible" viewport={{ once: true }}
                 variants={fadeUp} custom={i}
-                whileHover={{ y: -4 }}
-                className={`bg-background rounded-lg border p-6 card-shadow flex flex-col ${
-                  product.featured ? "border-primary/30 ring-1 ring-primary/20" : "border-border"
+                className={`rounded-lg border p-8 flex flex-col ${
+                  tier.featured
+                    ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/20"
+                    : "bg-background border-border card-shadow"
                 }`}
               >
-                {product.featured && (
-                  <span className="inline-block text-xs font-semibold bg-accent text-accent-foreground px-2 py-0.5 rounded-pill mb-3 w-fit">Flagship</span>
-                )}
-                <span className="text-xs font-medium text-muted-foreground mb-2">{product.type}</span>
-                <h3 className="font-display font-bold text-lg text-foreground mb-2">{product.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">{product.description}</p>
-                <p className={`font-display font-bold text-xl mb-4 ${product.price === "Coming Soon" ? "text-muted-foreground" : "text-primary"}`}>
-                  {product.price}
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-pill ${
+                    tier.featured
+                      ? "bg-gold text-gold-foreground"
+                      : "bg-primary/10 text-primary"
+                  }`}>
+                    {tier.badge}
+                  </span>
+                  <tier.icon className={`w-5 h-5 ${tier.featured ? "opacity-60" : "text-primary"}`} />
+                </div>
+                <h3 className={`font-display font-bold text-xl mb-3 ${tier.featured ? "" : "text-foreground"}`}>
+                  {tier.title}
+                </h3>
+                <p className={`text-sm leading-relaxed mb-6 flex-1 ${
+                  tier.featured ? "opacity-80" : "text-muted-foreground"
+                }`}>
+                  {tier.description}
                 </p>
-                {product.price !== "Coming Soon" ? (
-                  <Button variant={product.featured ? "hero" : "hero-outline"} size="sm" className="w-full hover-sink" asChild>
-                    <Link to={product.href}>{product.featured ? "Buy Report" : "Inquire"} <ArrowRight className="ml-1" /></Link>
-                  </Button>
-                ) : (
-                  <Button variant="hero-outline" size="sm" className="w-full" disabled>Coming Soon</Button>
-                )}
+                <div className="mb-6">
+                  <p className={`font-display font-bold text-2xl ${tier.featured ? "" : "text-foreground"}`}>
+                    {tier.price}
+                  </p>
+                  {tier.priceNote && (
+                    <p className={`text-xs mt-1 ${tier.featured ? "opacity-60" : "text-muted-foreground"}`}>
+                      {tier.priceNote}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant={tier.featured ? "gold" : "hero-outline"}
+                  size="sm"
+                  className="w-full hover-sink"
+                  asChild
+                >
+                  <Link to={tier.href}>
+                    {tier.cta} <ArrowRight className="ml-1" />
+                  </Link>
+                </Button>
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Sector Reports Detail */}
+      <section className="section-padding bg-muted/50">
+        <div className="container-page">
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Sector Reports</motion.p>
+          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Focused Sector Intelligence
+          </motion.h2>
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="text-muted-foreground mb-12 max-w-2xl">
+            Shorter, sharper reports that zero in on a single sector — with the same decision-focused lens.
+          </motion.p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {sectorReports.map((report, i) => (
+              <motion.div
+                key={report.title}
+                initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i}
+                whileHover={{ y: -4 }}
+                className="bg-background rounded-lg border border-border p-6 card-shadow"
+              >
+                <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-pill mb-3">{report.type}</span>
+                <h3 className="font-display font-bold text-foreground mb-2">{report.title}</h3>
+                <p className="font-display font-bold text-xl text-primary mb-4">{report.price}</p>
+                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
+                  <Link to="/contact">Inquire <ArrowRight className="ml-1" /></Link>
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="section-padding bg-primary">
+        <div className="container-page text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
+            Not sure which product fits?
+          </h2>
+          <p className="text-lg text-primary-foreground/70 mb-8 max-w-xl mx-auto">
+            Tell us what you're trying to decide, and we'll recommend the right intelligence product for your needs.
+          </p>
+          <Button variant="gold" size="lg" className="hover-sink" asChild>
+            <Link to="/contact">Talk to Us <ArrowRight className="ml-1" /></Link>
+          </Button>
         </div>
       </section>
     </Layout>

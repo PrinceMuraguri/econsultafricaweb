@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowRight, BarChart3, FileText, Users, Briefcase, TrendingUp, Shield, Zap, Target,
-  Lock, Check, Globe, Mic, Video, BookOpen
+  ArrowRight, BarChart3, FileText, Users, Briefcase, TrendingUp, Shield,
+  Lock, Check, Globe, Mic, Video, BookOpen, Target, Zap, AlertTriangle,
+  Lightbulb, ArrowDown
 } from "lucide-react";
 
 const fadeUp = {
@@ -30,35 +31,28 @@ const services = [
   },
   {
     number: "02", icon: BarChart3, title: "Organization-Specific Economic Briefs",
-    description: "Tailored economic intelligence that translates a country's outlook into clear implications for your specific company. Delivered as a structured, decision-ready report.",
+    description: "We translate the macroeconomic environment into insights tailored specifically to your organization, sector, and strategy. Delivered as a structured, decision-ready report.",
   },
   {
     number: "03", icon: Users, title: "Executive Strategy Briefings",
-    description: "A 90-minute in-person or virtual session with your leadership team, where we present the insights and break down the implications for your business — ensuring clarity, alignment, and informed decision-making.",
+    description: "We present the insights directly to your leadership team, break them down, and answer your questions in real time. Virtual or in-person.",
   },
   {
     number: "04", icon: Briefcase, title: "Quarterly Intelligence Retainer",
-    description: "Continuous access to decision-grade economic insight. Quarterly deep-dives, real-time signals, and direct analyst access — so your team stays ahead of shifts.",
+    description: "Continuous access to decision-grade economic insight. Quarterly deep-dives, real-time signals, and direct analyst access.",
   },
 ];
 
-const products = [
-  { title: "Kenya 2026 Economic Outlook", price: "$495", description: "120+ page flagship report covering GDP, inflation, currency, and 10 sectors.", featured: true, href: "/kenya-2026" },
-  { title: "Tourism Sector Brief", price: "$195", description: "Post-pandemic recovery trajectory, revenue forecasts, and policy impacts.", featured: false, href: "/contact" },
-  { title: "Financial Services Brief", price: "$195", description: "Banking, fintech, and digital lending regulatory landscape.", featured: false, href: "/contact" },
-  { title: "Agriculture Sector Brief", price: "$195", description: "Climate risk, export opportunity, and value chain analysis.", featured: false, href: "/contact" },
-];
-
 const insights = [
-  { title: "Kenya's Fiscal Consolidation: What It Means for Corporate Tax", date: "Mar 2026", read: "6 min", category: "Fiscal Policy", type: "article" },
-  { title: "Agriculture Sector Outlook: Climate Risk and Export Opportunity", date: "Feb 2026", read: "8 min", category: "Agriculture", type: "article" },
-  { title: "The KES Trajectory: Projections for H2 2026", date: "Feb 2026", read: "5 min", category: "Currency", type: "article" },
+  { title: "Kenya's Fiscal Consolidation: What It Means for Corporate Tax", date: "Mar 2026", read: "6 min", category: "Fiscal Policy" },
+  { title: "Agriculture Sector Outlook: Climate Risk and Export Opportunity", date: "Feb 2026", read: "8 min", category: "Agriculture" },
+  { title: "The KES Trajectory: Projections for H2 2026", date: "Feb 2026", read: "5 min", category: "Currency" },
 ];
 
 const team = [
-  { name: "Prince Muraguri", role: "Founder & CEO", initials: "PM", bio: "Economic intelligence strategist with deep expertise in data-driven African market analysis." },
-  { name: "Moses Macharia", role: "Senior Analyst", initials: "MM", bio: "Macroeconomic researcher specializing in East African fiscal policy and trade dynamics." },
-  { name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL", bio: "Cross-border strategy advisor with experience across 12 African economies." },
+  { name: "Prince Muraguri", role: "Founder & CEO", initials: "PM", bio: "An economic intelligence strategist with experience in data-driven research, policy analysis, and applied economics across Africa. Known for translating complex economic ideas into clear, actionable insight." },
+  { name: "Moses Macharia", role: "Senior Analyst", initials: "MM", bio: "Macroeconomic researcher specializing in East African fiscal policy, trade dynamics, and sector-level economic modelling." },
+  { name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL", bio: "Cross-border strategy advisor with experience across 12 African economies. Translates macroeconomic intelligence into actionable business frameworks." },
 ];
 
 const Index = () => {
@@ -81,28 +75,42 @@ const Index = () => {
                 transition={{ duration: 0.6, ease: [0.2, 0, 0, 1] as const }}
                 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] text-foreground mb-6"
               >
-                Africa's Economies.{" "}
+                Africa's Economy.{" "}
                 <span className="text-primary">Explained for Real Decisions.</span>
               </motion.h1>
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.5 }}
-                className="text-lg text-muted-foreground max-w-xl leading-relaxed mb-8"
+                className="space-y-4 mb-8 max-w-xl"
               >
-                We translate complex macroeconomic trends across Africa into clear, actionable insight for businesses, investors, and decision-makers.
-              </motion.p>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Most organizations receive economic updates.
+                  <br />
+                  <span className="font-medium text-foreground">Very few get insight they can actually use.</span>
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  Econsult Africa translates macroeconomic trends across Africa into clear, decision-focused intelligence for businesses, investors, and strategy teams.
+                </p>
+              </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25, duration: 0.5 }}
-                className="flex flex-col sm:flex-row gap-4"
+                className="flex flex-col sm:flex-row gap-4 mb-6"
               >
                 <Button variant="hero" size="lg" className="hover-sink" asChild>
-                  <Link to="/kenya-2026">View Kenya 2026 Outlook <ArrowRight className="ml-1" /></Link>
+                  <Link to="/kenya-2026">Get Kenya 2026 Outlook <ArrowRight className="ml-1" /></Link>
                 </Button>
                 <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
                   <a href="#africa-coverage">Explore Africa Coverage</a>
                 </Button>
               </motion.div>
+              <motion.p
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-sm text-muted-foreground italic"
+              >
+                2026 planning is already happening. Are you working with the right economic picture?
+              </motion.p>
             </div>
             <motion.div
               initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
@@ -134,6 +142,107 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Problem Section */}
+      <section className="section-padding bg-foreground">
+        <div className="container-page">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+                className="font-mono text-xs text-gold uppercase tracking-widest mb-4">The Gap</motion.p>
+              <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+                className="text-3xl md:text-4xl font-bold text-background mb-6">
+                The Problem with Most Economic Insight
+              </motion.h2>
+              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+                className="text-lg text-background/70 leading-relaxed mb-6">
+                Most economic reports tell you <span className="text-background font-medium">what is happening</span>.
+                <br />
+                They rarely tell you <span className="text-gold font-medium">what it means for you</span>.
+              </motion.p>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
+                className="space-y-3 mb-8">
+                <p className="text-background/50 text-sm">You get:</p>
+                {["Broad global summaries", "Generic country commentary", "Data without direction"].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <AlertTriangle className="w-4 h-4 text-gold/60 flex-shrink-0" />
+                    <span className="text-background/60 text-sm">{item}</span>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}>
+              <div className="bg-background/5 border border-background/10 rounded-lg p-8">
+                <p className="text-background/50 text-sm mb-4">And yet, your decisions require clarity:</p>
+                <div className="space-y-4">
+                  {[
+                    "Should we expand into this market?",
+                    "Should we invest now — or wait?",
+                    "What does this policy shift mean for our sector?",
+                  ].map((q) => (
+                    <div key={q} className="flex items-start gap-3">
+                      <Target className="w-4 h-4 text-gold mt-1 flex-shrink-0" />
+                      <span className="text-background/80 font-medium">{q}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8 pt-6 border-t border-background/10">
+                  <p className="text-gold font-display font-semibold text-lg">
+                    That gap is where Econsult Africa operates.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Solution Section */}
+      <section className="section-padding">
+        <div className="container-page">
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+              className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Our Approach</motion.p>
+            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+              className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+              From Economic Noise to Strategic Clarity
+            </motion.h2>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+              className="text-lg text-muted-foreground leading-relaxed mb-4">
+              We don't just analyze economies. <span className="text-foreground font-medium">We translate them.</span>
+            </motion.p>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
+              className="text-muted-foreground leading-relaxed">
+              Every insight is built around one question:
+            </motion.p>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}
+              className="text-xl text-primary font-display font-bold mt-4">
+              "So what does this mean for your organization?"
+            </motion.p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { icon: BarChart3, title: "Macroeconomic Analysis", description: "Deep country-level economic research — GDP, inflation, currency, fiscal policy — grounded in data and real-world context." },
+              { icon: Lightbulb, title: "Sector-Level Interpretation", description: "We go beyond the macro. Every sector gets mapped with specific opportunity and risk vectors relevant to operators." },
+              { icon: Zap, title: "Business Implications", description: "The 'so what' layer. We translate economic signals into practical insight your team can act on." },
+            ].map((item, i) => (
+              <motion.div key={item.title} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i}
+                className="text-center p-8">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <h3 className="font-display font-bold text-foreground mb-3">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="text-center text-muted-foreground mt-8">
+            So you can move from <span className="font-medium text-foreground">information</span> → <span className="font-medium text-primary">decision</span>.
+          </motion.p>
+        </div>
+      </section>
+
       {/* Africa Coverage */}
       <section id="africa-coverage" className="section-padding bg-muted/50">
         <div className="container-page">
@@ -142,8 +251,12 @@ const Index = () => {
           <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
             className="text-3xl md:text-4xl font-bold text-foreground mb-4">Pan-African Economic Intelligence</motion.h2>
           <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-            className="text-lg text-muted-foreground mb-12 max-w-2xl">
-            Deep-dive country reports for the continent's most dynamic economies. Starting with Kenya, expanding across the continent.
+            className="text-lg text-muted-foreground mb-4 max-w-2xl">
+            We are building a platform of country-level economic intelligence across Africa's most important economies.
+          </motion.p>
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
+            className="text-sm text-muted-foreground mb-12 max-w-2xl">
+            Kenya is our flagship market. Others are already in development.
           </motion.p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {countries.map((country, i) => (
@@ -188,33 +301,50 @@ const Index = () => {
               <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
                 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Kenya 2026 Economic Outlook</motion.h2>
               <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-                className="text-lg text-muted-foreground leading-relaxed mb-8">
-                A comprehensive macro-to-micro analysis of Kenya's economic trajectory, translating global, regional, and domestic dynamics into clear strategic insight.
+                className="text-lg text-muted-foreground leading-relaxed mb-4">
+                A comprehensive, decision-focused analysis of Kenya's economic trajectory in 2026.
               </motion.p>
-              <motion.ul initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
-                className="space-y-3 mb-8">
+              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
+                className="text-muted-foreground leading-relaxed mb-4">
+                This is not a generic outlook. It is designed for:
+              </motion.p>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}
+                className="space-y-2 mb-6">
+                {["Leadership teams making strategic decisions", "Strategy & planning units preparing for 2026", "Investors and operators evaluating Kenya"].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{item}</span>
+                  </div>
+                ))}
+              </motion.div>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5}
+                className="space-y-2 mb-8">
+                <p className="text-sm font-semibold text-foreground">What you get:</p>
                 {[
-                  "GDP, inflation, and currency projections calibrated for 2026",
-                  "10 sectors mapped with opportunity and risk vectors",
-                  "Policy tracker: fiscal, regulatory, and trade",
-                  "Investment thesis and capital allocation framework",
+                  "Clear macroeconomic direction for 2026",
+                  "10 sector-level deep-dives with implications",
+                  "Practical insight for decision-making",
                   "Quarterly update supplements included",
                 ].map((b) => (
-                  <li key={b} className="flex items-start gap-3">
-                    <Check className="w-4 h-4 text-accent mt-1 flex-shrink-0" />
+                  <div key={b} className="flex items-start gap-3">
+                    <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-muted-foreground">{b}</span>
-                  </li>
+                  </div>
                 ))}
-              </motion.ul>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}
-                className="flex flex-col sm:flex-row gap-4">
+              </motion.div>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={6}
+                className="flex flex-col sm:flex-row gap-4 mb-4">
                 <Button variant="hero" size="lg" className="hover-sink" asChild>
-                  <Link to="/kenya-2026">Buy Report — $495 <ArrowRight className="ml-1" /></Link>
+                  <Link to="/kenya-2026">Buy Full Report — $495 <ArrowRight className="ml-1" /></Link>
                 </Button>
                 <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
                   <Link to="/sample-report">Download Sample</Link>
                 </Button>
               </motion.div>
+              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={7}
+                className="text-xs text-muted-foreground italic">
+                Used during annual planning cycles and strategic reviews.
+              </motion.p>
             </div>
             <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.6 }}>
@@ -270,48 +400,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Products / Store */}
-      <section className="section-padding">
-        <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Products</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-4">Explore Our Reports & Products</motion.h2>
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-            className="text-lg text-muted-foreground mb-12 max-w-2xl">Premium economic intelligence, available on demand.</motion.p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product, i) => (
-              <motion.div
-                key={product.title}
-                initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i}
-                whileHover={{ y: -4 }}
-                className={`bg-background rounded-lg border p-6 card-shadow flex flex-col ${
-                  product.featured ? "border-primary/30 ring-1 ring-primary/20" : "border-border"
-                }`}
-              >
-                {product.featured && (
-                  <span className="inline-block text-xs font-semibold bg-accent text-accent-foreground px-2 py-0.5 rounded-pill mb-3 w-fit">Featured</span>
-                )}
-                <h3 className="font-display font-bold text-foreground mb-2">{product.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">{product.description}</p>
-                <p className="font-display font-bold text-xl text-primary mb-4">{product.price}</p>
-                <Button variant={product.featured ? "hero" : "hero-outline"} size="sm" className="w-full hover-sink" asChild>
-                  <Link to={product.href}>{product.featured ? "Buy Report" : "Inquire"} <ArrowRight className="ml-1" /></Link>
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
-              <Link to="/products">View All Products <ArrowRight className="ml-1" /></Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Insights */}
-      <section className="section-padding bg-muted/50">
+      <section className="section-padding">
         <div className="container-page">
           <div className="flex items-end justify-between mb-12">
             <div>
@@ -324,8 +414,11 @@ const Index = () => {
               View all <ArrowRight className="ml-1 w-4 h-4" />
             </Link>
           </div>
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="text-muted-foreground mb-8 max-w-2xl">
+            Ideas, analysis, and perspectives on African economies — beyond the headlines.
+          </motion.p>
 
-          {/* Category tabs */}
           <div className="flex gap-4 mb-8 flex-wrap">
             {[
               { icon: BookOpen, label: "Articles" },
@@ -362,50 +455,62 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="section-padding">
+      {/* Founder */}
+      <section className="section-padding bg-muted/50">
         <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Team</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-12">The People Behind Econsult Africa</motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {team.map((member, i) => (
-              <motion.div
-                key={member.name}
-                initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i}
-                className="bg-background rounded-lg border border-border p-8 card-shadow text-center"
-              >
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                  <span className="font-display font-bold text-2xl text-primary">{member.initials}</span>
-                </div>
-                <h3 className="font-display font-bold text-lg text-foreground mb-1">{member.name}</h3>
-                <p className="text-sm text-accent font-medium mb-3">{member.role}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{member.bio}</p>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+              <p className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Meet The Founder</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Prince Muraguri</h2>
+              <p className="text-accent font-medium mb-6">Founder, Econsult Africa</p>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                An economic intelligence strategist with experience in data-driven research, policy analysis, and applied economics across Africa.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Known for translating complex economic ideas into clear, actionable insight — Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.
+              </p>
+            </motion.div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
+              <div className="grid grid-cols-2 gap-6">
+                {team.filter(m => m.name !== "Prince Muraguri").map((member) => (
+                  <div key={member.name} className="bg-background rounded-lg border border-border p-6 card-shadow">
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <span className="font-display font-bold text-lg text-primary">{member.initials}</span>
+                    </div>
+                    <h3 className="font-display font-bold text-foreground mb-1">{member.name}</h3>
+                    <p className="text-xs text-accent font-medium mb-3">{member.role}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{member.bio}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Social Proof / CTA */}
+      {/* Final CTA */}
       <section className="section-padding bg-primary">
         <div className="container-page text-center">
           <motion.h2
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
             className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6"
           >
-            Make Better Decisions in African Markets
+            Better Decisions Start with Better Economic Insight
           </motion.h2>
           <motion.p
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-lg text-primary-foreground/70 mb-8 max-w-xl mx-auto"
+            className="text-lg text-primary-foreground/70 mb-4 max-w-2xl mx-auto"
           >
-            Whether you're planning, investing, or expanding — we help you understand what the economy actually means for you.
+            If your organization operates in Africa, understanding the economic landscape is not optional.
+          </motion.p>
+          <motion.p
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="text-xl font-display font-semibold text-primary-foreground mb-8"
+          >
+            It is strategic.
           </motion.p>
           <motion.div
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button variant="gold" size="lg" className="hover-sink" asChild>

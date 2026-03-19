@@ -10,41 +10,55 @@ const fadeUp = {
 };
 
 const team = [
-  { name: "Prince Muraguri", role: "Founder & CEO", initials: "PM", bio: "Prince founded Econsult Africa to bring institutional-grade economic intelligence to organizations navigating Africa's most dynamic economies. With deep expertise in macroeconomic analysis, data-driven strategy, and the intersection of policy and business, he leads the firm's research agenda and advisory practice." },
-  { name: "Moses Macharia", role: "Senior Analyst", initials: "MM", bio: "Moses brings rigorous analytical capability to Econsult Africa's research output, specializing in fiscal policy, trade dynamics, and sector-level economic modelling across East African markets." },
-  { name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL", bio: "Noel advises organizations on cross-border strategy and market entry across Africa. With experience spanning 12 economies, he translates macroeconomic intelligence into actionable business frameworks." },
+  {
+    name: "Prince Muraguri", role: "Founder & CEO", initials: "PM",
+    bio: "An economic intelligence strategist with deep expertise in data-driven research, policy analysis, and applied economics across Africa. Known for translating complex economic ideas into clear, actionable insight. Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.",
+    featured: true,
+  },
+  {
+    name: "Moses Macharia", role: "Senior Analyst", initials: "MM",
+    bio: "Moses brings rigorous analytical capability to Econsult Africa's research output, specializing in fiscal policy, trade dynamics, and sector-level economic modelling across East African markets.",
+    featured: false,
+  },
+  {
+    name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL",
+    bio: "Noel advises organizations on cross-border strategy and market entry across Africa. With experience spanning 12 economies, he translates macroeconomic intelligence into actionable business frameworks.",
+    featured: false,
+  },
 ];
 
 const About = () => {
   return (
     <Layout>
+      {/* Hero */}
       <section className="section-padding">
         <div className="container-page">
           <div className="max-w-3xl">
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0} className="font-mono text-xs text-gold uppercase tracking-widest mb-4">About</motion.p>
             <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1} className="text-4xl md:text-5xl font-bold text-foreground leading-[1.1] mb-6">
-              Precision intelligence for Africa's most complex economies.
+              We exist because African markets deserve better economic intelligence.
             </motion.h1>
-            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Econsult Africa is an Africa-focused economic intelligence firm. We exist because the organizations shaping the continent's future deserve better than generic data and recycled headlines.
+            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed">
+              Econsult Africa is an Africa-focused economic intelligence firm. We translate macroeconomic signals into strategic clarity — so the organizations shaping the continent's future can make better decisions.
             </motion.p>
           </div>
         </div>
       </section>
 
+      {/* Mission & Approach */}
       <section className="pb-20 md:pb-28">
         <div className="container-page">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
-              <h2 className="font-display font-bold text-2xl text-foreground mb-6">Our Mission</h2>
+              <h2 className="font-display font-bold text-2xl text-foreground mb-6">The Problem We Solve</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                We translate macroeconomic signals into strategic clarity. Our work bridges the gap between academic research, government data, and the decisions that country directors, CFOs, and investors make every quarter.
+                Most economic reports tell you what is happening. They rarely tell you what it means for <span className="text-foreground font-medium">your</span> organization.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Africa's economies are dynamic, complex, and full of opportunity — but only for those who understand the signals beneath the headlines. That's what we provide.
+                Africa's economies are dynamic, complex, and full of opportunity — but only for those who understand the signals beneath the headlines.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We are not a news service. We are not a consulting firm in the traditional sense. We are an intelligence firm — combining rigorous analysis with clear, actionable delivery across the continent's most important markets.
+                We are not a news service. We are not a consulting firm in the traditional sense. We are an intelligence firm — combining rigorous analysis with clear, actionable delivery.
               </p>
             </motion.div>
 
@@ -76,12 +90,32 @@ const About = () => {
             className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Team</motion.p>
           <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
             className="text-3xl md:text-4xl font-bold text-foreground mb-12">The People Behind Econsult Africa</motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {team.map((member, i) => (
+
+          {/* Founder Feature */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="bg-background rounded-lg border border-border p-8 md:p-12 card-shadow mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-center">
+              <div className="flex flex-col items-center md:items-start">
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <span className="font-display font-bold text-3xl text-primary">PM</span>
+                </div>
+              </div>
+              <div className="md:col-span-3">
+                <p className="font-mono text-xs text-gold uppercase tracking-widest mb-2">Founder & CEO</p>
+                <h3 className="font-display font-bold text-2xl text-foreground mb-4">Prince Muraguri</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  An economic intelligence strategist with deep expertise in data-driven research, policy analysis, and applied economics across Africa. Known for translating complex economic ideas into clear, actionable insight. Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {team.filter(m => !m.featured).map((member, i) => (
               <motion.div
                 key={member.name}
                 initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i}
+                variants={fadeUp} custom={i + 3}
                 className="bg-background rounded-lg border border-border p-8 card-shadow"
               >
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
@@ -96,6 +130,7 @@ const About = () => {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="section-padding bg-primary">
         <div className="container-page text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">Work with us.</h2>

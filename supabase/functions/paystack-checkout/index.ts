@@ -18,9 +18,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const PAYSTACK_SECRET_KEY = Deno.env.get('PAYSTACK_SECRET_KEY');
-    if (!PAYSTACK_SECRET_KEY) {
-      console.error('PAYSTACK_SECRET_KEY is not configured');
+    const paystackSecretKey = (Deno.env.get('PAYSTACK_SECRET_KEY') ?? Deno.env.get('Paystack_KEY') ?? '').trim();
+    if (!paystackSecretKey) {
+      console.error('Paystack secret key is not configured');
       return new Response(JSON.stringify({ error: 'Payment configuration error. Please contact support.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        Authorization: `Bearer ${paystackSecretKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

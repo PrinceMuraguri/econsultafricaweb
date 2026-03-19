@@ -48,7 +48,7 @@ const Insights = () => {
               Insights from The Economic Whisperer
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed">
-              Articles, podcasts, videos, and research papers on the macroeconomic signals shaping Africa's business environment.
+              Ideas, analysis, and perspectives on African economies — beyond the headlines.
             </motion.p>
           </div>
 

@@ -162,7 +162,7 @@ const Index = () => {
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
               className="space-y-3 mb-8">
                 <p className="text-background/50 text-sm">You get:</p>
-                {["Broad global summaries", "Generic country commentary", "Data without direction"].map((item) =>
+                {["Broad generic summaries", "High level country commentary", "Data without direction"].map((item) =>
                 <div key={item} className="flex items-center gap-3">
                     <AlertTriangle className="w-4 h-4 text-gold/60 flex-shrink-0" />
                     <span className="text-background/60 text-sm">{item}</span>

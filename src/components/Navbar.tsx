@@ -2,15 +2,15 @@ import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Kenya 2026", href: "/kenya-2026" },
+  { label: "Products", href: "/products" },
   { label: "Services", href: "/services" },
-  { label: "Sectors", href: "/sectors" },
   { label: "Insights", href: "/insights" },
-  { label: "Research Decode", href: "/research-decode" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
@@ -26,57 +26,44 @@ const Navbar = () => {
           <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
         </Link>
 
-        {/* Desktop */}
         <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               to={link.href}
               className={`text-sm font-medium transition-colors duration-200 ${
-                location.pathname === link.href
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-accent"
+                location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
               }`}
             >
               {link.label}
             </Link>
           ))}
+          <Button variant="hero" size="sm" className="hover-sink" asChild>
+            <Link to="/kenya-2026">Buy Report</Link>
+          </Button>
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          className="lg:hidden p-2 text-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
+        <button className="lg:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </nav>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-background border-b border-border overflow-hidden"
           >
             <div className="container-page py-4 flex flex-col gap-3">
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`text-sm font-medium py-2 ${
-                    location.pathname === link.href
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  }`}
-                >
+                <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
+                  className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"}`}>
                   {link.label}
                 </Link>
               ))}
+              <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>
+                <Link to="/kenya-2026" onClick={() => setMobileOpen(false)}>Buy Report</Link>
+              </Button>
             </div>
           </motion.div>
         )}

@@ -2,12 +2,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -20,17 +20,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify payment with Paystack
     const PAYSTACK_SECRET_KEY = Deno.env.get('PAYSTACK_SECRET_KEY');
     if (!PAYSTACK_SECRET_KEY) {
-      throw new Error('Paystack secret key not configured');
+      console.error('PAYSTACK_SECRET_KEY not configured');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    console.log('Verifying payment reference:', reference);
 
     const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
     });
 
     const verifyData = await verifyRes.json();
+    console.log('Paystack verification status:', verifyData.data?.status);
 
     if (!verifyData.status || verifyData.data?.status !== 'success') {
       return new Response(JSON.stringify({ error: 'Payment not verified' }), {
@@ -39,7 +45,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate a signed URL for the report (valid for 1 hour)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -49,14 +54,19 @@ Deno.serve(async (req) => {
       .createSignedUrl('Kenya_2026_Economic_Outlook.pdf', 3600);
 
     if (error || !data?.signedUrl) {
-      throw new Error('Failed to generate download link');
+      console.error('Storage error:', error?.message);
+      return new Response(JSON.stringify({ error: 'Failed to generate download link' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     return new Response(JSON.stringify({ download_url: data.signedUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Download error:', error.message);
+    return new Response(JSON.stringify({ error: 'Something went wrong' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

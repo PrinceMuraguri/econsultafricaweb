@@ -6,9 +6,9 @@ const footerLinks = [
     title: "Intelligence",
     links: [
       { label: "Kenya 2026 Outlook", href: "/kenya-2026" },
-      { label: "Sector Briefs", href: "/sectors" },
+      { label: "Products", href: "/products" },
       { label: "Insights", href: "/insights" },
-      { label: "Research Decode", href: "/research-decode" },
+      { label: "Sample Report", href: "/sample-report" },
     ],
   },
   {
@@ -28,18 +28,34 @@ const footerLinks = [
   },
 ];
 
+const socialLinks = [
+  { label: "LinkedIn", href: "https://linkedin.com" },
+  { label: "Facebook", href: "https://facebook.com" },
+  { label: "Instagram", href: "https://instagram.com" },
+  { label: "TikTok", href: "https://tiktok.com" },
+];
+
 const Footer = () => {
   return (
     <footer className="border-t border-border bg-muted/50">
       <div className="container-page py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-12">
+          <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2">
               <img src={logo} alt="Econsult Africa" className="h-14 w-auto" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
-              Strategic economic intelligence for organizations navigating the Kenyan market.
+              Strategic economic intelligence for organizations navigating African markets.
             </p>
+            <div className="mt-6 flex gap-4">
+              {socialLinks.map((social) => (
+                <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer"
+                  className="text-xs font-medium text-muted-foreground hover:text-accent transition-colors">
+                  {social.label}
+                </a>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">hello@econsultafrica.com</p>
           </div>
 
           {footerLinks.map((group) => (
@@ -48,10 +64,7 @@ const Footer = () => {
               <ul className="space-y-3">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      to={link.href}
-                      className="text-sm text-muted-foreground hover:text-accent transition-colors"
-                    >
+                    <Link to={link.href} className="text-sm text-muted-foreground hover:text-accent transition-colors">
                       {link.label}
                     </Link>
                   </li>
@@ -65,9 +78,7 @@ const Footer = () => {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Econsult Africa. All rights reserved.
           </p>
-          <p className="font-mono text-xs text-muted-foreground">
-            Nairobi, Kenya
-          </p>
+          <p className="font-mono text-xs text-muted-foreground">Nairobi, Kenya</p>
         </div>
       </div>
     </footer>

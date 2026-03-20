@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import AfricaMapSection from "@/components/AfricaMapSection";
+import WhoThisIsFor from "@/components/WhoThisIsFor";
+import EmailCapture from "@/components/EmailCapture";
+import SocialProof from "@/components/SocialProof";
+import StickyCTA from "@/components/StickyCTA";
 import {
   ArrowRight, BarChart3, FileText, Users, Briefcase, TrendingUp, Shield,
   Check, Globe, Mic, Video, BookOpen, Target, Zap, AlertTriangle,
@@ -54,6 +58,8 @@ const team = [
 const Index = () => {
   return (
     <Layout>
+      <StickyCTA />
+
       {/* Hero */}
       <section className="section-padding overflow-hidden">
         <div className="container-page">
@@ -77,7 +83,7 @@ const Index = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.5 }}
-                className="space-y-4 mb-8 max-w-xl">
+                className="space-y-4 mb-6 max-w-xl">
                 
                 <p className="text-lg text-muted-foreground leading-relaxed">
                   Most organizations receive economic updates.
@@ -88,10 +94,32 @@ const Index = () => {
                   Econsult Africa translates macroeconomic trends across Africa into clear, decision-focused intelligence for businesses, investors, and strategy teams.
                 </p>
               </motion.div>
+
+              {/* Who this is for line */}
+              <motion.p
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-sm font-medium text-foreground mb-4">
+                For leadership teams, investors, and strategy units operating in Africa.
+              </motion.p>
+
+              {/* Micro trust signals */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.22, duration: 0.5 }}
+                className="flex flex-wrap gap-x-6 gap-y-2 mb-6">
+                <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3.5 h-3.5 text-primary" /> Used for strategic planning and decision-making
+                </span>
+                <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="w-3.5 h-3.5 text-primary" /> Designed for real-world application, not academic theory
+                </span>
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25, duration: 0.5 }}
-                className="flex flex-col sm:flex-row gap-4 mb-6">
+                className="flex flex-col sm:flex-row gap-4 mb-4">
                 
                 <Button variant="hero" size="lg" className="hover-sink" asChild>
                   <Link to="/kenya-2026">Get Kenya 2026 Outlook <ArrowRight className="ml-1" /></Link>
@@ -103,9 +131,8 @@ const Index = () => {
               <motion.p
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-sm text-muted-foreground italic">
-                
-                2026 planning is already happening. Are you working with the right economic picture?
+                className="text-sm text-accent font-medium">
+                2026 planning cycles are already underway.
               </motion.p>
             </div>
             <motion.div
@@ -147,7 +174,6 @@ const Index = () => {
               className="font-mono text-xs text-gold uppercase tracking-widest mb-4">The Gap</motion.p>
               <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
               className="text-3xl md:text-4xl font-bold text-background mb-6">The Problem with Most Economic Insights
-
               </motion.h2>
               <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
               className="text-lg text-background/70 leading-relaxed mb-6">
@@ -192,8 +218,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Who This Is For */}
+      <WhoThisIsFor />
+
       {/* Solution Section */}
-      <section className="section-padding">
+      <section className="section-padding bg-muted/50">
         <div className="container-page">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
@@ -242,7 +271,7 @@ const Index = () => {
       {/* Africa Coverage — Premium Map Section */}
       <AfricaMapSection />
 
-      {/* Flagship Product */}
+      {/* Flagship Product — Strengthened */}
       <section className="section-padding">
         <div className="container-page">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -252,38 +281,45 @@ const Index = () => {
               <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
               className="text-3xl md:text-4xl font-bold text-foreground mb-6">Kenya 2026 Economic Outlook</motion.h2>
               <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-              className="text-lg text-muted-foreground leading-relaxed mb-4">
+              className="text-lg text-muted-foreground leading-relaxed mb-6">
                 A comprehensive, decision-focused analysis of Kenya's economic trajectory in 2026.
               </motion.p>
-              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
-              className="text-muted-foreground leading-relaxed mb-4">
-                This is not a generic outlook. It is designed for:
-              </motion.p>
+
+              {/* Why this matters */}
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
+              className="bg-muted/50 rounded-lg border border-border p-6 mb-6">
+                <p className="font-display font-semibold text-foreground mb-3">Why this matters</p>
+                <div className="space-y-2">
+                  {[
+                    "Move beyond generic economic updates",
+                    "Understand what trends mean for your business",
+                    "Make decisions with confidence, not guesswork",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3">
+                      <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}
               className="space-y-2 mb-6">
-                {["Leadership teams making strategic decisions", "Strategy & planning units preparing for 2026", "Investors and operators evaluating Kenya"].map((item) =>
-                <div key={item} className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{item}</span>
-                  </div>
-                )}
-              </motion.div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5}
-              className="space-y-2 mb-8">
                 <p className="text-sm font-semibold text-foreground">What you get:</p>
                 {[
                 "Clear macroeconomic direction for 2026",
-                "10 sector-level deep-dives with implications",
-                "Practical insight for decision-making",
-                "Quarterly update supplements included"].
-                map((b) =>
+                "GDP, inflation, and currency projections you can plan around",
+                "10 sector deep-dives with opportunity and risk vectors",
+                "Policy tracker covering fiscal, regulatory, and trade shifts",
+                "Investment thesis and capital allocation framework",
+                ].map((b) =>
                 <div key={b} className="flex items-start gap-3">
                     <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-muted-foreground">{b}</span>
                   </div>
                 )}
               </motion.div>
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={6}
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5}
               className="flex flex-col sm:flex-row gap-4 mb-4">
                 <Button variant="hero" size="lg" className="hover-sink" asChild>
                   <Link to="/kenya-2026">Buy Full Report — $495 <ArrowRight className="ml-1" /></Link>
@@ -292,9 +328,9 @@ const Index = () => {
                   <Link to="/sample-report">Download Sample</Link>
                 </Button>
               </motion.div>
-              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={7}
+              <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={6}
               className="text-xs text-muted-foreground italic">
-                Used during annual planning cycles and strategic reviews.
+                Used during annual planning cycles and strategic reviews. 2026 planning is already happening.
               </motion.p>
             </div>
             <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
@@ -403,8 +439,29 @@ const Index = () => {
               </motion.article>
             )}
           </div>
+
+          {/* Conversion bridge */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+          className="mt-12 bg-primary/5 border border-primary/10 rounded-lg p-8 text-center">
+            <p className="font-display font-semibold text-foreground text-lg mb-2">Want deeper insight?</p>
+            <p className="text-sm text-muted-foreground mb-6">Go beyond the headlines with our full reports and advisory products.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="hero" size="default" className="hover-sink" asChild>
+                <Link to="/kenya-2026">Buy Kenya Outlook <ArrowRight className="ml-1" /></Link>
+              </Button>
+              <Button variant="hero-outline" size="default" className="hover-sink" asChild>
+                <Link to="/products">View All Products</Link>
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* Social Proof */}
+      <SocialProof />
+
+      {/* Email Capture */}
+      <EmailCapture />
 
       {/* Founder */}
       <section className="section-padding bg-muted/50">
@@ -445,27 +502,23 @@ const Index = () => {
           <motion.h2
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
             className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
-            
             Better Decisions Start with Better Economic Insight
           </motion.h2>
           <motion.p
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
             className="text-lg text-primary-foreground/70 mb-4 max-w-2xl mx-auto">
-            
             If your organization operates in Africa, understanding the economic landscape is not optional.
           </motion.p>
           <motion.p
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
             className="text-xl font-display font-semibold text-primary-foreground mb-8">
-            
             It is strategic.
           </motion.p>
           <motion.div
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
             className="flex flex-col sm:flex-row gap-4 justify-center">
-            
             <Button variant="gold" size="lg" className="hover-sink" asChild>
-              <Link to="/kenya-2026">Buy Kenya Report</Link>
+              <Link to="/kenya-2026">Buy Kenya Report <ArrowRight className="ml-1" /></Link>
             </Button>
             <Button size="lg" className="hover-sink bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-display font-semibold" asChild>
               <Link to="/contact">Book a Consultation</Link>

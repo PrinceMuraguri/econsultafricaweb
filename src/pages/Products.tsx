@@ -113,7 +113,7 @@ const Products = () => {
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}
               className="text-lg text-muted-foreground leading-relaxed">
-              Explore our growing library of reports, insights, and strategic tools designed for decision-makers operating in Africa.
+              Economic intelligence tailored to your needs — from quick insights to deep strategic analysis.
             </motion.p>
           </div>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,39 @@ const countryNodes: CountryNode[] = [
   { id: "rwanda", name: "Rwanda", xPct: 64.4, yPct: 54.5, status: "coming", label: "Coming Soon", description: "Innovation hub & regional integration" },
   { id: "south-africa", name: "South Africa", xPct: 59.1, yPct: 91.9, status: "coming", label: "Coming Soon", description: "Fiscal trajectory & mining outlook" },
 ];
+
+/** Loads the Africa SVG inline so we can style country borders */
+const InlineAfricaSvg = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/images/africa.svg")
+      .then((r) => r.text())
+      .then((svgText) => {
+        if (!containerRef.current) return;
+        containerRef.current.innerHTML = svgText;
+        const svg = containerRef.current.querySelector("svg");
+        if (!svg) return;
+        // Make SVG responsive
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.style.display = "block";
+        // Style all country paths
+        svg.querySelectorAll("path").forEach((path) => {
+          path.setAttribute("fill", "hsl(var(--background))");
+          path.setAttribute("fill-opacity", "0.12");
+          path.setAttribute("stroke", "hsl(var(--background))");
+          path.setAttribute("stroke-opacity", "0.18");
+          path.setAttribute("stroke-width", "0.35");
+          path.setAttribute("stroke-linejoin", "round");
+        });
+      });
+  }, []);
+
+  return <div ref={containerRef} className="w-full h-auto" aria-label="Map of Africa" />;
+};
 
 const AfricaMapSection = () => {
   const [hovered, setHovered] = useState<string | null>(null);
@@ -130,13 +163,8 @@ const AfricaMapSection = () => {
             className="relative hidden lg:block"
           >
             <div className="relative w-full max-w-[540px] mx-auto">
-              {/* Real Africa SVG map */}
-              <img
-                src="/images/africa.svg"
-                alt="Map of Africa"
-                className="w-full h-auto opacity-20"
-                style={{ filter: "brightness(3) saturate(0.3)" }}
-              />
+              {/* Inline Africa SVG with country borders */}
+              <InlineAfricaSvg />
 
               {/* SVG overlay for nodes, lines, and labels */}
               <svg

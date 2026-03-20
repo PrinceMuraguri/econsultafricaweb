@@ -30,6 +30,39 @@ const countryNodes: CountryNode[] = [
   { id: "south-africa", name: "South Africa", xPct: 59.1, yPct: 91.9, status: "coming", label: "Coming Soon", description: "Fiscal trajectory & mining outlook" },
 ];
 
+/** Loads the Africa SVG inline so we can style country borders */
+const InlineAfricaSvg = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/images/africa.svg")
+      .then((r) => r.text())
+      .then((svgText) => {
+        if (!containerRef.current) return;
+        containerRef.current.innerHTML = svgText;
+        const svg = containerRef.current.querySelector("svg");
+        if (!svg) return;
+        // Make SVG responsive
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.style.display = "block";
+        // Style all country paths
+        svg.querySelectorAll("path").forEach((path) => {
+          path.setAttribute("fill", "hsl(var(--background))");
+          path.setAttribute("fill-opacity", "0.12");
+          path.setAttribute("stroke", "hsl(var(--background))");
+          path.setAttribute("stroke-opacity", "0.18");
+          path.setAttribute("stroke-width", "0.35");
+          path.setAttribute("stroke-linejoin", "round");
+        });
+      });
+  }, []);
+
+  return <div ref={containerRef} className="w-full h-auto" aria-label="Map of Africa" />;
+};
+
 const AfricaMapSection = () => {
   const [hovered, setHovered] = useState<string | null>(null);
 

@@ -30,7 +30,7 @@ const countryNodes: CountryNode[] = [
   { id: "south-africa", name: "South Africa", xPct: 59.1, yPct: 91.9, status: "coming", label: "Coming Soon", description: "Fiscal trajectory & mining outlook" },
 ];
 
-/** Loads the Africa SVG inline so we can style country borders */
+/* Loads the Africa SVG inline so we can style country borders */
 const InlineAfricaSvg = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 

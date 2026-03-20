@@ -2,9 +2,10 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import AfricaMapSection from "@/components/AfricaMapSection";
 import {
   ArrowRight, BarChart3, FileText, Users, Briefcase, TrendingUp, Shield,
-  Lock, Check, Globe, Mic, Video, BookOpen, Target, Zap, AlertTriangle,
+  Check, Globe, Mic, Video, BookOpen, Target, Zap, AlertTriangle,
   Lightbulb, ArrowDown } from
 "lucide-react";
 

@@ -208,6 +208,40 @@ const Products = () => {
         </div>
       </section>
 
+      {/* Quick Insight Briefs */}
+      <section className="section-padding">
+        <div className="container-page">
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Quick Insights</motion.p>
+          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Quick Insight Briefs
+          </motion.h2>
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="text-muted-foreground mb-12 max-w-2xl">
+            Short, focused 5–10 page briefs on specific topics. Get clarity on a single question — fast.
+          </motion.p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {quickInsights.map((brief, i) => (
+              <motion.div
+                key={brief.title}
+                initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i}
+                whileHover={{ y: -4 }}
+                className="bg-background rounded-lg border border-border p-6 card-shadow"
+              >
+                <span className="inline-block text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-pill mb-3">{brief.topic}</span>
+                <h3 className="font-display font-bold text-foreground mb-2 text-sm">{brief.title}</h3>
+                <p className="font-display font-bold text-xl text-primary mb-4">{brief.price}</p>
+                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
+                  <Link to="/contact">Get Brief <ArrowRight className="ml-1" /></Link>
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section-padding bg-primary">
         <div className="container-page text-center">

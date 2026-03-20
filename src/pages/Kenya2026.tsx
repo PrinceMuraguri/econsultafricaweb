@@ -86,12 +86,14 @@ const Kenya2026 = () => {
                     {loading ? "Processing…" : "Buy Full Report — $495"} <ArrowRight className="ml-1" />
                   </Button>
                   <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
-                    <Link to="/sample-report">Browse the Sample</Link>
+                    <Link to="/sample-report">Download Sample</Link>
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Secure checkout via Paystack. Instant digital delivery.
-                </p>
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-primary" /> Secure payment via Paystack</span>
+                  <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-primary" /> Instant access after purchase</span>
+                  <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-primary" /> Single organization license</span>
+                </div>
               </motion.div>
 
               <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={5}>

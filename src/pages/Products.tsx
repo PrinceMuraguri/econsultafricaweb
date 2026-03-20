@@ -84,6 +84,13 @@ const tiers = [
   },
 ];
 
+const quickInsights = [
+  { title: "Kenya Inflation Watch Q2 2026", price: "$25", topic: "Inflation" },
+  { title: "KES vs USD: H2 Projection Brief", price: "$35", topic: "Currency" },
+  { title: "Tourism Sector Snapshot", price: "$15", topic: "Tourism" },
+  { title: "Agriculture Export Risk Brief", price: "$25", topic: "Agriculture" },
+];
+
 const sectorReports = [
   { title: "Kenya Banking Sector Outlook", price: "$195", type: "Financial Services" },
   { title: "Africa Tourism Sector Brief", price: "$150", type: "Tourism" },
@@ -106,7 +113,7 @@ const Products = () => {
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}
               className="text-lg text-muted-foreground leading-relaxed">
-              Explore our growing library of reports, insights, and strategic tools designed for decision-makers operating in Africa.
+              Economic intelligence tailored to your needs — from quick insights to deep strategic analysis.
             </motion.p>
           </div>
 
@@ -194,6 +201,40 @@ const Products = () => {
                 <p className="font-display font-bold text-xl text-primary mb-4">{report.price}</p>
                 <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
                   <Link to="/contact">Inquire <ArrowRight className="ml-1" /></Link>
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Insight Briefs */}
+      <section className="section-padding">
+        <div className="container-page">
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Quick Insights</motion.p>
+          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Quick Insight Briefs
+          </motion.h2>
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="text-muted-foreground mb-12 max-w-2xl">
+            Short, focused 5–10 page briefs on specific topics. Get clarity on a single question — fast.
+          </motion.p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {quickInsights.map((brief, i) => (
+              <motion.div
+                key={brief.title}
+                initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i}
+                whileHover={{ y: -4 }}
+                className="bg-background rounded-lg border border-border p-6 card-shadow"
+              >
+                <span className="inline-block text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-pill mb-3">{brief.topic}</span>
+                <h3 className="font-display font-bold text-foreground mb-2 text-sm">{brief.title}</h3>
+                <p className="font-display font-bold text-xl text-primary mb-4">{brief.price}</p>
+                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
+                  <Link to="/contact">Get Brief <ArrowRight className="ml-1" /></Link>
                 </Button>
               </motion.div>
             ))}

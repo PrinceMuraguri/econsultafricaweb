@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { BookOpen, Mic, Video, BarChart3, Search } from "lucide-react";
+import { BookOpen, Mic, Video, BarChart3, Search, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -109,6 +111,21 @@ const Insights = () => {
               <p className="text-muted-foreground">No insights found matching your criteria.</p>
             </div>
           )}
+
+          {/* Conversion bridge */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+          className="mt-16 bg-primary/5 border border-primary/10 rounded-lg p-8 text-center">
+            <p className="font-display font-semibold text-foreground text-lg mb-2">Want deeper insight?</p>
+            <p className="text-sm text-muted-foreground mb-6">These articles scratch the surface. Our full reports go 10× deeper — with sector-level analysis and actionable frameworks.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="hero" size="default" className="hover-sink" asChild>
+                <Link to="/kenya-2026">Buy Kenya 2026 Outlook <ArrowRight className="ml-1" /></Link>
+              </Button>
+              <Button variant="hero-outline" size="default" className="hover-sink" asChild>
+                <Link to="/products">View All Reports</Link>
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
     </Layout>

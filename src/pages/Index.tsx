@@ -17,12 +17,7 @@ const fadeUp = {
   })
 };
 
-const countries = [
-{ name: "Kenya", flag: "🇰🇪", status: "available", description: "Comprehensive 2026 economic outlook with 10 sector deep-dives.", href: "/kenya-2026" },
-{ name: "South Africa", flag: "🇿🇦", status: "coming", description: "Fiscal trajectory, mining outlook, and policy risk analysis." },
-{ name: "Nigeria", flag: "🇳🇬", status: "coming", description: "Currency dynamics, oil dependency, and diversification signals." },
-{ name: "Egypt", flag: "🇪🇬", status: "coming", description: "IMF reform roadmap, Suez economics, and growth projections." },
-{ name: "Rwanda", flag: "🇷🇼", status: "coming", description: "Innovation hub trajectory and regional integration outlook." }];
+
 
 
 const services = [

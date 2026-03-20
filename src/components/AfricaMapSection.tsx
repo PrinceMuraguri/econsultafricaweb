@@ -284,7 +284,7 @@ const AfricaMapSection = () => {
                         fill="#F4714D"
                         fontSize="8"
                         fontFamily="'JetBrains Mono', monospace"
-                        textTransform="uppercase"
+                        style={{ textTransform: "uppercase" }}
                         letterSpacing="0.1em"
                       >
                         AVAILABLE NOW

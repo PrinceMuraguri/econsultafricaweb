@@ -84,6 +84,13 @@ const tiers = [
   },
 ];
 
+const quickInsights = [
+  { title: "Kenya Inflation Watch Q2 2026", price: "$25", topic: "Inflation" },
+  { title: "KES vs USD: H2 Projection Brief", price: "$35", topic: "Currency" },
+  { title: "Tourism Sector Snapshot", price: "$15", topic: "Tourism" },
+  { title: "Agriculture Export Risk Brief", price: "$25", topic: "Agriculture" },
+];
+
 const sectorReports = [
   { title: "Kenya Banking Sector Outlook", price: "$195", type: "Financial Services" },
   { title: "Africa Tourism Sector Brief", price: "$150", type: "Tourism" },

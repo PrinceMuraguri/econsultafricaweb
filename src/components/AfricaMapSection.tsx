@@ -130,13 +130,8 @@ const AfricaMapSection = () => {
             className="relative hidden lg:block"
           >
             <div className="relative w-full max-w-[540px] mx-auto">
-              {/* Real Africa SVG map */}
-              <img
-                src="/images/africa.svg"
-                alt="Map of Africa"
-                className="w-full h-auto opacity-20"
-                style={{ filter: "brightness(3) saturate(0.3)" }}
-              />
+              {/* Inline Africa SVG with country borders */}
+              <InlineAfricaSvg />
 
               {/* SVG overlay for nodes, lines, and labels */}
               <svg

@@ -5,8 +5,6 @@ import Layout from "@/components/Layout";
 import { BookOpen, Mic, Video, BarChart3, Search, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Mic, Video, BarChart3, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },

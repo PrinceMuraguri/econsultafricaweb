@@ -244,53 +244,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Africa Coverage */}
-      <section id="africa-coverage" className="section-padding bg-muted/50">
-        <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-          className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Coverage</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-          className="text-3xl md:text-4xl font-bold text-foreground mb-4">Pan-African Economic Intelligence</motion.h2>
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-          className="text-lg text-muted-foreground mb-4 max-w-2xl">
-            We are building a platform of country-level economic intelligence across Africa's most important economies.
-          </motion.p>
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
-          className="text-sm text-muted-foreground mb-12 max-w-2xl">
-            Kenya is our flagship market. Others are already in development.
-          </motion.p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {countries.map((country, i) =>
-            <motion.div
-              key={country.name}
-              initial="hidden" whileInView="visible" viewport={{ once: true }}
-              variants={fadeUp} custom={i}
-              className={`relative rounded-lg border p-6 transition-all ${
-              country.status === "available" ?
-              "bg-background border-primary/30 card-shadow-lg" :
-              "bg-background/60 border-border backdrop-blur-sm"}`
-              }>
-              
-                {country.status === "coming" &&
-              <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] rounded-lg z-10 flex flex-col items-center justify-center">
-                    <Lock className="w-5 h-5 text-muted-foreground mb-2" />
-                    <span className="text-sm font-semibold text-muted-foreground">Coming Soon</span>
-                    <span className="text-xs text-muted-foreground mt-1">In development</span>
-                  </div>
-              }
-                <span className="text-3xl mb-3 block">{country.flag}</span>
-                <h3 className="font-display font-bold text-foreground mb-2">{country.name}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4">{country.description}</p>
-                {country.status === "available" &&
-              <Button variant="hero" size="sm" className="w-full hover-sink" asChild>
-                    <Link to={country.href!}>View Report <ArrowRight className="ml-1" /></Link>
-                  </Button>
-              }
-              </motion.div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Africa Coverage — Premium Map Section */}
+      <AfricaMapSection />
 
       {/* Flagship Product */}
       <section className="section-padding">

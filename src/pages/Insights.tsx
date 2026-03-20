@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import { BookOpen, Mic, Video, BarChart3, Search, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { BookOpen, Mic, Video, BarChart3, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 

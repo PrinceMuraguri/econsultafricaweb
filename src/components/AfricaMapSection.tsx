@@ -134,7 +134,7 @@ const AfricaMapSection = () => {
               <img
                 src="/images/africa.svg"
                 alt="Map of Africa"
-                className="w-full h-auto opacity-40"
+                className="w-full h-auto opacity-50"
                 style={{ filter: "brightness(6) saturate(0.2)" }}
               />
 

@@ -7,6 +7,7 @@ import the2027Shadow from "@/assets/articles/the-2027-shadow.png";
 import oilShockKenya from "@/assets/articles/oil-shock-kenya.png";
 import chinaNewPlaybook from "@/assets/articles/china-new-playbook.png";
 import agoaLastBreath from "@/assets/articles/agoa-last-breath.png";
+import shillingStrangeStillness from "@/assets/articles/shilling-strange-stillness.png";
 
 export interface Article {
   id: string;
@@ -259,6 +260,7 @@ export const articles: Article[] = [
     readTime: "11 min",
     category: "Currency",
     excerpt: "Oil has surged past $100 a barrel. Global markets are in turmoil. Emerging market currencies are under pressure. And the Kenyan shilling? It is sitting at 129 to the dollar. Exactly where it has been for nearly two years.",
+    heroImage: shillingStrangeStillness,
     content: [
       "Oil has surged past $100 a barrel. The Strait of Hormuz is effectively closed. Global markets are in turmoil. Emerging market currencies are under pressure. And the Kenyan shilling? It is sitting at 129 to the dollar. Exactly where it has been for nearly two years.",
       "The KES/USD rate has traded within a band of roughly 128.75 to 130.38 for over eighteen months. The 52-week range is barely 1.2%. In a world where currency volatility is the norm, the shilling's stillness is remarkable. It is also a problem.",

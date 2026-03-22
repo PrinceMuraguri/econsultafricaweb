@@ -9,6 +9,7 @@ import Services from "./pages/Services.tsx";
 import Products from "./pages/Products.tsx";
 import Sectors from "./pages/Sectors.tsx";
 import Insights from "./pages/Insights.tsx";
+import ArticleDetail from "./pages/ArticleDetail.tsx";
 import ResearchDecode from "./pages/ResearchDecode.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/products" element={<Products />} />
           <Route path="/sectors" element={<Sectors />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/insights/:slug" element={<ArticleDetail />} />
           <Route path="/research-decode" element={<ResearchDecode />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

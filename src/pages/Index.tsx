@@ -7,6 +7,7 @@ import WhoThisIsFor from "@/components/WhoThisIsFor";
 import EmailCapture from "@/components/EmailCapture";
 import SocialProof from "@/components/SocialProof";
 import StickyCTA from "@/components/StickyCTA";
+import ForecastWidget from "@/components/forecast/ForecastWidget";
 import {
   ArrowRight, BarChart3, FileText, Users, Briefcase, TrendingUp, Shield,
   Check, Globe, Mic, Video, BookOpen, Target, Zap, AlertTriangle,
@@ -59,6 +60,7 @@ const Index = () => {
   return (
     <Layout>
       <StickyCTA />
+      <ForecastWidget />
 
       {/* Hero */}
       <section className="section-padding overflow-hidden">

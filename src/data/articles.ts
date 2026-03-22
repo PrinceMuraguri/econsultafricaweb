@@ -269,6 +269,7 @@ export const articles: Article[] = [
     date: "2026-03-22",
     readTime: "10 min",
     category: "Remittances",
+    heroImage: fiveBillionLifeline,
     excerpt: "Quick. Name Kenya's largest source of foreign exchange. If you said tea, you are wrong. Coffee? Wrong. Tourism? Wrong. The answer is Kenyans who do not live in Kenya.",
     content: [
       "Quick. Name Kenya's largest source of foreign exchange. If you said tea, you are wrong. Coffee? Wrong. Tourism? Wrong. Horticulture? Also wrong. The answer is Kenyans who do not live in Kenya.",

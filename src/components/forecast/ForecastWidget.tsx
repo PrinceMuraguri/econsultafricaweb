@@ -53,7 +53,7 @@ const ForecastWidget = () => {
               <p className="text-xs text-muted-foreground mb-2">{randomText}</p>
             </div>
             <div className="px-2 pb-3">
-              <PollCard poll={featuredPoll} compact />
+              <PollCard poll={featuredPoll} />
             </div>
           </div>
         </motion.div>

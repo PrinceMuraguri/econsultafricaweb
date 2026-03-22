@@ -18,6 +18,7 @@ import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import ForecastArena from "./pages/ForecastArena.tsx";
 import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
 import StakeResult from "./pages/StakeResult.tsx";
+import HowItWorks from "./pages/HowItWorks.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();

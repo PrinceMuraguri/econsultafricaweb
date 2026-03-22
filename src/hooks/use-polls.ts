@@ -6,6 +6,7 @@ export interface PollOption {
   poll_id: string;
   label: string;
   total_votes_count: number;
+  total_stake_amount: number;
 }
 
 export interface Poll {

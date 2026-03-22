@@ -16,6 +16,7 @@ import SampleReport from "./pages/SampleReport.tsx";
 import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import ForecastArena from "./pages/ForecastArena.tsx";
 import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
+import StakeResult from "./pages/StakeResult.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/sample-report" element={<SampleReport />} />
           <Route path="/purchase-success" element={<PurchaseSuccess />} />
           <Route path="/forecast-arena" element={<ForecastArena />} />
+          <Route path="/forecast-arena/stake-result" element={<StakeResult />} />
           <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -14,12 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          poll_id: string
+          reference: string | null
+          status: string
+          voter_fingerprint: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          poll_id: string
+          reference?: string | null
+          status?: string
+          voter_fingerprint: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          poll_id?: string
+          reference?: string | null
+          status?: string
+          voter_fingerprint?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_options: {
         Row: {
           created_at: string
           id: string
           label: string
           poll_id: string
+          total_stake_amount: number
           total_votes_count: number
         }
         Insert: {
@@ -27,6 +66,7 @@ export type Database = {
           id?: string
           label: string
           poll_id: string
+          total_stake_amount?: number
           total_votes_count?: number
         }
         Update: {
@@ -34,6 +74,7 @@ export type Database = {
           id?: string
           label?: string
           poll_id?: string
+          total_stake_amount?: number
           total_votes_count?: number
         }
         Relationships: [
@@ -91,29 +132,92 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          channel: string
+          created_at: string
+          currency: string
+          id: string
+          option_id: string
+          poll_id: string
+          reference: string
+          status: string
+          voter_fingerprint: string
+        }
+        Insert: {
+          amount: number
+          channel?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          option_id: string
+          poll_id: string
+          reference: string
+          status?: string
+          voter_fingerprint: string
+        }
+        Update: {
+          amount?: number
+          channel?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          option_id?: string
+          poll_id?: string
+          reference?: string
+          status?: string
+          voter_fingerprint?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           created_at: string
           id: string
           ip_address: string | null
+          is_staked: boolean
           option_id: string
+          payment_reference: string | null
           poll_id: string
+          stake_amount: number | null
           voter_fingerprint: string
         }
         Insert: {
           created_at?: string
           id?: string
           ip_address?: string | null
+          is_staked?: boolean
           option_id: string
+          payment_reference?: string | null
           poll_id: string
+          stake_amount?: number | null
           voter_fingerprint: string
         }
         Update: {
           created_at?: string
           id?: string
           ip_address?: string | null
+          is_staked?: boolean
           option_id?: string
+          payment_reference?: string | null
           poll_id?: string
+          stake_amount?: number | null
           voter_fingerprint?: string
         }
         Relationships: [
@@ -138,6 +242,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      increment_stake_amount: {
+        Args: { p_amount: number; p_option_id: string }
+        Returns: undefined
+      }
       increment_vote_count: {
         Args: { p_option_id: string }
         Returns: undefined

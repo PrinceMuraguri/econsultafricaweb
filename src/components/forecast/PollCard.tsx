@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, Users, Lock, Check } from "lucide-react";
+import { Clock, Users, Lock, Check, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import type { Poll } from "@/hooks/use-polls";
+import StakeModal from "./StakeModal";
+import type { Poll, PollOption } from "@/hooks/use-polls";
 
 function getTimeRemaining(closeAt: string) {
   const diff = new Date(closeAt).getTime() - Date.now();
@@ -29,6 +30,8 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
+  const [stakeOpen, setStakeOpen] = useState(false);
+  const [stakeOption, setStakeOption] = useState<PollOption | null>(null);
 
   useEffect(() => {
     setLocalOptions(poll.poll_options);
@@ -170,6 +173,25 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         })}
       </div>
 
+      {/* Stake CTA */}
+      {!hasVoted && !isClosed && !compact && (
+        <div className="mb-4 pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground mb-2">Or back your prediction with a stake:</p>
+          <div className="flex gap-2">
+            {localOptions.map((option) => (
+              <button
+                key={`stake-${option.id}`}
+                onClick={() => { setStakeOption(option); setStakeOpen(true); }}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-colors text-xs font-semibold"
+              >
+                <DollarSign className="w-3 h-3" />
+                Stake {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Users className="w-3 h-3" />
@@ -191,6 +213,13 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           Voting closed
         </div>
       )}
+
+      <StakeModal
+        open={stakeOpen}
+        onOpenChange={setStakeOpen}
+        poll={poll}
+        selectedOption={stakeOption}
+      />
     </motion.div>
   );
 };

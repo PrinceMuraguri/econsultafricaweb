@@ -20,32 +20,50 @@ interface StakeModalProps {
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [countryCode, setCountryCode] = useState("+254");
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 
-  // Share price is derived from the probability (consensus %)
   const sharePrice = useMemo(() => {
     if (!selectedOption || totalVotes === 0) return 0.50;
     const pct = selectedOption.total_votes_count / totalVotes;
-    // Price = probability, clamped between $0.05 and $0.95
     return Math.max(0.05, Math.min(0.95, Math.round(pct * 100) / 100));
   }, [selectedOption, totalVotes]);
 
   const totalCost = parseFloat((shares * sharePrice).toFixed(2));
-  const potentialPayout = shares; // Each share pays $1 if correct
+  const potentialPayout = shares;
   const potentialProfit = parseFloat((potentialPayout - totalCost).toFixed(2));
 
   const handleStake = async () => {
-    if (!selectedOption || !email || shares < 1) {
-      toast({ title: "Missing info", description: "Please enter your email and number of shares.", variant: "destructive" });
+    if (!selectedOption || !email || !fullName || !phoneNumber || shares < 1) {
+      toast({ title: "Missing info", description: "Please fill in all fields.", variant: "destructive" });
       return;
     }
 
     setLoading(true);
     try {
       const fp = await getFingerprint();
+
+      // Save/update voter profile for payout purposes
+      const { error: profileError } = await supabase
+        .from("voter_profiles")
+        .upsert({
+          voter_fingerprint: fp,
+          email,
+          full_name: fullName,
+          phone_number: phoneNumber,
+          country_code: countryCode,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "voter_fingerprint" });
+
+      if (profileError) {
+        console.error("Profile save error:", profileError);
+      }
+
       const callbackUrl = `${window.location.origin}/forecast-arena/stake-result?reference={reference}`;
 
       const { data, error } = await supabase.functions.invoke("stake-checkout", {
@@ -77,7 +95,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">Buy Shares — Back Your Prediction</DialogTitle>
           <DialogDescription>
@@ -85,9 +103,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 pt-2">
+        <div className="space-y-4 pt-2">
           {/* Poll context */}
-          <div className="bg-muted/50 rounded-lg p-4 border border-border">
+          <div className="bg-muted/50 rounded-lg p-3 border border-border">
             <p className="text-sm font-medium text-foreground mb-1">{poll.title}</p>
             <p className="text-xs text-muted-foreground">
               Your position: <span className="font-semibold text-accent">{selectedOption?.label}</span>
@@ -149,7 +167,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           </div>
 
           {/* Cost breakdown */}
-          <div className="bg-muted/30 rounded-lg p-4 border border-border space-y-2">
+          <div className="bg-muted/30 rounded-lg p-3 border border-border space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{shares} shares × ${sharePrice.toFixed(2)}</span>
               <span className="font-mono font-semibold text-foreground">${totalCost.toFixed(2)}</span>
@@ -169,21 +187,55 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
           </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Email (for payment receipt)</Label>
-            <Input
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+          {/* Contact details */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-foreground">Your Details (for payouts & receipts)</p>
+            
+            <div className="space-y-1.5">
+              <Label className="text-xs">Full Name</Label>
+              <Input
+                type="text"
+                placeholder="John Mwangi"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Email</Label>
+              <Input
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Phone Number (for payouts)</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-20 font-mono text-center"
+                  placeholder="+254"
+                />
+                <Input
+                  type="tel"
+                  placeholder="712345678"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
           </div>
 
           {/* CTA */}
           <Button
             onClick={handleStake}
-            disabled={loading || !email || shares < 1}
+            disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-display font-semibold"
             size="lg"
           >

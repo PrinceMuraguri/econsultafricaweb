@@ -33,6 +33,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
   const [stakeOpen, setStakeOpen] = useState(false);
   const [stakeOption, setStakeOption] = useState<PollOption | null>(null);
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
 
   useEffect(() => {
     setLocalOptions(poll.poll_options);

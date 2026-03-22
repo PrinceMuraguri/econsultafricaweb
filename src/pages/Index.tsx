@@ -60,6 +60,7 @@ const Index = () => {
   return (
     <Layout>
       <StickyCTA />
+      <ForecastWidget />
 
       {/* Hero */}
       <section className="section-padding overflow-hidden">

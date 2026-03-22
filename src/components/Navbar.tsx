@@ -8,6 +8,7 @@ import logo from "@/assets/econsult-africa-logo.png";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Kenya 2026", href: "/kenya-2026" },
+  { label: "Forecast Arena", href: "/forecast-arena" },
   { label: "Products", href: "/products" },
   { label: "Services", href: "/services" },
   { label: "Insights", href: "/insights" },

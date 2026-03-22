@@ -181,6 +181,7 @@ export const articles: Article[] = [
     readTime: "9 min",
     category: "Geopolitics",
     excerpt: "On February 28, the United States and Israel launched military strikes on Iran. The Strait of Hormuz effectively shut down. Brent crude spiked from $70 to over $100 per barrel within days. The tail risk is no longer a tail risk.",
+    heroImage: oilShockKenya,
     content: [
       "In our Kenya 2026 Economic Outlook, we identified a geopolitical oil spike as one of the top ten risks to Kenya's macroeconomic stability. We assigned it a 15 to 25% probability. On February 28, the United States and Israel launched military strikes on Iran. The Strait of Hormuz effectively shut down. Brent crude spiked from $70 to over $100 per barrel within days, briefly touching $119.",
       "The tail risk is no longer a tail risk. It is the headline.",

@@ -62,7 +62,7 @@ export const articles: Article[] = [
     date: "2026-01-09",
     readTime: "10 min",
     category: "Monetary Policy",
-    excerpt: "Imagine a hospital where the doctor prescribes the correct medication, at the correct dosage, on the correct schedule, and the patient barely improves. That is the story of monetary policy in Kenya right now.",
+    heroImage: tenCutsZeroRelief,
     content: [
       "Imagine a hospital where the doctor prescribes the correct medication, at the correct dosage, on the correct schedule, and the patient barely improves. Not because the diagnosis was wrong. But because somewhere between the pharmacy and the patient's bloodstream, the medicine is being diluted. That is the story of monetary policy in Kenya right now.",
       "## The Longest Easing Cycle in History",

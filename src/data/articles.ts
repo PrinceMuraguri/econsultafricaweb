@@ -9,6 +9,8 @@ import chinaNewPlaybook from "@/assets/articles/china-new-playbook.png";
 import agoaLastBreath from "@/assets/articles/agoa-last-breath.png";
 import shillingStrangeStillness from "@/assets/articles/shilling-strange-stillness.png";
 
+export type ContentType = "Articles" | "Podcasts" | "Videos" | "Research";
+
 export interface Article {
   id: string;
   slug: string;
@@ -17,9 +19,13 @@ export interface Article {
   date: string;
   readTime: string;
   category: string;
+  contentType: ContentType;
   excerpt: string;
   heroImage?: string;
   content: string[];
+  audioUrl?: string;
+  videoUrl?: string;
+  pdfUrl?: string;
 }
 
 export const articles: Article[] = [
@@ -30,6 +36,7 @@ export const articles: Article[] = [
     subtitle: "Why 4.4% Is a Lie Your Kitchen Already Knows",
     date: "2026-01-01",
     readTime: "8 min",
+    contentType: "Articles",
     category: "Inflation",
     excerpt: "A finance minister, a tomato vendor, and a fuel station attendant walk into a room. The minister says inflation is 4.4%. The tomato vendor says it is 30%. The fuel attendant shrugs and says his prices actually fell. They are all telling the truth.",
     heroImage: threeInflations,
@@ -67,6 +74,7 @@ export const articles: Article[] = [
     subtitle: "Kenya's Central Bank Has Done Everything Right. The Economy Can Barely Tell.",
     date: "2026-01-09",
     readTime: "10 min",
+    contentType: "Articles",
     category: "Monetary Policy",
     excerpt: "Imagine a hospital where the doctor prescribes the correct medication, at the correct dosage, on the correct schedule, and the patient barely improves. That is the story of monetary policy in Kenya right now.",
     heroImage: tenCutsZeroRelief,
@@ -98,6 +106,7 @@ export const articles: Article[] = [
     subtitle: "Kenya's Debt Treadmill Is the Crisis Nobody Wants to Name",
     date: "2026-01-18",
     readTime: "9 min",
+    contentType: "Articles",
     category: "Fiscal Policy",
     excerpt: "For every hundred shillings Kenya collects in tax revenue, eighty-one go to creditors. Before a single road is paved. Before a single teacher is paid. Let that settle for a moment.",
     heroImage: borrowingToPayBorrowing,
@@ -125,6 +134,7 @@ export const articles: Article[] = [
     subtitle: "Nobody Is Panicking",
     date: "2026-01-27",
     readTime: "9 min",
+    contentType: "Articles",
     category: "Manufacturing",
     excerpt: "How does a country with 5% GDP growth, a booming digital economy, and a globally celebrated tech hub have a manufacturing sector that is slowly dying? The answer is one of the most important economic stories in Kenya.",
     heroImage: factoriesDisappearing,
@@ -152,6 +162,7 @@ export const articles: Article[] = [
     subtitle: "How Kenya's Elections Hijack Economic Policy Every Five Years",
     date: "2026-02-05",
     readTime: "10 min",
+    contentType: "Articles",
     category: "Political Economy",
     excerpt: "In 1975, the economist William Nordhaus published a theory that governments in democracies systematically manipulate the economy before elections. He was writing about the United States. He could have been writing about Kenya.",
     heroImage: the2027Shadow,
@@ -180,6 +191,7 @@ export const articles: Article[] = [
     subtitle: "What the Iran War Means for an Economy That Imports Every Drop",
     date: "2026-02-14",
     readTime: "9 min",
+    contentType: "Articles",
     category: "Geopolitics",
     excerpt: "On February 28, the United States and Israel launched military strikes on Iran. The Strait of Hormuz effectively shut down. Brent crude spiked from $70 to over $100 per barrel within days. The tail risk is no longer a tail risk.",
     heroImage: oilShockKenya,
@@ -206,6 +218,7 @@ export const articles: Article[] = [
     subtitle: "From Mega-Projects to Zero Tariffs, and What Kenya Should Watch For",
     date: "2026-02-23",
     readTime: "10 min",
+    contentType: "Articles",
     category: "Trade",
     excerpt: "While America builds walls, China is opening doors. That sentence is not editorial commentary. It is trade arithmetic. In February 2026, President Xi Jinping announced zero-tariff treatment for 53 African countries.",
     heroImage: chinaNewPlaybook,
@@ -232,6 +245,7 @@ export const articles: Article[] = [
     subtitle: "66,000 Jobs, One Year, and a Clock That Will Not Stop Ticking",
     date: "2026-03-04",
     readTime: "9 min",
+    contentType: "Articles",
     category: "Trade Policy",
     excerpt: "Somewhere in Athi River, a woman sits behind a sewing machine stitching denim jeans destined for an American retailer. She is one of 66,000 Kenyans whose livelihoods depend on a piece of American trade legislation. And it is dying.",
     heroImage: agoaLastBreath,
@@ -258,6 +272,7 @@ export const articles: Article[] = [
     subtitle: "Why Kenya's Currency Refuses to Move, and Why That Should Make You Nervous",
     date: "2026-03-13",
     readTime: "11 min",
+    contentType: "Articles",
     category: "Currency",
     excerpt: "Oil has surged past $100 a barrel. Global markets are in turmoil. Emerging market currencies are under pressure. And the Kenyan shilling? It is sitting at 129 to the dollar. Exactly where it has been for nearly two years.",
     heroImage: shillingStrangeStillness,
@@ -286,6 +301,7 @@ export const articles: Article[] = [
     subtitle: "Kenya's Biggest Source of Foreign Exchange Is Not Tea. It Is Not Coffee. It Is Not Tourism.",
     date: "2026-03-22",
     readTime: "10 min",
+    contentType: "Articles",
     category: "Remittances",
     heroImage: fiveBillionLifeline,
     excerpt: "Quick. Name Kenya's largest source of foreign exchange. If you said tea, you are wrong. Coffee? Wrong. Tourism? Wrong. The answer is Kenyans who do not live in Kenya.",
@@ -307,6 +323,201 @@ export const articles: Article[] = [
       "## The Macro Anchor",
       "Despite vulnerabilities, remittances remain Kenya's most important macroeconomic stabiliser. They directly support the $12.5 billion reserve position. They narrow the current account deficit. In a year when oil prices are spiking and the global outlook is darkening, the steady monthly flow of $400 to $450 million is the difference between fragile stability and something worse.",
       "The $5 billion lifeline is real. The question Kenya must answer is whether it remains forever a lifeline, or whether it can become a foundation.",
+    ],
+  },
+  // ===== PODCASTS =====
+  {
+    id: "p1",
+    slug: "podcast-five-billion-lifeline",
+    title: "The $5 Billion Lifeline Nobody Talks About",
+    subtitle: "Diaspora remittances and why they matter more than tea, coffee, and tourism combined",
+    date: "2026-03-20",
+    readTime: "32 min",
+    contentType: "Podcasts",
+    category: "Remittances",
+    excerpt: "In this episode, we unpack Kenya's largest source of foreign exchange — the $5 billion sent home annually by Kenyans abroad. Why does nobody treat this as the strategic asset it is?",
+    audioUrl: "",
+    content: [
+      "In this episode of The Economic Whisperer, we unpack Kenya's largest and most overlooked source of foreign exchange: diaspora remittances.",
+      "We explore why $5 billion flows home every year, who sends it, where it goes, and why policymakers continue to treat it as background noise rather than a strategic asset.",
+    ],
+  },
+  {
+    id: "p2",
+    slug: "podcast-ten-cuts-zero-relief",
+    title: "Ten Cuts, Zero Relief: Why Monetary Policy Isn't Working",
+    subtitle: "A deep dive into the CBK's historic easing cycle and the broken transmission mechanism",
+    date: "2026-03-10",
+    readTime: "28 min",
+    contentType: "Podcasts",
+    category: "Monetary Policy",
+    excerpt: "The Central Bank has cut rates ten consecutive times. So why can't businesses feel it? We examine the leaking pipe between policy rates and lending rates.",
+    audioUrl: "",
+    content: [
+      "The Central Bank of Kenya has executed the longest easing cycle in its history — ten consecutive rate cuts. Yet commercial lending rates have barely budged.",
+      "In this episode, we dissect the three forces blocking monetary transmission and ask whether the new Risk-Based Credit Pricing Model can finally fix the plumbing.",
+    ],
+  },
+  {
+    id: "p3",
+    slug: "podcast-agoa-countdown",
+    title: "AGOA's Final Countdown: 66,000 Jobs on the Line",
+    subtitle: "What happens to Kenya's garment workers when America's trade preferences expire?",
+    date: "2026-02-28",
+    readTime: "25 min",
+    contentType: "Podcasts",
+    category: "Trade Policy",
+    excerpt: "AGOA expires in December 2026. We speak to industry voices about what's at stake for Kenya's export processing zones and the tens of thousands of workers who depend on them.",
+    audioUrl: "",
+    content: [
+      "AGOA — the African Growth and Opportunity Act — expires in December 2026. For Kenya, this is not abstract trade policy. It is 66,000 jobs.",
+      "In this episode, we explore the history of AGOA, what the one-year extension really means, and whether Kenya can build competitiveness before the clock runs out.",
+    ],
+  },
+  {
+    id: "p4",
+    slug: "podcast-china-africa-trade",
+    title: "China's Zero-Tariff Gambit: Opportunity or Trap?",
+    subtitle: "Analysing Beijing's new trade playbook for Africa",
+    date: "2026-02-15",
+    readTime: "30 min",
+    contentType: "Podcasts",
+    category: "Trade",
+    excerpt: "China has opened its doors to African exports with zero tariffs. But the door swings both ways. We examine what this means for Kenyan manufacturers and agricultural exporters.",
+    audioUrl: "",
+    content: [
+      "President Xi Jinping's announcement of zero-tariff treatment for 53 African countries is the most significant shift in Africa-China trade relations in a decade.",
+      "We analyse both sides: the genuine opportunity for Kenyan agricultural exporters and the existential threat to Kenya's already shrinking manufacturing sector.",
+    ],
+  },
+  // ===== VIDEOS =====
+  {
+    id: "v1",
+    slug: "video-kenya-2026-outlook",
+    title: "Kenya 2026 Economic Outlook: The Full Briefing",
+    subtitle: "A comprehensive video briefing on Kenya's macroeconomic landscape",
+    date: "2026-03-18",
+    readTime: "45 min",
+    contentType: "Videos",
+    category: "Macro",
+    excerpt: "Watch the full briefing on Kenya's 2026 economic outlook — covering inflation dynamics, monetary policy, fiscal risks, currency stability, and the geopolitical headwinds reshaping the economy.",
+    videoUrl: "",
+    content: [
+      "This comprehensive video briefing walks through the key themes from our Kenya 2026 Economic Outlook report.",
+      "Topics covered include the three inflations, the CBK's easing cycle, the debt treadmill, manufacturing decline, and the geopolitical risks from the Iran crisis and shifting global trade patterns.",
+    ],
+  },
+  {
+    id: "v2",
+    slug: "video-oil-shock-explained",
+    title: "The Oil Shock Kenya Saw Coming — Explained",
+    subtitle: "How the Iran crisis cascades through Kenya's economy in five channels",
+    date: "2026-03-05",
+    readTime: "18 min",
+    contentType: "Videos",
+    category: "Geopolitics",
+    excerpt: "A visual explainer on how $100+ oil prices cascade through Kenya's import bill, inflation, currency, fiscal balance, and monetary policy — all at once.",
+    videoUrl: "",
+    content: [
+      "In this visual explainer, we trace the five transmission channels through which the oil price spike is hitting Kenya's economy.",
+      "From the import bill explosion to the impossible choice facing the Central Bank, this video breaks down the cascade in plain language.",
+    ],
+  },
+  {
+    id: "v3",
+    slug: "video-debt-spiral",
+    title: "Borrowing to Pay for Borrowing: Kenya's Debt Visualised",
+    subtitle: "An animated breakdown of Kenya's debt service burden",
+    date: "2026-02-20",
+    readTime: "12 min",
+    contentType: "Videos",
+    category: "Fiscal Policy",
+    excerpt: "For every KSh 100 Kenya collects in tax, KSh 81 goes to creditors. This animated breakdown makes the debt arithmetic visceral and impossible to ignore.",
+    videoUrl: "",
+    content: [
+      "This animated explainer visualises Kenya's debt service burden in terms that anyone can understand.",
+      "We trace how Kenya went from borrowing to build to borrowing to service previous borrowing, and what this fiscal trap means for public services and economic growth.",
+    ],
+  },
+  {
+    id: "v4",
+    slug: "video-election-economics",
+    title: "The 2027 Shadow: How Elections Hijack Kenya's Economy",
+    subtitle: "A data-driven look at Kenya's political business cycle",
+    date: "2026-02-08",
+    readTime: "15 min",
+    contentType: "Videos",
+    category: "Political Economy",
+    excerpt: "Every five years, Kenya's fiscal discipline evaporates as elections approach. We chart the pattern with data going back two decades.",
+    videoUrl: "",
+    content: [
+      "Using two decades of fiscal data, this video charts Kenya's recurring pattern of pre-election spending sprees.",
+      "We examine why 2026 is uniquely constrained and what the FY2026/27 election budget will likely look like.",
+    ],
+  },
+  // ===== RESEARCH =====
+  {
+    id: "r1",
+    slug: "research-kenya-2026-outlook",
+    title: "Kenya 2026 Economic Outlook: Full Report",
+    subtitle: "The definitive guide to Kenya's macroeconomic landscape in 2026",
+    date: "2026-03-15",
+    readTime: "120 pages",
+    contentType: "Research",
+    category: "Macro",
+    excerpt: "Our flagship report covering inflation dynamics, monetary transmission, fiscal sustainability, currency outlook, sector analysis, and the ten risks that could reshape Kenya's economy in 2026.",
+    pdfUrl: "",
+    content: [
+      "The Kenya 2026 Economic Outlook is our flagship annual publication, providing decision-makers with the analytical framework they need to navigate Kenya's complex macroeconomic environment.",
+      "This report covers ten critical themes: the three inflations, monetary transmission failure, the debt treadmill, manufacturing decline, the political business cycle, oil shock transmission, China's new trade playbook, AGOA's expiry, currency management, and diaspora remittances.",
+    ],
+  },
+  {
+    id: "r2",
+    slug: "research-monetary-transmission",
+    title: "Monetary Transmission in Kenya: Why Rate Cuts Aren't Working",
+    subtitle: "A technical analysis of the CBK's easing cycle and credit market dynamics",
+    date: "2026-03-01",
+    readTime: "45 pages",
+    contentType: "Research",
+    category: "Monetary Policy",
+    excerpt: "A deep technical analysis of why the CBK's 425 basis points of rate cuts have produced only 220 basis points of lending rate reduction — and what the RBCPM reform could change.",
+    pdfUrl: "",
+    content: [
+      "This research paper examines the structural impediments to monetary transmission in Kenya, focusing on the gap between the Central Bank Rate and commercial lending rates.",
+      "We analyse three primary blockages: elevated non-performing loans, government crowding out of private credit, and oligopolistic banking market structure.",
+    ],
+  },
+  {
+    id: "r3",
+    slug: "research-food-inflation",
+    title: "Food Inflation and Household Vulnerability in Kenya",
+    subtitle: "Mapping the distributional impact of rising food prices across income quintiles",
+    date: "2026-02-12",
+    readTime: "38 pages",
+    contentType: "Research",
+    category: "Inflation",
+    excerpt: "While headline inflation sits at 4.4%, food inflation is running at 7.3%. This paper maps how rising food prices disproportionately affect Kenya's poorest households.",
+    pdfUrl: "",
+    content: [
+      "This research paper quantifies the distributional impact of food inflation across Kenya's income distribution.",
+      "Using household expenditure survey data and CPI component analysis, we demonstrate that the poorest 40% of households experience effective inflation rates nearly double the headline figure.",
+    ],
+  },
+  {
+    id: "r4",
+    slug: "research-agoa-impact",
+    title: "AGOA and Kenya's Export Processing Zones: An Impact Assessment",
+    subtitle: "Employment, value addition, and competitiveness in Kenya's garment sector",
+    date: "2026-01-25",
+    readTime: "52 pages",
+    contentType: "Research",
+    category: "Trade Policy",
+    excerpt: "A comprehensive assessment of AGOA's impact on Kenya's EPZ sector — covering employment creation, export diversification, and the competitiveness challenge from Asian manufacturers.",
+    pdfUrl: "",
+    content: [
+      "This paper provides a comprehensive impact assessment of the African Growth and Opportunity Act on Kenya's export processing zone sector.",
+      "We analyse employment trends, export composition, value addition metrics, and competitive positioning relative to Bangladesh, Vietnam, and other garment-exporting economies.",
     ],
   },
 ];

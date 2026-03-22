@@ -3,6 +3,10 @@ import threeInflations from "@/assets/articles/three-inflations.png";
 import tenCutsZeroRelief from "@/assets/articles/ten-cuts-zero-relief.png";
 import borrowingToPayBorrowing from "@/assets/articles/borrowing-to-pay-borrowing.png";
 import factoriesDisappearing from "@/assets/articles/factories-disappearing.png";
+import the2027Shadow from "@/assets/articles/the-2027-shadow.png";
+import oilShockKenya from "@/assets/articles/oil-shock-kenya.png";
+import chinaNewPlaybook from "@/assets/articles/china-new-playbook.png";
+import agoaLastBreath from "@/assets/articles/agoa-last-breath.png";
 
 export interface Article {
   id: string;
@@ -149,6 +153,7 @@ export const articles: Article[] = [
     readTime: "10 min",
     category: "Political Economy",
     excerpt: "In 1975, the economist William Nordhaus published a theory that governments in democracies systematically manipulate the economy before elections. He was writing about the United States. He could have been writing about Kenya.",
+    heroImage: the2027Shadow,
     content: [
       "In 1975, the economist William Nordhaus published a theory that governments in democracies systematically manipulate the economy before elections. They spend more, borrow more, and push growth-friendly policies in the eighteen months before voters go to the polls. Nordhaus was writing about the United States. He could have been writing about Kenya.",
       "## The Pattern That Never Breaks",
@@ -176,6 +181,7 @@ export const articles: Article[] = [
     readTime: "9 min",
     category: "Geopolitics",
     excerpt: "On February 28, the United States and Israel launched military strikes on Iran. The Strait of Hormuz effectively shut down. Brent crude spiked from $70 to over $100 per barrel within days. The tail risk is no longer a tail risk.",
+    heroImage: oilShockKenya,
     content: [
       "In our Kenya 2026 Economic Outlook, we identified a geopolitical oil spike as one of the top ten risks to Kenya's macroeconomic stability. We assigned it a 15 to 25% probability. On February 28, the United States and Israel launched military strikes on Iran. The Strait of Hormuz effectively shut down. Brent crude spiked from $70 to over $100 per barrel within days, briefly touching $119.",
       "The tail risk is no longer a tail risk. It is the headline.",
@@ -201,6 +207,7 @@ export const articles: Article[] = [
     readTime: "10 min",
     category: "Trade",
     excerpt: "While America builds walls, China is opening doors. That sentence is not editorial commentary. It is trade arithmetic. In February 2026, President Xi Jinping announced zero-tariff treatment for 53 African countries.",
+    heroImage: chinaNewPlaybook,
     content: [
       "While America builds walls, China is opening doors. That sentence is not editorial commentary. It is trade arithmetic.",
       "In February 2026, President Xi Jinping announced that China would grant zero-tariff treatment to 53 African countries, effective May 1. Kenya has gone further, striking a preliminary bilateral deal that covers 98.2% of its export goods.",
@@ -226,6 +233,7 @@ export const articles: Article[] = [
     readTime: "9 min",
     category: "Trade Policy",
     excerpt: "Somewhere in Athi River, a woman sits behind a sewing machine stitching denim jeans destined for an American retailer. She is one of 66,000 Kenyans whose livelihoods depend on a piece of American trade legislation. And it is dying.",
+    heroImage: agoaLastBreath,
     content: [
       "Somewhere in Athi River, a woman sits behind a sewing machine stitching denim jeans destined for an American retailer. She earns between KSh 15,000 and KSh 25,000 a month. She is one of approximately 66,000 Kenyans whose livelihoods depend on a piece of American trade legislation that most of them have never heard of. That legislation is the African Growth and Opportunity Act. And it is dying.",
       "## What AGOA Built",

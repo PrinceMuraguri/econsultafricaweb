@@ -94,6 +94,7 @@ export const articles: Article[] = [
     date: "2026-01-18",
     readTime: "9 min",
     category: "Fiscal Policy",
+    excerpt: "For every hundred shillings Kenya collects in tax revenue, eighty-one go to creditors. Before a single road is paved. Before a single teacher is paid. Let that settle for a moment.",
     heroImage: borrowingToPayBorrowing,
     content: [
       "For every hundred shillings Kenya collects in tax revenue, eighty-one go to creditors. Before a single road is paved. Before a single teacher is paid. Before a single hospital bed is purchased. Let that settle for a moment.",

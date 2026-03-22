@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, Users, Lock, Check, DollarSign } from "lucide-react";
+import { Clock, Users, Lock, Check, DollarSign, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
 import StakeModal from "./StakeModal";
+import HowItWorksModal from "./HowItWorksModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 function getTimeRemaining(closeAt: string) {

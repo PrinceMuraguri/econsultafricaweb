@@ -231,6 +231,10 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         poll={poll}
         selectedOption={stakeOption}
       />
+      <HowItWorksModal
+        open={howItWorksOpen}
+        onOpenChange={setHowItWorksOpen}
+      />
     </motion.div>
   );
 };

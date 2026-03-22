@@ -110,13 +110,7 @@ const Insights = () => {
                   <div className="bg-card rounded-lg border border-border overflow-hidden card-shadow hover-sink h-full flex flex-col">
                     {/* Image placeholder */}
                     <div className="aspect-[16/9] bg-muted/50 flex items-center justify-center">
-                      {article.heroImage ? (
-                        <img src={article.heroImage} alt={article.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="flex flex-col items-center gap-1.5 text-muted-foreground/50">
-                          <ImageIcon className="w-8 h-8" />
-                        </div>
-                      )}
+                      <img src={article.heroImage || "/placeholder.svg"} alt={article.title} className="w-full h-full object-contain" />
                     </div>
                     <div className="p-6 flex flex-col flex-1">
                       <div className="flex items-center gap-3 mb-3">

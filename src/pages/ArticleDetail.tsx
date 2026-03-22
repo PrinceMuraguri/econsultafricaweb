@@ -71,14 +71,7 @@ const ArticleDetail = () => {
 
             {/* Hero Image Placeholder */}
             <div className="w-full aspect-[16/9] bg-muted/50 border border-border rounded-lg mb-10 flex items-center justify-center">
-              {article.heroImage ? (
-                <img src={article.heroImage} alt={article.title} className="w-full h-full object-cover rounded-lg" />
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <ImageIcon className="w-10 h-10" />
-                  <span className="text-sm font-medium">Article Image</span>
-                </div>
-              )}
+              <img src={article.heroImage || "/placeholder.svg"} alt={article.title} className="w-full h-full object-contain rounded-lg" />
             </div>
 
             {/* Content */}

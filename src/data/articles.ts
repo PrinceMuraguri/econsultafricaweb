@@ -3,6 +3,10 @@ import threeInflations from "@/assets/articles/three-inflations.png";
 import tenCutsZeroRelief from "@/assets/articles/ten-cuts-zero-relief.png";
 import borrowingToPayBorrowing from "@/assets/articles/borrowing-to-pay-borrowing.png";
 import factoriesDisappearing from "@/assets/articles/factories-disappearing.png";
+import the2027Shadow from "@/assets/articles/the-2027-shadow.png";
+import oilShockKenya from "@/assets/articles/oil-shock-kenya.png";
+import chinaNewPlaybook from "@/assets/articles/china-new-playbook.png";
+import agoaLastBreath from "@/assets/articles/agoa-last-breath.png";
 
 export interface Article {
   id: string;

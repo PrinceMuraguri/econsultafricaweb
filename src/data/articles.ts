@@ -233,6 +233,7 @@ export const articles: Article[] = [
     readTime: "9 min",
     category: "Trade Policy",
     excerpt: "Somewhere in Athi River, a woman sits behind a sewing machine stitching denim jeans destined for an American retailer. She is one of 66,000 Kenyans whose livelihoods depend on a piece of American trade legislation. And it is dying.",
+    heroImage: agoaLastBreath,
     content: [
       "Somewhere in Athi River, a woman sits behind a sewing machine stitching denim jeans destined for an American retailer. She earns between KSh 15,000 and KSh 25,000 a month. She is one of approximately 66,000 Kenyans whose livelihoods depend on a piece of American trade legislation that most of them have never heard of. That legislation is the African Growth and Opportunity Act. And it is dying.",
       "## What AGOA Built",

@@ -9,6 +9,8 @@ import chinaNewPlaybook from "@/assets/articles/china-new-playbook.png";
 import agoaLastBreath from "@/assets/articles/agoa-last-breath.png";
 import shillingStrangeStillness from "@/assets/articles/shilling-strange-stillness.png";
 
+export type ContentType = "Articles" | "Podcasts" | "Videos" | "Research";
+
 export interface Article {
   id: string;
   slug: string;
@@ -17,9 +19,13 @@ export interface Article {
   date: string;
   readTime: string;
   category: string;
+  contentType: ContentType;
   excerpt: string;
   heroImage?: string;
   content: string[];
+  audioUrl?: string;
+  videoUrl?: string;
+  pdfUrl?: string;
 }
 
 export const articles: Article[] = [

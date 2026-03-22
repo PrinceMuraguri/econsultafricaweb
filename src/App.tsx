@@ -40,8 +40,8 @@ const App = () => (
           <Route path="/sample-report" element={<SampleReport />} />
           <Route path="/purchase-success" element={<PurchaseSuccess />} />
           <Route path="/forecast-arena" element={<ForecastArena />} />
-          <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
           <Route path="/forecast-arena/stake-result" element={<StakeResult />} />
+          <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

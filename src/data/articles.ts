@@ -1,4 +1,8 @@
 import fiveBillionLifeline from "@/assets/articles/five-billion-lifeline.png";
+import threeInflations from "@/assets/articles/three-inflations.png";
+import tenCutsZeroRelief from "@/assets/articles/ten-cuts-zero-relief.png";
+import borrowingToPayBorrowing from "@/assets/articles/borrowing-to-pay-borrowing.png";
+import factoriesDisappearing from "@/assets/articles/factories-disappearing.png";
 
 export interface Article {
   id: string;
@@ -23,6 +27,7 @@ export const articles: Article[] = [
     readTime: "8 min",
     category: "Inflation",
     excerpt: "A finance minister, a tomato vendor, and a fuel station attendant walk into a room. The minister says inflation is 4.4%. The tomato vendor says it is 30%. The fuel attendant shrugs and says his prices actually fell. They are all telling the truth.",
+    heroImage: threeInflations,
     content: [
       "A finance minister, a tomato vendor, and a fuel station attendant walk into a room. The minister says inflation is 4.4%. The tomato vendor says it is 30%. The fuel attendant shrugs and says his prices actually fell. They are all telling the truth. That is Kenya's inflation story in 2026. And it is more dangerous than any single number suggests.",
       "## The Comfortable Number",
@@ -59,6 +64,7 @@ export const articles: Article[] = [
     readTime: "10 min",
     category: "Monetary Policy",
     excerpt: "Imagine a hospital where the doctor prescribes the correct medication, at the correct dosage, on the correct schedule, and the patient barely improves. That is the story of monetary policy in Kenya right now.",
+    heroImage: tenCutsZeroRelief,
     content: [
       "Imagine a hospital where the doctor prescribes the correct medication, at the correct dosage, on the correct schedule, and the patient barely improves. Not because the diagnosis was wrong. But because somewhere between the pharmacy and the patient's bloodstream, the medicine is being diluted. That is the story of monetary policy in Kenya right now.",
       "## The Longest Easing Cycle in History",
@@ -89,6 +95,7 @@ export const articles: Article[] = [
     readTime: "9 min",
     category: "Fiscal Policy",
     excerpt: "For every hundred shillings Kenya collects in tax revenue, eighty-one go to creditors. Before a single road is paved. Before a single teacher is paid. Let that settle for a moment.",
+    heroImage: borrowingToPayBorrowing,
     content: [
       "For every hundred shillings Kenya collects in tax revenue, eighty-one go to creditors. Before a single road is paved. Before a single teacher is paid. Before a single hospital bed is purchased. Let that settle for a moment.",
       "## The Numbers That Should Alarm You",
@@ -115,6 +122,7 @@ export const articles: Article[] = [
     readTime: "9 min",
     category: "Manufacturing",
     excerpt: "How does a country with 5% GDP growth, a booming digital economy, and a globally celebrated tech hub have a manufacturing sector that is slowly dying? The answer is one of the most important economic stories in Kenya.",
+    heroImage: factoriesDisappearing,
     content: [
       "Here is a question that should trouble anyone who thinks about Kenya's future. How does a country with 5% GDP growth, a booming digital economy, and a globally celebrated tech hub have a manufacturing sector that is slowly dying?",
       "## The Shrinking Engine",

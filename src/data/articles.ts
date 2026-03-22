@@ -118,7 +118,7 @@ export const articles: Article[] = [
     date: "2026-01-27",
     readTime: "9 min",
     category: "Manufacturing",
-    excerpt: "How does a country with 5% GDP growth, a booming digital economy, and a globally celebrated tech hub have a manufacturing sector that is slowly dying? The answer is one of the most important economic stories in Kenya.",
+    heroImage: factoriesDisappearing,
     content: [
       "Here is a question that should trouble anyone who thinks about Kenya's future. How does a country with 5% GDP growth, a booming digital economy, and a globally celebrated tech hub have a manufacturing sector that is slowly dying?",
       "## The Shrinking Engine",

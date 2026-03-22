@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import { DollarSign, Shield, Zap, TrendingUp } from "lucide-react";
+import { Shield, Zap, TrendingUp, HelpCircle, Minus, Plus } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
+import { Link } from "react-router-dom";
 
 interface StakeModalProps {
   open: boolean;
@@ -17,17 +17,29 @@ interface StakeModalProps {
   selectedOption: PollOption | null;
 }
 
-const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
-
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
-  const [amount, setAmount] = useState(10);
+  const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
 
+  const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
+
+  // Share price is derived from the probability (consensus %)
+  const sharePrice = useMemo(() => {
+    if (!selectedOption || totalVotes === 0) return 0.50;
+    const pct = selectedOption.total_votes_count / totalVotes;
+    // Price = probability, clamped between $0.05 and $0.95
+    return Math.max(0.05, Math.min(0.95, Math.round(pct * 100) / 100));
+  }, [selectedOption, totalVotes]);
+
+  const totalCost = parseFloat((shares * sharePrice).toFixed(2));
+  const potentialPayout = shares; // Each share pays $1 if correct
+  const potentialProfit = parseFloat((potentialPayout - totalCost).toFixed(2));
+
   const handleStake = async () => {
-    if (!selectedOption || !email || amount < 1) {
-      toast({ title: "Missing info", description: "Please enter your email and stake amount.", variant: "destructive" });
+    if (!selectedOption || !email || shares < 1) {
+      toast({ title: "Missing info", description: "Please enter your email and number of shares.", variant: "destructive" });
       return;
     }
 
@@ -39,7 +51,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
       const { data, error } = await supabase.functions.invoke("stake-checkout", {
         body: {
           email,
-          amount,
+          amount: totalCost,
           poll_id: poll.id,
           option_id: selectedOption.id,
           voter_fingerprint: fp,
@@ -51,7 +63,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         throw new Error(data?.error || "Failed to initialize payment");
       }
 
-      // Redirect to Paystack
       window.location.href = data.authorization_url;
     } catch (err: any) {
       toast({ title: "Payment Error", description: err.message || "Could not initiate payment.", variant: "destructive" });
@@ -60,7 +71,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     }
   };
 
-  const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
   const optionPct = selectedOption && totalVotes > 0
     ? Math.round((selectedOption.total_votes_count / totalVotes) * 100)
     : 50;
@@ -69,9 +79,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">Back Your Prediction</DialogTitle>
+          <DialogTitle className="font-display text-lg">Buy Shares — Back Your Prediction</DialogTitle>
           <DialogDescription>
-            Stake on your forecast. If you're right, you share the pool.
+            Purchase shares in your predicted outcome. Each share pays $1 if correct.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,47 +91,81 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             <p className="text-sm font-medium text-foreground mb-1">{poll.title}</p>
             <p className="text-xs text-muted-foreground">
               Your position: <span className="font-semibold text-accent">{selectedOption?.label}</span>
-              <span className="ml-2 text-muted-foreground">({optionPct}% consensus)</span>
+              <span className="ml-2">({optionPct}% consensus)</span>
             </p>
           </div>
 
-          {/* Amount selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Stake Amount (USD)</Label>
-            <div className="flex gap-2 flex-wrap">
-              {PRESET_AMOUNTS.map((preset) => (
+          {/* Share price indicator */}
+          <div className="flex items-center justify-between bg-primary/5 rounded-lg px-4 py-3 border border-primary/10">
+            <div>
+              <p className="text-xs text-muted-foreground">Share Price</p>
+              <p className="font-mono text-xl font-bold text-foreground">${sharePrice.toFixed(2)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Implied Probability</p>
+              <p className="font-mono text-xl font-bold text-primary">{Math.round(sharePrice * 100)}%</p>
+            </div>
+          </div>
+
+          {/* Number of shares */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Number of Shares</Label>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShares(Math.max(1, shares - 5))}
+                className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <Input
+                type="number"
+                value={shares}
+                onChange={(e) => setShares(Math.max(1, Math.floor(Number(e.target.value))))}
+                className="font-mono text-center text-lg font-semibold flex-1"
+                min={1}
+              />
+              <button
+                onClick={() => setShares(shares + 5)}
+                className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex gap-2">
+              {[5, 10, 25, 50, 100].map((n) => (
                 <button
-                  key={preset}
-                  onClick={() => setAmount(preset)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-mono font-medium transition-all border ${
-                    amount === preset
+                  key={n}
+                  onClick={() => setShares(n)}
+                  className={`flex-1 py-1.5 rounded text-xs font-mono font-medium transition-all border ${
+                    shares === n
                       ? "bg-accent text-accent-foreground border-accent"
                       : "bg-card text-foreground border-border hover:border-primary/40"
                   }`}
                 >
-                  ${preset}
+                  {n}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-3">
-              <Slider
-                value={[amount]}
-                onValueChange={(v) => setAmount(v[0])}
-                min={1}
-                max={500}
-                step={1}
-                className="flex-1"
-              />
-              <div className="relative w-24">
-                <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <Input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(Math.max(1, Number(e.target.value)))}
-                  className="pl-7 font-mono text-sm"
-                  min={1}
-                />
-              </div>
+          </div>
+
+          {/* Cost breakdown */}
+          <div className="bg-muted/30 rounded-lg p-4 border border-border space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{shares} shares × ${sharePrice.toFixed(2)}</span>
+              <span className="font-mono font-semibold text-foreground">${totalCost.toFixed(2)}</span>
+            </div>
+            <div className="border-t border-border pt-2 flex justify-between text-sm">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                If correct, you receive
+              </span>
+              <span className="font-mono font-bold text-primary">${potentialPayout.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Potential profit</span>
+              <span className={`font-mono font-bold ${potentialProfit > 0 ? "text-green-600" : "text-red-500"}`}>
+                {potentialProfit > 0 ? "+" : ""}${potentialProfit.toFixed(2)}
+              </span>
             </div>
           </div>
 
@@ -136,39 +180,43 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             />
           </div>
 
-          {/* Potential return */}
-          <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <span className="text-xs font-semibold text-foreground">Potential Return</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              If your prediction is correct, your share of the pool is proportional to your stake. 
-              Higher stakes = larger share of winnings.
-            </p>
-          </div>
-
           {/* CTA */}
           <Button
             onClick={handleStake}
-            disabled={loading || !email || amount < 1}
+            disabled={loading || !email || shares < 1}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-display font-semibold"
             size="lg"
           >
-            {loading ? "Processing..." : `Back Your Prediction — $${amount}`}
+            {loading ? "Processing..." : `Buy ${shares} Shares — $${totalCost.toFixed(2)}`}
           </Button>
 
-          {/* Trust signals */}
-          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Shield className="w-3 h-3" />
-              Secure via Paystack
-            </span>
-            <span className="flex items-center gap-1">
-              <Zap className="w-3 h-3" />
-              Instant confirmation
-            </span>
+          {/* Trust + How it works link */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Secure via Paystack
+              </span>
+              <span className="flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                Instant confirmation
+              </span>
+            </div>
+            <Link
+              to="/forecast-arena/how-it-works"
+              className="flex items-center gap-1 text-primary hover:text-accent transition-colors"
+              onClick={() => onOpenChange(false)}
+            >
+              <HelpCircle className="w-3 h-3" />
+              How it works
+            </Link>
           </div>
+
+          {/* Risk disclaimer */}
+          <p className="text-[10px] text-muted-foreground text-center leading-tight">
+            Forecasting involves uncertainty. Only stake what you are comfortable losing.
+            This is not financial advice.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

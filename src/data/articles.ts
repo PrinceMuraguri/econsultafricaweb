@@ -1,3 +1,5 @@
+import fiveBillionLifeline from "@/assets/articles/five-billion-lifeline.png";
+
 export interface Article {
   id: string;
   slug: string;

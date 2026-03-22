@@ -7,6 +7,7 @@ import the2027Shadow from "@/assets/articles/the-2027-shadow.png";
 import oilShockKenya from "@/assets/articles/oil-shock-kenya.png";
 import chinaNewPlaybook from "@/assets/articles/china-new-playbook.png";
 import agoaLastBreath from "@/assets/articles/agoa-last-breath.png";
+import shillingStrangeStillness from "@/assets/articles/shilling-strange-stillness.png";
 
 export interface Article {
   id: string;

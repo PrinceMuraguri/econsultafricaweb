@@ -26,6 +26,7 @@ export const articles: Article[] = [
     date: "2026-01-01",
     readTime: "8 min",
     category: "Inflation",
+    excerpt: "A finance minister, a tomato vendor, and a fuel station attendant walk into a room. The minister says inflation is 4.4%. The tomato vendor says it is 30%. The fuel attendant shrugs and says his prices actually fell. They are all telling the truth.",
     heroImage: threeInflations,
     content: [
       "A finance minister, a tomato vendor, and a fuel station attendant walk into a room. The minister says inflation is 4.4%. The tomato vendor says it is 30%. The fuel attendant shrugs and says his prices actually fell. They are all telling the truth. That is Kenya's inflation story in 2026. And it is more dangerous than any single number suggests.",

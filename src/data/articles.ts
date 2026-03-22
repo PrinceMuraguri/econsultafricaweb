@@ -153,6 +153,7 @@ export const articles: Article[] = [
     readTime: "10 min",
     category: "Political Economy",
     excerpt: "In 1975, the economist William Nordhaus published a theory that governments in democracies systematically manipulate the economy before elections. He was writing about the United States. He could have been writing about Kenya.",
+    heroImage: the2027Shadow,
     content: [
       "In 1975, the economist William Nordhaus published a theory that governments in democracies systematically manipulate the economy before elections. They spend more, borrow more, and push growth-friendly policies in the eighteen months before voters go to the polls. Nordhaus was writing about the United States. He could have been writing about Kenya.",
       "## The Pattern That Never Breaks",

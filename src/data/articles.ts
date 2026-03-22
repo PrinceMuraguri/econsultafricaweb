@@ -207,6 +207,7 @@ export const articles: Article[] = [
     readTime: "10 min",
     category: "Trade",
     excerpt: "While America builds walls, China is opening doors. That sentence is not editorial commentary. It is trade arithmetic. In February 2026, President Xi Jinping announced zero-tariff treatment for 53 African countries.",
+    heroImage: chinaNewPlaybook,
     content: [
       "While America builds walls, China is opening doors. That sentence is not editorial commentary. It is trade arithmetic.",
       "In February 2026, President Xi Jinping announced that China would grant zero-tariff treatment to 53 African countries, effective May 1. Kenya has gone further, striking a preliminary bilateral deal that covers 98.2% of its export goods.",

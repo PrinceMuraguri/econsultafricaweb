@@ -41,6 +41,7 @@ const App = () => (
           <Route path="/purchase-success" element={<PurchaseSuccess />} />
           <Route path="/forecast-arena" element={<ForecastArena />} />
           <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
+          <Route path="/forecast-arena/stake-result" element={<StakeResult />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

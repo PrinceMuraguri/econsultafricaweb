@@ -173,6 +173,25 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         })}
       </div>
 
+      {/* Stake CTA */}
+      {!hasVoted && !isClosed && !compact && (
+        <div className="mb-4 pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground mb-2">Or back your prediction with a stake:</p>
+          <div className="flex gap-2">
+            {localOptions.map((option) => (
+              <button
+                key={`stake-${option.id}`}
+                onClick={() => { setStakeOption(option); setStakeOpen(true); }}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-colors text-xs font-semibold"
+              >
+                <DollarSign className="w-3 h-3" />
+                Stake {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Users className="w-3 h-3" />
@@ -194,6 +213,13 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           Voting closed
         </div>
       )}
+
+      <StakeModal
+        open={stakeOpen}
+        onOpenChange={setStakeOpen}
+        poll={poll}
+        selectedOption={stakeOption}
+      />
     </motion.div>
   );
 };

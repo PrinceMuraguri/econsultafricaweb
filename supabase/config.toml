@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.report-download]
 verify_jwt = false
+
+[functions.stake-checkout]
+verify_jwt = false
+
+[functions.verify-stake]
+verify_jwt = false

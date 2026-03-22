@@ -1,4 +1,8 @@
 import fiveBillionLifeline from "@/assets/articles/five-billion-lifeline.png";
+import threeInflations from "@/assets/articles/three-inflations.png";
+import tenCutsZeroRelief from "@/assets/articles/ten-cuts-zero-relief.png";
+import borrowingToPayBorrowing from "@/assets/articles/borrowing-to-pay-borrowing.png";
+import factoriesDisappearing from "@/assets/articles/factories-disappearing.png";
 
 export interface Article {
   id: string;

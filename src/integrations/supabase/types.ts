@@ -186,6 +186,39 @@ export type Database = {
           },
         ]
       }
+      voter_profiles: {
+        Row: {
+          country_code: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone_number: string
+          updated_at: string
+          voter_fingerprint: string
+        }
+        Insert: {
+          country_code?: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone_number: string
+          updated_at?: string
+          voter_fingerprint: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone_number?: string
+          updated_at?: string
+          voter_fingerprint?: string
+        }
+        Relationships: []
+      }
       votes: {
         Row: {
           created_at: string
@@ -239,7 +272,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      payout_winners: {
+        Row: {
+          country_code: string | null
+          email: string | null
+          full_name: string | null
+          is_staked: boolean | null
+          outcome: string | null
+          payout_amount: number | null
+          payout_status: string | null
+          phone_number: string | null
+          poll_slug: string | null
+          poll_title: string | null
+          stake_amount: number | null
+          vote_date: string | null
+          voter_fingerprint: string | null
+          winning_option: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       increment_stake_amount: {

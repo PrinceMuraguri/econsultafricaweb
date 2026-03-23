@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import princeMuraguriImg from "@/assets/prince-muraguri.png";
+import paoloImg from "@/assets/paolo-avitabile.jfif";
+import pedroImg from "@/assets/pedro-zorzano.jfif";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -123,6 +125,45 @@ const About = () => {
                 <h3 className="font-display font-bold text-lg text-foreground mb-1">{member.name}</h3>
                 <p className="text-sm text-accent font-medium mb-4">{member.role}</p>
                 <p className="text-sm text-muted-foreground leading-relaxed">{member.bio}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Advisory Board */}
+      <section className="section-padding">
+        <div className="container-page">
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Advisory Board</motion.p>
+          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            className="text-3xl md:text-4xl font-bold text-foreground mb-12">Strategic Advisors</motion.h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[
+              {
+                name: "Paolo Avitabile",
+                role: "Advisory Board Member",
+                img: paoloImg,
+                bio: "Paolo Avitabile is a Senior Business Controller at Nestlé Italy with deep expertise in corporate finance, business controlling, and strategic operations. He has held roles spanning financial controlling, logistics, and the Health Science and Infant Nutrition division. His work at Nestlé included corporate sales strategy, circular economy initiatives, and cross-functional project delivery across European markets. Paolo holds a degree from the Universidad de Navarra, and a postgraduate master's degree in business. He brings to Econsult Africa's Advisory Board a practitioner's lens on multinational corporate strategy, financial analysis, and the operational dynamics of global consumer markets.",
+              },
+              {
+                name: "Pedro Luis Zorzano Lázaro",
+                role: "Advisory Board Member",
+                img: pedroImg,
+                bio: "Pedro Luis Zorzano Lázaro is a consultant at Nfq Advisory, Solutions & Outsourcing, a Madrid-based firm specializing in financial services consulting across banking, insurance, capital markets, and risk management. He holds a degree in Telecommunications Engineering and a Master's in Economics and Finance from the Universidad de Navarra. Pedro brings a distinctive cross-disciplinary profile that bridges technology, finance, and macroeconomic analysis — particularly valuable as the firm deepens its work at the intersection of global macro trends, trade architecture, and African economic strategy.",
+              },
+            ].map((advisor, i) => (
+              <motion.div
+                key={advisor.name}
+                initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i + 2}
+                className="bg-background rounded-lg border border-border p-8 card-shadow"
+              >
+                <img src={advisor.img} alt={advisor.name} className="w-20 h-20 rounded-full object-cover mb-6" />
+                <h3 className="font-display font-bold text-lg text-foreground mb-1">{advisor.name}</h3>
+                <p className="text-sm text-accent font-medium mb-4">{advisor.role}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{advisor.bio}</p>
               </motion.div>
             ))}
           </div>

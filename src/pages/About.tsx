@@ -23,6 +23,7 @@ const team = [
     name: "Moses Macharia", role: "Senior Analyst", initials: "MM",
     bio: "Moses brings rigorous analytical capability to Econsult Africa's research output, specializing in fiscal policy, trade dynamics, and sector-level economic modelling across East African markets.",
     featured: false,
+    img: mosesImg,
   },
   {
     name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL",

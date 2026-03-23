@@ -8,6 +8,7 @@ import EmailCapture from "@/components/EmailCapture";
 import SocialProof from "@/components/SocialProof";
 import StickyCTA from "@/components/StickyCTA";
 import ForecastWidget from "@/components/forecast/ForecastWidget";
+import { articles } from "@/data/articles";
 import princeMuraguriImg from "@/assets/prince-muraguri.png";
 import mosesImg from "@/assets/moses-macharia.jpeg";
 import paoloImg from "@/assets/paolo-avitabile.jfif";
@@ -48,10 +49,9 @@ const services = [
 }];
 
 
-const insights = [
-{ title: "Kenya's Fiscal Consolidation: What It Means for Corporate Tax", date: "Mar 2026", read: "6 min", category: "Fiscal Policy" },
-{ title: "Agriculture Sector Outlook: Climate Risk and Export Opportunity", date: "Feb 2026", read: "8 min", category: "Agriculture" },
-{ title: "The KES Trajectory: Projections for H2 2026", date: "Feb 2026", read: "5 min", category: "Currency" }];
+const insights = articles
+  .filter((a) => a.contentType === "Articles")
+  .slice(0, 3);
 
 
 const team = [
@@ -434,6 +434,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {insights.map((post, i) =>
+            <Link key={post.slug} to={`/insights/${post.slug}`} className="block">
             <motion.article
               key={post.title}
               initial="hidden" whileInView="visible" viewport={{ once: true }}
@@ -443,11 +444,12 @@ const Index = () => {
               
                 <div className="flex items-center gap-3 mb-4">
                   <span className="font-mono text-xs text-gold">{post.date}</span>
-                  <span className="text-xs text-muted-foreground">· {post.read} read</span>
+                  <span className="text-xs text-muted-foreground">· {post.readTime} read</span>
                 </div>
                 <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-pill mb-3">{post.category}</span>
                 <h3 className="font-display font-semibold text-foreground leading-snug">{post.title}</h3>
               </motion.article>
+            </Link>
             )}
           </div>
 

@@ -13,7 +13,7 @@ const fadeUp = {
 const team = [
   {
     name: "Prince Muraguri", role: "Founder & CEO", initials: "PM",
-    bio: "An economic intelligence strategist with deep expertise in data-driven research, policy analysis, and applied economics across Africa. Known for translating complex economic ideas into clear, actionable insight. Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.",
+    bio: "Prince Muraguri is an economic intelligence strategist with experience across research, policy, and data analysis in African markets. His work has spanned leading institutions including CEGA (UC Berkeley), J-PAL Africa, and the Pharo Foundation, where he has contributed to large-scale research programs, monitoring systems, and policy-relevant analysis.\n\nHe specializes in translating complex macroeconomic trends into clear, decision-focused insight for organizations operating in dynamic and uncertain environments. His approach combines rigorous analysis with practical interpretation, helping leaders move from data to strategy with confidence.",
     featured: true,
   },
   {

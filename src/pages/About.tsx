@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import princeMuraguriImg from "@/assets/prince-muraguri.png";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ const fadeUp = {
 const team = [
   {
     name: "Prince Muraguri", role: "Founder & CEO", initials: "PM",
-    bio: "An economic intelligence strategist with deep expertise in data-driven research, policy analysis, and applied economics across Africa. Known for translating complex economic ideas into clear, actionable insight. Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.",
+    bio: "Prince Muraguri is an economic intelligence strategist with experience across research, policy, and data analysis in African markets. His work has spanned leading institutions including CEGA (UC Berkeley), J-PAL Africa, and the Pharo Foundation, where he has contributed to large-scale research programs, monitoring systems, and policy-relevant analysis.\n\nHe specializes in translating complex macroeconomic trends into clear, decision-focused insight for organizations operating in dynamic and uncertain environments. His approach combines rigorous analysis with practical interpretation, helping leaders move from data to strategy with confidence.",
     featured: true,
   },
   {
@@ -96,15 +97,13 @@ const About = () => {
             className="bg-background rounded-lg border border-border p-8 md:p-12 card-shadow mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-center">
               <div className="flex flex-col items-center md:items-start">
-                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <span className="font-display font-bold text-3xl text-primary">PM</span>
-                </div>
+                <img src={princeMuraguriImg} alt="Prince Muraguri" className="w-28 h-28 rounded-full object-cover mb-4" />
               </div>
               <div className="md:col-span-3">
                 <p className="font-mono text-xs text-gold uppercase tracking-widest mb-2">Founder & CEO</p>
                 <h3 className="font-display font-bold text-2xl text-foreground mb-4">Prince Muraguri</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  An economic intelligence strategist with deep expertise in data-driven research, policy analysis, and applied economics across Africa. Known for translating complex economic ideas into clear, actionable insight. Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  Prince Muraguri is an economic intelligence strategist with experience across research, policy, and data analysis in African markets. His work has spanned leading institutions including CEGA (UC Berkeley), J-PAL Africa, and the Pharo Foundation, where he has contributed to large-scale research programs, monitoring systems, and policy-relevant analysis.{"\n\n"}He specializes in translating complex macroeconomic trends into clear, decision-focused insight for organizations operating in dynamic and uncertain environments. His approach combines rigorous analysis with practical interpretation, helping leaders move from data to strategy with confidence.
                 </p>
               </div>
             </div>

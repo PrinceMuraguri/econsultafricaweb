@@ -50,10 +50,11 @@ const Insights = () => {
               Insights
             </motion.p>
             <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1} className="text-4xl md:text-5xl font-bold text-foreground leading-[1.1] mb-6">
-
+              Economic Intelligence by Econsult Africa<br />
+              <span className="text-2xl md:text-3xl font-medium opacity-80">from The Economic Whisperer series</span>
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed">
-              Sharp analysis on the forces shaping Kenya's economy — written for decision-makers, not academics.
+              Sharp analysis on the forces shaping Kenya's economy — written for decision-makers.
             </motion.p>
           </div>
 

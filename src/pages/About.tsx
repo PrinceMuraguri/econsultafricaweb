@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import princeMuraguriImg from "@/assets/prince-muraguri.png";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";

@@ -8,6 +8,10 @@ import EmailCapture from "@/components/EmailCapture";
 import SocialProof from "@/components/SocialProof";
 import StickyCTA from "@/components/StickyCTA";
 import ForecastWidget from "@/components/forecast/ForecastWidget";
+import princeMuraguriImg from "@/assets/prince-muraguri.png";
+import mosesImg from "@/assets/moses-macharia.jpeg";
+import paoloImg from "@/assets/paolo-avitabile.jfif";
+import pedroImg from "@/assets/pedro-zorzano.jfif";
 import {
   ArrowRight, BarChart3, FileText, Users, Briefcase, TrendingUp, Shield,
   Check, Globe, Mic, Video, BookOpen, Target, Zap, AlertTriangle,

@@ -121,9 +121,13 @@ const About = () => {
                 variants={fadeUp} custom={i + 3}
                 className="bg-background rounded-lg border border-border p-8 card-shadow"
               >
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-                  <span className="font-display font-bold text-2xl text-primary">{member.initials}</span>
-                </div>
+                {member.img ? (
+                  <img src={member.img} alt={member.name} className="w-20 h-20 rounded-full object-cover mb-6" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <span className="font-display font-bold text-2xl text-primary">{member.initials}</span>
+                  </div>
+                )}
                 <h3 className="font-display font-bold text-lg text-foreground mb-1">{member.name}</h3>
                 <p className="text-sm text-accent font-medium mb-4">{member.role}</p>
                 <p className="text-sm text-muted-foreground leading-relaxed">{member.bio}</p>

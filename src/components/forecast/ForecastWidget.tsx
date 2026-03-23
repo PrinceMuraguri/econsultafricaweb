@@ -34,26 +34,27 @@ const ForecastWidget = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 60, scale: 0.95 }}
           transition={{ duration: 0.3 }}
-          className="fixed bottom-6 right-6 z-40 w-[340px] max-w-[calc(100vw-3rem)]"
+          className="fixed bottom-4 right-4 z-40 w-[300px] max-w-[calc(100vw-2rem)]"
         >
-          <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b border-border">
+          <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-3 py-2 bg-primary/5 border-b border-border sticky top-0 z-10">
               <span className="flex items-center gap-2 text-xs font-semibold text-primary">
                 <BarChart3 className="w-3.5 h-3.5" />
                 Forecast Arena
               </span>
               <button
                 onClick={() => { setVisible(false); setDismissed(true); }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1 rounded-full bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                aria-label="Close forecast widget"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="px-4 py-2">
-              <p className="text-xs text-muted-foreground mb-2">{randomText}</p>
+            <div className="px-3 py-1.5">
+              <p className="text-[11px] text-muted-foreground">{randomText}</p>
             </div>
-            <div className="px-2 pb-3">
-              <PollCard poll={featuredPoll} />
+            <div className="px-2 pb-2">
+              <PollCard poll={featuredPoll} compact />
             </div>
           </div>
         </motion.div>

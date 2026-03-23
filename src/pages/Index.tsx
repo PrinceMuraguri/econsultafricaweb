@@ -474,35 +474,74 @@ const Index = () => {
       {/* Email Capture */}
       <EmailCapture />
 
-      {/* Founder */}
+      {/* Founder & Team */}
       <section className="section-padding bg-muted/50">
         <div className="container-page">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-16">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
               <p className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Meet The Founder</p>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Prince Muraguri</h2>
-              <p className="text-accent font-medium mb-6">Founder, Econsult Africa</p>
+              <p className="text-accent font-medium mb-6">Founder & Chief Economist, Econsult Africa</p>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                An economic intelligence strategist with experience in data-driven research, policy analysis, and applied economics across Africa.
+                Prince Muraguri is the Founder and Chief Economist of Econsult Africa. His career spans research, policy, and data analysis at leading institutions including CEGA (UC Berkeley), J-PAL Africa, and the Pharo Foundation.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                He specializes in translating complex macroeconomic trends into clear, decision-focused intelligence for leaders navigating dynamic and uncertain environments.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Known for translating complex economic ideas into clear, actionable insight — Prince founded Econsult Africa to close the gap between macroeconomic data and the decisions that actually matter.
+                Prince holds a Master's in Economics and Finance from the Universidad de Navarra, a MicroMasters from MIT, and a Bachelor's from Strathmore University.
               </p>
             </motion.div>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
-              <div className="grid grid-cols-2 gap-6">
-                {team.filter((m) => m.name !== "Prince Muraguri").map((member) =>
-                <div key={member.name} className="bg-background rounded-lg border border-border p-6 card-shadow">
-                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+              className="flex justify-center">
+              <img src={princeMuraguriImg} alt="Prince Muraguri" className="w-64 h-64 rounded-full object-cover card-shadow-lg" />
+            </motion.div>
+          </div>
+
+          {/* Team */}
+          <div className="mb-16">
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+              className="font-mono text-xs text-gold uppercase tracking-widest mb-4">The Team</motion.p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {team.filter((m) => m.name !== "Prince Muraguri").map((member, i) =>
+              <motion.div key={member.name} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i}
+                className="bg-background rounded-lg border border-border p-6 card-shadow flex gap-5 items-start">
+                  {member.img ? (
+                    <img src={member.img} alt={member.name} className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <span className="font-display font-bold text-lg text-primary">{member.initials}</span>
                     </div>
+                  )}
+                  <div>
                     <h3 className="font-display font-bold text-foreground mb-1">{member.name}</h3>
-                    <p className="text-xs text-accent font-medium mb-3">{member.role}</p>
+                    <p className="text-xs text-accent font-medium mb-2">{member.role}</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">{member.bio}</p>
                   </div>
-                )}
-              </div>
-            </motion.div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Advisory Board */}
+          <div>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+              className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Advisory Board</motion.p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {advisors.map((advisor, i) =>
+              <motion.div key={advisor.name} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={fadeUp} custom={i}
+                className="bg-background rounded-lg border border-border p-6 card-shadow flex gap-5 items-start">
+                  <img src={advisor.img} alt={advisor.name} className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
+                  <div>
+                    <h3 className="font-display font-bold text-foreground mb-1">{advisor.name}</h3>
+                    <p className="text-xs text-accent font-medium mb-2">{advisor.role}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{advisor.bio}</p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       </section>

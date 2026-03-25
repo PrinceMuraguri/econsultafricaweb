@@ -18,7 +18,7 @@ const AdminDashboard = () => {
   const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE) || "");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
   const [keyInput, setKeyInput] = useState("");
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads">("polls");
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
 
@@ -119,6 +119,21 @@ const AdminDashboard = () => {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Fetch sample downloads
+  const { data: sampleDownloads } = useQuery({
+    queryKey: ["admin-sample-downloads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sample_downloads")
+        .select("*")
+        .order("downloaded_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       return data;
     },
@@ -249,6 +264,7 @@ const AdminDashboard = () => {
               { key: "polls", label: "Polls & Settlement" },
               { key: "entries", label: "Staked Entries" },
               { key: "payouts", label: "Payouts & Transfers" },
+              { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
             ] as const).map((tab) => (
               <button
@@ -549,6 +565,70 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+
+          {/* Tab: Sample Downloads */}
+          {activeTab === "downloads" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold text-foreground">
+                  Sample Downloads {sampleDownloads?.length ? `(${sampleDownloads.length})` : ""}
+                </h2>
+                <Button variant="outline" size="sm" onClick={() => exportCSV(sampleDownloads || [], "sample_downloads")}>
+                  <Download className="w-4 h-4 mr-1" /> Export CSV
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-2xl font-bold font-mono text-foreground">{sampleDownloads?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Total Downloads</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-2xl font-bold font-mono text-foreground">
+                    {sampleDownloads?.filter((d: any) => {
+                      const downloadDate = new Date(d.downloaded_at);
+                      const now = new Date();
+                      return now.getTime() - downloadDate.getTime() < 86400000;
+                    }).length || 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Last 24 Hours</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-2xl font-bold font-mono text-foreground">
+                    {new Set(sampleDownloads?.map((d: any) => d.fingerprint).filter(Boolean)).size || 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Unique Users</p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="pb-2 text-xs text-muted-foreground font-medium">Timestamp</th>
+                      <th className="pb-2 text-xs text-muted-foreground font-medium">Source Page</th>
+                      <th className="pb-2 text-xs text-muted-foreground font-medium">Referrer</th>
+                      <th className="pb-2 text-xs text-muted-foreground font-medium">Fingerprint</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sampleDownloads?.map((dl: any) => (
+                      <tr key={dl.id} className="border-b border-border/50">
+                        <td className="py-2 font-mono text-xs">{new Date(dl.downloaded_at).toLocaleString()}</td>
+                        <td className="py-2 text-xs">{dl.source_page}</td>
+                        <td className="py-2 text-xs truncate max-w-[200px]">{dl.referrer || "—"}</td>
+                        <td className="py-2 font-mono text-xs">{dl.fingerprint?.slice(0, 12) || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(!sampleDownloads || sampleDownloads.length === 0) && (
+                  <p className="text-center text-muted-foreground py-8">No downloads recorded yet.</p>
+                )}
+              </div>
             </div>
           )}
 

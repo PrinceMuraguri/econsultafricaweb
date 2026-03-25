@@ -36,6 +36,17 @@ Deno.serve(async (req) => {
     const verifyData = await verifyRes.json();
 
     if (!verifyData.status || verifyData.data.status !== 'success') {
+      // For M-PESA, status might be "pay_offline" (pending STK push)
+      const txStatus = verifyData.data?.status;
+      if (txStatus === 'pay_offline' || txStatus === 'pending') {
+        return new Response(JSON.stringify({ 
+          status: 'pending', 
+          message: 'Payment is still being processed. Check your phone for the M-PESA prompt.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       return new Response(JSON.stringify({ error: 'Payment not verified', details: verifyData.data?.gateway_response }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -44,7 +55,7 @@ Deno.serve(async (req) => {
 
     const metadata = verifyData.data.metadata;
     const { poll_id, option_id, voter_fingerprint } = metadata;
-    const amount = verifyData.data.amount / 100; // Convert back from kobo
+    const amount = verifyData.data.amount / 100;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -56,7 +67,7 @@ Deno.serve(async (req) => {
       .update({ status: 'success' })
       .eq('reference', reference);
 
-    // Check if vote already exists (double-submit protection)
+    // Check if vote already exists (idempotency)
     const { data: existingVote } = await supabase
       .from('votes')
       .select('id')

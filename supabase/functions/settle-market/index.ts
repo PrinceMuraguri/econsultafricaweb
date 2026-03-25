@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     // Get the poll
     const { data: poll, error: pollError } = await supabase
       .from('polls')
-      .select('*, poll_options(*)')
+      .select('*, poll_options!poll_options_poll_id_fkey(*)')
       .eq('id', poll_id)
       .single();
 

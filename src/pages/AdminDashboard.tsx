@@ -40,7 +40,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("polls")
-        .select("*, poll_options(*)")
+        .select("*, poll_options!poll_options_poll_id_fkey(*)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

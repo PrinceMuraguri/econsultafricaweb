@@ -20,6 +20,7 @@ import ForecastArena from "./pages/ForecastArena.tsx";
 import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
 import StakeResult from "./pages/StakeResult.tsx";
 import HowItWorks from "./pages/HowItWorks.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/forecast-arena/stake-result" element={<StakeResult />} />
           <Route path="/forecast-arena/how-it-works" element={<HowItWorks />} />
           <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

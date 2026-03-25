@@ -52,10 +52,11 @@ const ForecastArena = () => {
 
             <motion.p variants={fadeUp} custom={3}
               className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl">
-              Join thousands of forecasters shaping the narrative on Africa's economy.
-              Back your position with skin in the game — buy shares in your prediction
-              from as little as <span className="text-accent font-semibold">$0.01</span>.
-              Let your insight work for you.
+              Join forecasters shaping the narrative on Africa's economy.
+              Vote on live economic questions and see how the market moves in real time.
+              <span className="block mt-2 text-accent/80 font-medium">
+                🚀 Share trading is coming soon — start voting now to build your track record.
+              </span>
             </motion.p>
 
             {/* How it works — animated steps */}

@@ -264,6 +264,7 @@ const AdminDashboard = () => {
               { key: "polls", label: "Polls & Settlement" },
               { key: "entries", label: "Staked Entries" },
               { key: "payouts", label: "Payouts & Transfers" },
+              { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
             ] as const).map((tab) => (
               <button

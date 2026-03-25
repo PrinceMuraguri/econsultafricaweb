@@ -87,11 +87,19 @@ Deno.serve(async (req) => {
 
     if (useMpesa) {
       // M-PESA STK Push via Paystack Charge API
-      // Format phone: ensure it starts with 254
-      let formattedPhone = phone.replace(/\s+/g, '').replace(/^0/, '254').replace(/^\+/, '');
+      // Format phone: strip spaces/dashes, ensure it starts with +254
+      let formattedPhone = phone.replace(/[\s\-()]/g, '').replace(/^\+/, '');
+      // Remove leading 0 and prepend 254
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '254' + formattedPhone.slice(1);
+      }
+      // If it doesn't start with country code, prepend 254
       if (!formattedPhone.startsWith('254')) {
         formattedPhone = '254' + formattedPhone;
       }
+      // Paystack expects +254... format for M-PESA
+      formattedPhone = '+' + formattedPhone;
+      console.log('Formatted phone for M-PESA:', formattedPhone);
 
       const chargeResponse = await fetch('https://api.paystack.co/charge', {
         method: 'POST',

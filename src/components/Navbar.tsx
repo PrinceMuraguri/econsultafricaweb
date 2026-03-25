@@ -34,9 +34,16 @@ const Navbar = () => {
               to={link.href}
               className={`text-sm font-medium transition-colors duration-200 ${
                 location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
-              } ${link.href === "/forecast-arena" ? "animate-pulse text-accent font-bold" : ""}`}
+              } ${link.href === "/forecast-arena" ? "font-bold flex items-center gap-1.5" : ""}`}
             >
-              {link.label}
+              {link.href === "/forecast-arena" ? (
+                <>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-[pulse_3s_ease-in-out_infinite]">
+                    New
+                  </span>
+                  <span className="text-foreground">Forecast Arena</span>
+                </>
+              ) : link.label}
             </Link>
           ))}
           <Button variant="hero" size="sm" className="hover-sink" asChild>
@@ -58,8 +65,15 @@ const Navbar = () => {
             <div className="container-page py-4 flex flex-col gap-3">
               {navLinks.map((link) => (
                 <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
-                  className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"} ${link.href === "/forecast-arena" ? "animate-pulse text-accent font-bold" : ""}`}>
-                  {link.label}
+                  className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"} ${link.href === "/forecast-arena" ? "font-bold" : ""}`}>
+                  {link.href === "/forecast-arena" ? (
+                    <>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-[pulse_3s_ease-in-out_infinite]">
+                        New
+                      </span>
+                      <span className="text-foreground">Forecast Arena</span>
+                    </>
+                  ) : link.label}
                 </Link>
               ))}
               <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>

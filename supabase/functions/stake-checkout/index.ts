@@ -132,7 +132,9 @@ Deno.serve(async (req) => {
       console.log('Paystack M-PESA charge full response:', JSON.stringify(chargeData));
 
       if (!chargeData.status) {
-        return new Response(JSON.stringify({ error: chargeData.message || 'M-PESA charge failed' }), {
+        const errorMsg = chargeData.message || 'M-PESA charge failed';
+        const hint = chargeData.data?.message || chargeData.meta?.nextStep || '';
+        return new Response(JSON.stringify({ error: `${errorMsg}${hint ? ': ' + hint : ''}` }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

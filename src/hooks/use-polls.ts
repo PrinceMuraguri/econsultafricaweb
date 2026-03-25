@@ -42,7 +42,7 @@ export function usePolls(status?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Poll[];
+      return data as unknown as Poll[];
     },
   });
 }
@@ -57,7 +57,7 @@ export function usePoll(slug: string) {
         .eq("slug", slug)
         .single();
       if (error) throw error;
-      return data as Poll;
+      return data as unknown as Poll;
     },
     enabled: !!slug,
   });

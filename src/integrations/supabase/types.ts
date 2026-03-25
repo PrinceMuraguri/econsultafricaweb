@@ -280,6 +280,33 @@ export type Database = {
         }
         Relationships: []
       }
+      trading_waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone_number: string
+          voter_fingerprint: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone_number: string
+          voter_fingerprint?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone_number?: string
+          voter_fingerprint?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number

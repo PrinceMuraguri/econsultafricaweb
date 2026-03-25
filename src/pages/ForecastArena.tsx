@@ -52,18 +52,19 @@ const ForecastArena = () => {
 
             <motion.p variants={fadeUp} custom={3}
               className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl">
-              Join thousands of forecasters shaping the narrative on Africa's economy.
-              Back your position with skin in the game — buy shares in your prediction
-              from as little as <span className="text-accent font-semibold">$0.01</span>.
-              Let your insight work for you.
+              Join forecasters shaping the narrative on Africa's economy.
+              Vote on live economic questions and see how the market moves in real time.
+              <span className="block mt-2 text-accent/80 font-medium">
+                🚀 Share trading is coming soon — start voting now to build your track record.
+              </span>
             </motion.p>
 
             {/* How it works — animated steps */}
             <motion.div variants={fadeUp} custom={4} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
               {[
                 { icon: MousePointerClick, step: "01", title: "Vote", desc: "Pick your position on a live economic question" },
-                { icon: DollarSign, step: "02", title: "Buy Shares", desc: "Back your forecast — each share pays $1 if you're right" },
-                { icon: TrendingUp, step: "03", title: "Earn", desc: "Get paid when the outcome is confirmed" },
+                { icon: TrendingUp, step: "02", title: "Track", desc: "Watch sentiment shift in real time as others vote" },
+                { icon: DollarSign, step: "03", title: "Trade (Soon)", desc: "Buy shares in your prediction when trading launches" },
               ].map((item, i) => (
                 <motion.div
                   key={item.step}

@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
       });
 
       const chargeData = await chargeResponse.json();
-      console.log('Paystack M-PESA charge response:', chargeData.status, chargeData.data?.status);
+      console.log('Paystack M-PESA charge full response:', JSON.stringify(chargeData));
 
       if (!chargeData.status) {
         return new Response(JSON.stringify({ error: chargeData.message || 'M-PESA charge failed' }), {

@@ -398,6 +398,57 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Forecast Arena Promo */}
+      <section className="section-padding bg-foreground overflow-hidden relative">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: "linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--accent)) 1px, transparent 1px)",
+            backgroundSize: "60px 60px"
+          }} />
+        </div>
+        <div className="container-page relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <motion.p variants={fadeUp} custom={0} className="font-mono text-xs text-accent uppercase tracking-widest mb-4">New — Forecast Arena</motion.p>
+              <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-background leading-[1.1] mb-4">
+                Your Voice. <span className="text-accent">Africa's Future.</span>
+              </motion.h2>
+              <motion.p variants={fadeUp} custom={2} className="text-background/60 leading-relaxed mb-6">
+                Predict the economic outcomes shaping Africa. Buy shares in your forecast from as little as $0.01.
+                Each correct share pays $1. Let your insight work for you.
+              </motion.p>
+              <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-3 mb-8">
+                {[
+                  { icon: BarChart3, text: "Real-time probabilities" },
+                  { icon: TrendingUp, text: "Earn when you're right" },
+                  { icon: Globe, text: "Africa-focused questions" },
+                ].map(item => (
+                  <span key={item.text} className="flex items-center gap-1.5 text-xs text-background/40">
+                    <item.icon className="w-3.5 h-3.5 text-accent" />
+                    {item.text}
+                  </span>
+                ))}
+              </motion.div>
+              <motion.div variants={fadeUp} custom={4}>
+                <Button variant="gold" size="lg" className="hover-sink" asChild>
+                  <Link to="/forecast-arena">Enter the Arena <ArrowRight className="ml-1" /></Link>
+                </Button>
+              </motion.div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="bg-background/5 border border-background/10 rounded-lg p-6 space-y-4">
+              {["Will Kenya's CBK cut rates in July 2026?", "Will inflation stay below 6% in Q3?", "Will the KES strengthen past 125/USD?"].map((q, i) => (
+                <div key={i} className="flex items-center justify-between bg-background/5 rounded-md px-4 py-3 border border-background/10">
+                  <span className="text-sm text-background/80 font-medium">{q}</span>
+                  <span className="font-mono text-xs text-accent font-bold">{["67%", "42%", "31%"][i]} Yes</span>
+                </div>
+              ))}
+              <p className="text-center text-xs text-background/30 font-mono">Live market data →</p>
+            </motion.div>
+          </div>
+        </div>
+
       {/* Insights */}
       <section className="section-padding">
         <div className="container-page">

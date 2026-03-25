@@ -125,6 +125,21 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
 
+  // Fetch sample downloads
+  const { data: sampleDownloads } = useQuery({
+    queryKey: ["admin-sample-downloads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sample_downloads")
+        .select("*")
+        .order("downloaded_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
   // Settle market mutation
   const settleMutation = useMutation({
     mutationFn: async ({ pollId, winningOptionId }: { pollId: string; winningOptionId: string }) => {

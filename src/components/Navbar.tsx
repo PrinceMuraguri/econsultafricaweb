@@ -34,7 +34,7 @@ const Navbar = () => {
               to={link.href}
               className={`text-sm font-medium transition-colors duration-200 ${
                 location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
-              }`}
+              } ${link.href === "/forecast-arena" ? "animate-pulse text-accent font-bold" : ""}`}
             >
               {link.label}
             </Link>
@@ -58,7 +58,7 @@ const Navbar = () => {
             <div className="container-page py-4 flex flex-col gap-3">
               {navLinks.map((link) => (
                 <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
-                  className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"}`}>
+                  className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"} ${link.href === "/forecast-arena" ? "animate-pulse text-accent font-bold" : ""}`}>
                   {link.label}
                 </Link>
               ))}

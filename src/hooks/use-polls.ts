@@ -33,7 +33,7 @@ export function usePolls(status?: string) {
     queryFn: async () => {
       let query = supabase
         .from("polls")
-        .select("*, poll_options(*)")
+        .select("*, poll_options!poll_options_poll_id_fkey(*)")
         .order("created_at", { ascending: false });
 
       if (status) {
@@ -53,7 +53,7 @@ export function usePoll(slug: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("polls")
-        .select("*, poll_options(*)")
+        .select("*, poll_options!poll_options_poll_id_fkey(*)")
         .eq("slug", slug)
         .single();
       if (error) throw error;

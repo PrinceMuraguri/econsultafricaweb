@@ -250,6 +250,36 @@ export type Database = {
           },
         ]
       }
+      sample_downloads: {
+        Row: {
+          downloaded_at: string
+          fingerprint: string | null
+          id: string
+          ip_hint: string | null
+          referrer: string | null
+          source_page: string
+          user_agent: string | null
+        }
+        Insert: {
+          downloaded_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_hint?: string | null
+          referrer?: string | null
+          source_page?: string
+          user_agent?: string | null
+        }
+        Update: {
+          downloaded_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_hint?: string | null
+          referrer?: string | null
+          source_page?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number

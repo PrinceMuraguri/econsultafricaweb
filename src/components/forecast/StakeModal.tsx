@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Zap, TrendingUp, HelpCircle, Minus, Plus } from "lucide-react";
+import { Shield, Zap, TrendingUp, HelpCircle, Minus, Plus, Smartphone, CreditCard, Loader2 } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
 
@@ -25,6 +25,8 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const [countryCode, setCountryCode] = useState("+254");
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "card">("mpesa");
+  const [mpesaStatus, setMpesaStatus] = useState<"idle" | "pending" | "polling">("idle");
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 
@@ -35,8 +37,40 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   }, [selectedOption, totalVotes]);
 
   const totalCost = parseFloat((shares * sharePrice).toFixed(2));
+  const platformFee = parseFloat((totalCost * 0.035).toFixed(2));
   const potentialPayout = shares;
   const potentialProfit = parseFloat((potentialPayout - totalCost).toFixed(2));
+
+  const pollForVerification = async (reference: string, attempts = 0): Promise<void> => {
+    if (attempts >= 30) {
+      setMpesaStatus("idle");
+      toast({ title: "Timeout", description: "M-PESA payment verification timed out. If you paid, it will be confirmed shortly.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-stake", {
+        body: { reference },
+      });
+
+      if (data?.success) {
+        setMpesaStatus("idle");
+        toast({ title: "🎉 Payment Confirmed!", description: "Your shares have been purchased. Good luck!" });
+        onOpenChange(false);
+        return;
+      }
+
+      if (data?.status === "pending") {
+        await new Promise(r => setTimeout(r, 3000));
+        return pollForVerification(reference, attempts + 1);
+      }
+    } catch {
+      // Continue polling on network errors
+    }
+
+    await new Promise(r => setTimeout(r, 3000));
+    return pollForVerification(reference, attempts + 1);
+  };
 
   const handleStake = async () => {
     if (!selectedOption || !email || !fullName || !phoneNumber || shares < 1) {
@@ -48,8 +82,8 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     try {
       const fp = await getFingerprint();
 
-      // Save/update voter profile for payout purposes
-      const { error: profileError } = await supabase
+      // Save/update voter profile
+      await supabase
         .from("voter_profiles")
         .upsert({
           voter_fingerprint: fp,
@@ -60,9 +94,11 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           updated_at: new Date().toISOString(),
         }, { onConflict: "voter_fingerprint" });
 
-      if (profileError) {
-        console.error("Profile save error:", profileError);
-      }
+      const fullPhone = phoneNumber.startsWith("0")
+        ? phoneNumber.replace(/^0/, "254")
+        : phoneNumber.startsWith("+")
+        ? phoneNumber.replace(/^\+/, "")
+        : countryCode.replace("+", "") + phoneNumber;
 
       const callbackUrl = `${window.location.origin}/forecast-arena/stake-result?reference={reference}`;
 
@@ -73,19 +109,34 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           poll_id: poll.id,
           option_id: selectedOption.id,
           voter_fingerprint: fp,
-          callback_url: callbackUrl,
+          phone: paymentMethod === "mpesa" ? fullPhone : undefined,
+          callback_url: paymentMethod === "card" ? callbackUrl : undefined,
         },
       });
 
-      if (error || !data?.authorization_url) {
+      if (error || (!data?.authorization_url && !data?.reference)) {
         throw new Error(data?.error || "Failed to initialize payment");
       }
 
-      window.location.href = data.authorization_url;
+      if (paymentMethod === "mpesa") {
+        // M-PESA: STK push sent, start polling
+        setMpesaStatus("pending");
+        toast({ title: "📱 Check your phone!", description: data.display_text || "Enter your M-PESA PIN to complete payment." });
+
+        setTimeout(() => {
+          setMpesaStatus("polling");
+          pollForVerification(data.reference);
+        }, 5000);
+      } else {
+        // Card: redirect to Paystack
+        window.location.href = data.authorization_url;
+      }
     } catch (err: any) {
       toast({ title: "Payment Error", description: err.message || "Could not initiate payment.", variant: "destructive" });
     } finally {
-      setLoading(false);
+      if (paymentMethod !== "mpesa") {
+        setLoading(false);
+      }
     }
   };
 
@@ -99,7 +150,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         <DialogHeader>
           <DialogTitle className="font-display text-lg">Buy Shares — Back Your Prediction</DialogTitle>
           <DialogDescription>
-            Purchase shares in your predicted outcome. Each share pays $1 if correct.
+            Purchase shares in your predicted outcome. Each share pays KES equivalent of $1 if correct. Platform fee: 3.5%.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +164,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </p>
           </div>
 
-          {/* Share price indicator */}
+          {/* Share price */}
           <div className="flex items-center justify-between bg-primary/5 rounded-lg px-4 py-3 border border-primary/10">
             <div>
               <p className="text-xs text-muted-foreground">Share Price</p>
@@ -172,6 +223,10 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
               <span className="text-muted-foreground">{shares} shares × ${sharePrice.toFixed(2)}</span>
               <span className="font-mono font-semibold text-foreground">${totalCost.toFixed(2)}</span>
             </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Platform fee (3.5%)</span>
+              <span className="font-mono text-muted-foreground">${platformFee.toFixed(2)}</span>
+            </div>
             <div className="border-t border-border pt-2 flex justify-between text-sm">
               <span className="text-muted-foreground flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
@@ -187,10 +242,39 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
           </div>
 
+          {/* Payment method toggle */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold">Payment Method</Label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPaymentMethod("mpesa")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md border-2 transition-all text-sm font-semibold ${
+                  paymentMethod === "mpesa"
+                    ? "border-green-500 bg-green-500/10 text-green-700"
+                    : "border-border bg-card text-muted-foreground hover:border-green-500/40"
+                }`}
+              >
+                <Smartphone className="w-4 h-4" />
+                M-PESA
+              </button>
+              <button
+                onClick={() => setPaymentMethod("card")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md border-2 transition-all text-sm font-semibold ${
+                  paymentMethod === "card"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <CreditCard className="w-4 h-4" />
+                Card
+              </button>
+            </div>
+          </div>
+
           {/* Contact details */}
           <div className="space-y-3">
             <p className="text-xs font-semibold text-foreground">Your Details (for payouts & receipts)</p>
-            
+
             <div className="space-y-1.5">
               <Label className="text-xs">Full Name</Label>
               <Input
@@ -212,7 +296,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Phone Number (for payouts)</Label>
+              <Label className="text-xs">
+                {paymentMethod === "mpesa" ? "M-PESA Phone Number" : "Phone Number (for payouts)"}
+              </Label>
               <div className="flex gap-2">
                 <Input
                   type="text"
@@ -229,25 +315,45 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
                   className="flex-1"
                 />
               </div>
+              {paymentMethod === "mpesa" && (
+                <p className="text-[10px] text-muted-foreground">
+                  You'll receive an STK push on this number. Enter your M-PESA PIN to complete payment.
+                </p>
+              )}
             </div>
           </div>
+
+          {/* M-PESA pending state */}
+          {mpesaStatus !== "idle" && (
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-center space-y-2">
+              <Loader2 className="w-6 h-6 text-green-600 animate-spin mx-auto" />
+              <p className="text-sm font-semibold text-green-700">
+                {mpesaStatus === "pending" ? "STK Push sent! Check your phone..." : "Waiting for M-PESA confirmation..."}
+              </p>
+              <p className="text-xs text-green-600">Enter your M-PESA PIN to complete the payment</p>
+            </div>
+          )}
 
           {/* CTA */}
           <Button
             onClick={handleStake}
-            disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
+            disabled={loading || mpesaStatus !== "idle" || !email || !fullName || !phoneNumber || shares < 1}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-display font-semibold"
             size="lg"
           >
-            {loading ? "Processing..." : `Buy ${shares} Shares — $${totalCost.toFixed(2)}`}
+            {loading || mpesaStatus !== "idle"
+              ? (paymentMethod === "mpesa" ? "📱 Sending STK Push..." : "Processing...")
+              : paymentMethod === "mpesa"
+              ? `Pay with M-PESA — $${totalCost.toFixed(2)}`
+              : `Buy ${shares} Shares — $${totalCost.toFixed(2)}`}
           </Button>
 
-          {/* Trust + How it works link */}
+          {/* Trust + How it works */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
                 <Shield className="w-3 h-3" />
-                Secure via Paystack
+                {paymentMethod === "mpesa" ? "M-PESA via Paystack" : "Secure via Paystack"}
               </span>
               <span className="flex items-center gap-1">
                 <Zap className="w-3 h-3" />
@@ -264,10 +370,10 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </Link>
           </div>
 
-          {/* Risk disclaimer */}
+          {/* Disclaimer */}
           <p className="text-[10px] text-muted-foreground text-center leading-tight">
-            Forecasting involves uncertainty. Only stake what you are comfortable losing.
-            This is not financial advice.
+            Forecasting involves uncertainty. Only participate with what you are comfortable losing.
+            Platform fee of 3.5% applies. This is not financial advice.
           </p>
         </div>
       </DialogContent>

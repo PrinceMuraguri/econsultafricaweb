@@ -228,14 +228,23 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
 
       {/* Buy shares CTA — always visible after voting or before */}
       {!isClosed && (
-        <div className="mb-4 pt-2 border-t border-border">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-muted-foreground font-medium">
-              {hasVoted ? "Back your forecast — buy shares:" : "Or buy shares in your prediction:"}
-            </p>
+        <div className="mb-4 pt-3 border-t border-border">
+          <div className="flex items-center justify-between mb-3">
+            <motion.div
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="flex items-center gap-2"
+            >
+              <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+                New Feature
+              </span>
+              <p className="text-sm font-bold text-foreground">
+                Buy shares in your prediction
+              </p>
+            </motion.div>
             <button
               onClick={() => setHowItWorksOpen(true)}
-              className="flex items-center gap-1 text-[10px] text-primary hover:text-accent transition-colors"
+              className="flex items-center gap-1 text-[10px] text-primary hover:text-accent transition-colors shrink-0"
             >
               <HelpCircle className="w-3 h-3" />
               How it works
@@ -249,17 +258,17 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   key={`stake-${option.id}`}
                   onClick={() => { setStakeOption(option); setStakeOpen(true); }}
                   animate={{
-                    scale: [1, 1.03, 1],
+                    scale: [1, 1.02, 1],
                     boxShadow: [
-                      "0 0 0 0 rgba(var(--accent), 0)",
-                      "0 0 12px 4px hsl(var(--accent) / 0.3)",
-                      "0 0 0 0 rgba(var(--accent), 0)"
+                      "0 0 0 0 transparent",
+                      "0 0 10px 3px hsl(var(--accent) / 0.25)",
+                      "0 0 0 0 transparent"
                     ]
                   }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors text-xs font-bold"
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors text-sm font-bold"
                 >
-                  <DollarSign className="w-3.5 h-3.5" />
+                  <DollarSign className="w-4 h-4" />
                   Buy {option.label} ${sharePrice}
                 </motion.button>
               );

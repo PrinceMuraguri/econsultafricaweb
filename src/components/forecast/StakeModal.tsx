@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Zap, TrendingUp, HelpCircle, Minus, Plus, Smartphone, CreditCard, Loader2 } from "lucide-react";
+import { Shield, TrendingUp, HelpCircle, Minus, Plus, Smartphone, CreditCard } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
 
@@ -26,7 +26,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "card">("mpesa");
-  const [mpesaStatus, setMpesaStatus] = useState<"idle" | "pending" | "polling">("idle");
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 
@@ -40,37 +39,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const platformFee = parseFloat((totalCost * 0.035).toFixed(2));
   const potentialPayout = shares;
   const potentialProfit = parseFloat((potentialPayout - totalCost).toFixed(2));
-
-  const pollForVerification = async (reference: string, attempts = 0): Promise<void> => {
-    if (attempts >= 30) {
-      setMpesaStatus("idle");
-      toast({ title: "Timeout", description: "M-PESA payment verification timed out. If you paid, it will be confirmed shortly.", variant: "destructive" });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke("verify-stake", {
-        body: { reference },
-      });
-
-      if (data?.success) {
-        setMpesaStatus("idle");
-        toast({ title: "🎉 Payment Confirmed!", description: "Your shares have been purchased. Good luck!" });
-        onOpenChange(false);
-        return;
-      }
-
-      if (data?.status === "pending") {
-        await new Promise(r => setTimeout(r, 3000));
-        return pollForVerification(reference, attempts + 1);
-      }
-    } catch {
-      // Continue polling on network errors
-    }
-
-    await new Promise(r => setTimeout(r, 3000));
-    return pollForVerification(reference, attempts + 1);
-  };
 
   const handleStake = async () => {
     if (!selectedOption || !email || !fullName || !phoneNumber || shares < 1) {
@@ -110,38 +78,19 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           option_id: selectedOption.id,
           voter_fingerprint: fp,
           phone: paymentMethod === "mpesa" ? fullPhone : undefined,
-          callback_url: paymentMethod === "card" ? callbackUrl : undefined,
+          callback_url: callbackUrl,
         },
       });
 
-      if (error || (!data?.authorization_url && !data?.reference)) {
+      if (error || !data?.authorization_url) {
         throw new Error(data?.error || "Failed to initialize payment");
       }
 
-      const kesAmount = data.amount_kes ? `KES ${Math.round(data.amount_kes)}` : '';
-
-      if (paymentMethod === "mpesa") {
-        // M-PESA: STK push sent, start polling
-        setMpesaStatus("pending");
-        toast({
-          title: "📱 Check your phone!",
-          description: data.display_text || `Enter your M-PESA PIN to complete payment${kesAmount ? ` of ${kesAmount}` : ''}.`
-        });
-
-        setTimeout(() => {
-          setMpesaStatus("polling");
-          pollForVerification(data.reference);
-        }, 5000);
-      } else {
-        // Card: redirect to Paystack
-        window.location.href = data.authorization_url;
-      }
+      // Both methods redirect to Paystack hosted checkout
+      window.location.href = data.authorization_url;
     } catch (err: any) {
       toast({ title: "Payment Error", description: err.message || "Could not initiate payment.", variant: "destructive" });
-    } finally {
-      if (paymentMethod !== "mpesa") {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -249,7 +198,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
           {/* Payment method toggle */}
           <div className="space-y-2">
-            <Label className="text-xs font-semibold">Payment Method</Label>
+            <Label className="text-xs font-semibold">Preferred Payment Method</Label>
             <div className="flex gap-2">
               <button
                 onClick={() => setPaymentMethod("mpesa")}
@@ -274,6 +223,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
                 Card
               </button>
             </div>
+            <p className="text-[10px] text-muted-foreground">
+              You'll be redirected to a secure Paystack page where you can pay via M-PESA, Card, or Airtel Money.
+            </p>
           </div>
 
           {/* Contact details */}
@@ -301,9 +253,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">
-                {paymentMethod === "mpesa" ? "M-PESA Phone Number" : "Phone Number (for payouts)"}
-              </Label>
+              <Label className="text-xs">Phone Number (for payouts)</Label>
               <div className="flex gap-2">
                 <Input
                   type="text"
@@ -320,51 +270,27 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
                   className="flex-1"
                 />
               </div>
-              {paymentMethod === "mpesa" && (
-                <p className="text-[10px] text-muted-foreground">
-                  You'll receive an STK push on this number. Enter your M-PESA PIN to complete payment.
-                </p>
-              )}
             </div>
           </div>
-
-          {/* M-PESA pending state */}
-          {mpesaStatus !== "idle" && (
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-center space-y-2">
-              <Loader2 className="w-6 h-6 text-green-600 animate-spin mx-auto" />
-              <p className="text-sm font-semibold text-green-700">
-                {mpesaStatus === "pending" ? "STK Push sent! Check your phone..." : "Waiting for M-PESA confirmation..."}
-              </p>
-              <p className="text-xs text-green-600">Enter your M-PESA PIN to complete the payment</p>
-            </div>
-          )}
 
           {/* CTA */}
           <Button
             onClick={handleStake}
-            disabled={loading || mpesaStatus !== "idle" || !email || !fullName || !phoneNumber || shares < 1}
+            disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-display font-semibold"
             size="lg"
           >
-            {loading || mpesaStatus !== "idle"
-              ? (paymentMethod === "mpesa" ? "📱 Sending STK Push..." : "Processing...")
-              : paymentMethod === "mpesa"
-              ? `Pay with M-PESA — $${totalCost.toFixed(2)}`
+            {loading
+              ? "Redirecting to payment..."
               : `Buy ${shares} Shares — $${totalCost.toFixed(2)}`}
           </Button>
 
           {/* Trust + How it works */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
-                <Shield className="w-3 h-3" />
-                {paymentMethod === "mpesa" ? "M-PESA via Paystack" : "Secure via Paystack"}
-              </span>
-              <span className="flex items-center gap-1">
-                <Zap className="w-3 h-3" />
-                Instant confirmation
-              </span>
-            </div>
+            <span className="flex items-center gap-1">
+              <Shield className="w-3 h-3" />
+              Secure checkout via Paystack
+            </span>
             <Link
               to="/forecast-arena/how-it-works"
               className="flex items-center gap-1 text-primary hover:text-accent transition-colors"

@@ -126,94 +126,49 @@ Deno.serve(async (req) => {
       implied_probability: impliedProbability,
     };
 
+    // Always use Paystack hosted checkout (supports M-PESA, Card, Airtel Money, etc.)
+    const channelsList = [];
     if (useMpesa) {
-      // M-PESA STK Push via Paystack Charge API
-      let formattedPhone = phone.replace(/[\s\-()]/g, '').replace(/^\+/, '');
-      if (formattedPhone.startsWith('0')) {
-        formattedPhone = '254' + formattedPhone.slice(1);
-      }
-      if (!formattedPhone.startsWith('254')) {
-        formattedPhone = '254' + formattedPhone;
-      }
-      formattedPhone = '+' + formattedPhone;
-      console.log('Formatted phone for M-PESA:', formattedPhone);
-
-      const chargeResponse = await fetch('https://api.paystack.co/charge', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${paystackSecretKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          amount: amountInKobo,
-          currency: 'KES',
-          reference,
-          mobile_money: {
-            phone: formattedPhone,
-            provider: 'mpesa',
-          },
-          metadata,
-        }),
-      });
-
-      const chargeData = await chargeResponse.json();
-      console.log('Paystack M-PESA charge response:', JSON.stringify(chargeData));
-
-      if (!chargeData.status) {
-        const errorMsg = chargeData.message || 'M-PESA charge failed';
-        const hint = chargeData.data?.message || chargeData.meta?.nextStep || '';
-        return new Response(JSON.stringify({ error: `${errorMsg}${hint ? ': ' + hint : ''}` }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      return new Response(JSON.stringify({
-        payment_method: 'mpesa',
-        status: chargeData.data.status,
-        reference: chargeData.data.reference,
-        display_text: chargeData.data.display_text || `Check your phone for the M-PESA prompt (KES ${amountKes.toFixed(0)})`,
-        amount_kes: amountKes,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      channelsList.push('mobile_money');
     } else {
-      // Standard Paystack redirect checkout
-      const response = await fetch('https://api.paystack.co/transaction/initialize', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${paystackSecretKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          amount: amountInKobo,
-          currency: 'KES',
-          reference,
-          callback_url: callback_url || undefined,
-          metadata,
-        }),
-      });
+      channelsList.push('card', 'mobile_money');
+    }
 
-      const data = await response.json();
+    const initBody: Record<string, unknown> = {
+      email,
+      amount: amountInKobo,
+      currency: 'KES',
+      reference,
+      callback_url: callback_url || undefined,
+      channels: channelsList,
+      metadata,
+    };
 
-      if (!data.status) {
-        return new Response(JSON.stringify({ error: data.message || 'Failed to initialize payment' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    const response = await fetch('https://api.paystack.co/transaction/initialize', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${paystackSecretKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(initBody),
+    });
 
-      return new Response(JSON.stringify({
-        payment_method: 'card',
-        authorization_url: data.data.authorization_url,
-        reference: data.data.reference,
-        amount_kes: amountKes,
-      }), {
+    const data = await response.json();
+
+    if (!data.status) {
+      return new Response(JSON.stringify({ error: data.message || 'Failed to initialize payment' }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    return new Response(JSON.stringify({
+      authorization_url: data.data.authorization_url,
+      reference: data.data.reference,
+      amount_kes: amountKes,
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Stake checkout error:', error.message);
     return new Response(JSON.stringify({ error: 'Something went wrong. Please try again.' }), {

@@ -70,6 +70,7 @@ const advisors = [
 const Index = () => {
   return (
     <Layout>
+      <LaunchCountdown />
       <StickyCTA />
       <ForecastWidget />
 

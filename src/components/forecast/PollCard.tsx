@@ -177,6 +177,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           const isVoted = votedOptionId === option.id;
           const isSelected = selectedOptionId === option.id;
           const canVote = !hasVoted && !voting && !isClosed;
+          const showBar = hasVoted || isClosed;
 
           return (
             <button
@@ -193,13 +194,15 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   : "border-border cursor-default"
               }`}
             >
-              {/* Always show progress bar with live sentiment */}
-              <div
-                className={`absolute inset-0 transition-all duration-700 ${
-                  isYes ? "bg-primary/10" : "bg-accent/10"
-                }`}
-                style={{ width: `${pct}%` }}
-              />
+              {/* Only show progress bar AFTER voting */}
+              {showBar && (
+                <div
+                  className={`absolute inset-0 transition-all duration-700 ${
+                    isYes ? "bg-primary/10" : "bg-accent/10"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              )}
               <div className="relative flex items-center justify-between px-3 py-2.5">
                 <span className="flex items-center gap-2 text-sm font-medium text-foreground">
                   {isVoted && <Check className="w-3.5 h-3.5 text-accent" />}
@@ -209,9 +212,11 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                     ? `✓ Tap again to confirm ${option.label}`
                     : `Vote ${option.label}`}
                 </span>
-                <span className="font-mono text-sm font-semibold text-foreground">
-                  {pct}%
-                </span>
+                {showBar && (
+                  <span className="font-mono text-sm font-semibold text-foreground">
+                    {pct}%
+                  </span>
+                )}
               </div>
             </button>
           );
@@ -223,52 +228,55 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </div>
 
-      {/* Buy shares — COMING SOON (blurred/locked) */}
+      {/* Buy shares — COMING SOON (subtle blur, visible preview) */}
       {!isClosed && !TRADING_ENABLED && (
-        <div className="mb-4 pt-3 border-t border-border relative">
-          {/* Blurred content */}
-          <div className="filter blur-[2px] opacity-40 pointer-events-none select-none">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
-                  Trading
-                </span>
-                <p className="text-sm font-bold text-foreground">
-                  Buy shares in your prediction
-                </p>
+        <div className="mb-4 pt-3 border-t border-border">
+          <div className="relative rounded-lg overflow-hidden">
+            {/* Semi-blurred content — visible but not interactive */}
+            <div className="filter blur-[1px] opacity-60 pointer-events-none select-none p-3 bg-muted/30">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+                    Live
+                  </span>
+                  <p className="text-sm font-bold text-foreground">
+                    Buy shares in your prediction
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {localOptions.map((option) => {
+                  const sharePrice = totalVotes > 0 ? (option.total_votes_count / totalVotes).toFixed(2) : "0.50";
+                  return (
+                    <div
+                      key={`stake-preview-${option.id}`}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent text-sm font-bold"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      Buy {option.label} ${sharePrice}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="flex gap-2">
-              {localOptions.map((option) => (
-                <div
-                  key={`stake-preview-${option.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent text-sm font-bold"
-                >
-                  <DollarSign className="w-4 h-4" />
-                  Buy {option.label}
-                </div>
-              ))}
+            {/* Small overlay badge — doesn't cover everything */}
+            <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-card/95 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 shadow-md">
+              <Rocket className="w-3.5 h-3.5 text-accent" />
+              <span className="text-xs font-bold text-foreground">Coming Soon</span>
             </div>
           </div>
-          {/* Overlay */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg px-4 py-3 text-center shadow-lg">
-              <div className="flex items-center justify-center gap-1.5 mb-1">
-                <Rocket className="w-4 h-4 text-accent" />
-                <span className="text-sm font-bold text-foreground">Coming Soon</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground mb-2">
-                Our team is building share trading.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-                onClick={() => setWaitlistOpen(true)}
-              >
-                Register for priority access
-              </Button>
-            </div>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-[10px] text-muted-foreground">
+              Share trading is being built by our team.
+            </p>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-xs text-accent hover:text-accent hover:bg-accent/10 h-7 px-2"
+              onClick={() => setWaitlistOpen(true)}
+            >
+              Get priority access →
+            </Button>
           </div>
         </div>
       )}

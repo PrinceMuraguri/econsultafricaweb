@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, DollarSign, MousePointerClick, Shield } from "lucide-react";
+import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, DollarSign, MousePointerClick, Shield, Rocket } from "lucide-react";
+import tradingPreview from "@/assets/trading-preview.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -108,6 +109,28 @@ const ForecastArena = () => {
               </motion.div>
               <span className="text-xs font-mono uppercase tracking-wider">Scroll to start forecasting</span>
             </motion.div>
+          </motion.div>
+
+          {/* Trading Preview Image */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8, duration: 0.7 }}
+            className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 max-w-sm"
+          >
+            <div className="relative">
+              <img
+                src={tradingPreview}
+                alt="Preview of upcoming share trading feature"
+                className="rounded-xl shadow-2xl border border-background/10"
+                width={400}
+                height={400}
+              />
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                <Rocket className="w-4 h-4" />
+                <span className="text-sm font-bold whitespace-nowrap">Share Trading — Coming Soon</span>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

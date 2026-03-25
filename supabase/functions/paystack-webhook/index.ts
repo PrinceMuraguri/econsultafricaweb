@@ -92,8 +92,9 @@ Deno.serve(async (req) => {
 
       // Only process forecast stake metadata
       if (metadata?.type === 'forecast_stake') {
-        const { poll_id, option_id, voter_fingerprint } = metadata;
-        const stakeAmount = amount / 100;
+        const { poll_id, option_id, voter_fingerprint, amount_usd } = metadata;
+        // Use the original USD amount from metadata, fallback to converting KES back
+        const stakeAmountUsd = amount_usd || (amount / 100 / 129);
 
         // Check if vote already exists (double-submit protection)
         const { data: existingVote } = await supabase
@@ -110,7 +111,7 @@ Deno.serve(async (req) => {
             option_id,
             voter_fingerprint,
             is_staked: true,
-            stake_amount: stakeAmount,
+            stake_amount: stakeAmountUsd,
             payment_reference: reference,
           });
 
@@ -119,7 +120,7 @@ Deno.serve(async (req) => {
           } else {
             // Increment counts
             await supabase.rpc('increment_vote_count', { p_option_id: option_id });
-            await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmount });
+            await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
           }
         }
       }

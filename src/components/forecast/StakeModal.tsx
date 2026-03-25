@@ -118,10 +118,15 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         throw new Error(data?.error || "Failed to initialize payment");
       }
 
+      const kesAmount = data.amount_kes ? `KES ${Math.round(data.amount_kes)}` : '';
+
       if (paymentMethod === "mpesa") {
         // M-PESA: STK push sent, start polling
         setMpesaStatus("pending");
-        toast({ title: "📱 Check your phone!", description: data.display_text || "Enter your M-PESA PIN to complete payment." });
+        toast({
+          title: "📱 Check your phone!",
+          description: data.display_text || `Enter your M-PESA PIN to complete payment${kesAmount ? ` of ${kesAmount}` : ''}.`
+        });
 
         setTimeout(() => {
           setMpesaStatus("polling");

@@ -5,6 +5,28 @@ const corsHeaders = {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Fallback USD/KES rate — updated periodically
+const FALLBACK_USD_KES_RATE = 129;
+
+async function getUsdToKesRate(): Promise<number> {
+  try {
+    // Try to fetch a live rate (free API)
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.KES;
+      if (rate && rate > 50 && rate < 300) {
+        console.log('Live USD/KES rate:', rate);
+        return rate;
+      }
+    }
+  } catch (e) {
+    console.log('Could not fetch live FX rate, using fallback:', e.message);
+  }
+  console.log('Using fallback USD/KES rate:', FALLBACK_USD_KES_RATE);
+  return FALLBACK_USD_KES_RATE;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -54,7 +76,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Calculate platform fee (3.5%)
+    // Convert USD amount to KES
+    const usdToKesRate = await getUsdToKesRate();
+    const amountKes = Math.round(amount * usdToKesRate * 100) / 100;
+    const amountInKobo = Math.round(amountKes * 100); // Paystack uses lowest denomination
+
+    console.log(`Amount: $${amount} USD → KES ${amountKes} (rate: ${usdToKesRate}), kobo: ${amountInKobo}`);
+
+    // Calculate platform fee (3.5%) in USD for metadata
     const platformFee = Math.round(amount * 0.035 * 100) / 100;
     const netStake = Math.round((amount - platformFee) * 100) / 100;
     const totalVotes = await getTotalVotes(supabase, poll_id);
@@ -63,15 +92,14 @@ Deno.serve(async (req) => {
 
     const reference = `stake_${poll_id.slice(0, 8)}_${Date.now()}`;
     const useMpesa = !!phone;
-    const amountInCents = Math.round(amount * 100);
 
-    // Create pending transaction with extended fields
+    // Create pending transaction — store original USD amount
     const { error: txError } = await supabase.from('transactions').insert({
       voter_fingerprint,
       poll_id,
       option_id,
-      amount,
-      currency: 'KES',
+      amount, // Store in USD
+      currency: 'USD',
       channel: useMpesa ? 'mpesa' : 'paystack',
       status: 'pending',
       reference,
@@ -85,19 +113,28 @@ Deno.serve(async (req) => {
       });
     }
 
+    const metadata = {
+      type: 'forecast_stake',
+      poll_id,
+      option_id,
+      voter_fingerprint,
+      amount_usd: amount,
+      amount_kes: amountKes,
+      fx_rate: usdToKesRate,
+      platform_fee: platformFee,
+      net_stake: netStake,
+      implied_probability: impliedProbability,
+    };
+
     if (useMpesa) {
       // M-PESA STK Push via Paystack Charge API
-      // Format phone: strip spaces/dashes, ensure it starts with +254
       let formattedPhone = phone.replace(/[\s\-()]/g, '').replace(/^\+/, '');
-      // Remove leading 0 and prepend 254
       if (formattedPhone.startsWith('0')) {
         formattedPhone = '254' + formattedPhone.slice(1);
       }
-      // If it doesn't start with country code, prepend 254
       if (!formattedPhone.startsWith('254')) {
         formattedPhone = '254' + formattedPhone;
       }
-      // Paystack expects +254... format for M-PESA
       formattedPhone = '+' + formattedPhone;
       console.log('Formatted phone for M-PESA:', formattedPhone);
 
@@ -109,27 +146,19 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           email,
-          amount: amountInCents,
+          amount: amountInKobo,
           currency: 'KES',
           reference,
           mobile_money: {
             phone: formattedPhone,
             provider: 'mpesa',
           },
-          metadata: {
-            type: 'forecast_stake',
-            poll_id,
-            option_id,
-            voter_fingerprint,
-            platform_fee: platformFee,
-            net_stake: netStake,
-            implied_probability: impliedProbability,
-          },
+          metadata,
         }),
       });
 
       const chargeData = await chargeResponse.json();
-      console.log('Paystack M-PESA charge full response:', JSON.stringify(chargeData));
+      console.log('Paystack M-PESA charge response:', JSON.stringify(chargeData));
 
       if (!chargeData.status) {
         const errorMsg = chargeData.message || 'M-PESA charge failed';
@@ -140,12 +169,12 @@ Deno.serve(async (req) => {
         });
       }
 
-      // M-PESA returns status "pay_offline" — STK push sent to phone
       return new Response(JSON.stringify({
         payment_method: 'mpesa',
         status: chargeData.data.status,
         reference: chargeData.data.reference,
-        display_text: chargeData.data.display_text || 'Check your phone for the M-PESA prompt',
+        display_text: chargeData.data.display_text || `Check your phone for the M-PESA prompt (KES ${amountKes.toFixed(0)})`,
+        amount_kes: amountKes,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -159,19 +188,11 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           email,
-          amount: amountInCents,
+          amount: amountInKobo,
           currency: 'KES',
           reference,
           callback_url: callback_url || undefined,
-          metadata: {
-            type: 'forecast_stake',
-            poll_id,
-            option_id,
-            voter_fingerprint,
-            platform_fee: platformFee,
-            net_stake: netStake,
-            implied_probability: impliedProbability,
-          },
+          metadata,
         }),
       });
 
@@ -188,6 +209,7 @@ Deno.serve(async (req) => {
         payment_method: 'card',
         authorization_url: data.data.authorization_url,
         reference: data.data.reference,
+        amount_kes: amountKes,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

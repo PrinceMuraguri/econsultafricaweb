@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { BarChart3, TrendingUp, Zap, Globe } from "lucide-react";
+import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, DollarSign, MousePointerClick, Shield } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -13,16 +13,22 @@ const fadeUp = {
   })
 };
 
-const categories = ["All", "Economics", "Markets", "Fiscal Policy", "Cost of Living", "Financial Sector", "Sovereign Finance", "Agriculture", "Macroeconomics", "Global"];
-
 const ForecastArena = () => {
   const { data: polls, isLoading } = usePolls();
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="section-padding bg-foreground overflow-hidden">
-        <div className="container-page">
+      {/* Hero — The African Forecast Story */}
+      <section className="section-padding bg-foreground overflow-hidden relative">
+        {/* Subtle animated grid background */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: "linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--accent)) 1px, transparent 1px)",
+            backgroundSize: "60px 60px"
+          }} />
+        </div>
+
+        <div className="container-page relative z-10">
           <motion.div initial="hidden" animate="visible" className="max-w-3xl">
             <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
@@ -32,27 +38,74 @@ const ForecastArena = () => {
                 Forecast Arena
               </span>
             </motion.div>
+
             <motion.h1 variants={fadeUp} custom={1}
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-background leading-[1.1] mb-6">
-              Where Africa's Future{" "}
-              <span className="text-accent">Is Predicted in Real Time</span>
+              Your Voice.{" "}
+              <span className="text-accent">Africa's Future.</span>
             </motion.h1>
+
             <motion.p variants={fadeUp} custom={2}
-              className="text-lg text-background/60 leading-relaxed mb-8 max-w-2xl">
-              Take a position on the economic questions shaping Africa's trajectory. 
-              Each prediction is backed by real economic context — not speculation.
+              className="text-lg md:text-xl text-background/70 leading-relaxed mb-4 max-w-2xl">
+              Africa is your business. Make your forecast count.
             </motion.p>
-            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-6">
+
+            <motion.p variants={fadeUp} custom={3}
+              className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl">
+              Join thousands of forecasters shaping the narrative on Africa's economy.
+              Back your position with skin in the game — buy shares in your prediction
+              from as little as <span className="text-accent font-semibold">$0.01</span>.
+              Let your insight work for you.
+            </motion.p>
+
+            {/* How it works — animated steps */}
+            <motion.div variants={fadeUp} custom={4} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
               {[
-                { icon: TrendingUp, label: "Data-backed questions" },
+                { icon: MousePointerClick, step: "01", title: "Vote", desc: "Pick your position on a live economic question" },
+                { icon: DollarSign, step: "02", title: "Buy Shares", desc: "Back your forecast — each share pays $1 if you're right" },
+                { icon: TrendingUp, step: "03", title: "Earn", desc: "Get paid when the outcome is confirmed" },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + i * 0.15 }}
+                  className="bg-background/5 border border-background/10 rounded-lg p-4 group hover:bg-background/10 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                      <item.icon className="w-4 h-4 text-accent" />
+                    </div>
+                    <span className="font-mono text-xs text-accent/60">{item.step}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-background mb-1">{item.title}</p>
+                  <p className="text-xs text-background/40">{item.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={5} className="flex flex-wrap gap-6 mb-6">
+              {[
+                { icon: Shield, label: "Secure payments via Paystack" },
                 { icon: Zap, label: "Real-time probability" },
-                { icon: Globe, label: "Africa-focused" },
+                { icon: Globe, label: "100% Africa-focused" },
               ].map((item) => (
-                <span key={item.label} className="flex items-center gap-2 text-sm text-background/50">
+                <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">
                   <item.icon className="w-4 h-4 text-accent" />
                   {item.label}
                 </span>
               ))}
+            </motion.div>
+
+            {/* Scroll prompt */}
+            <motion.div
+              variants={fadeUp} custom={6}
+              className="flex items-center gap-2 text-background/30"
+            >
+              <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                <ArrowDown className="w-4 h-4" />
+              </motion.div>
+              <span className="text-xs font-mono uppercase tracking-wider">Scroll to start forecasting</span>
             </motion.div>
           </motion.div>
         </div>
@@ -62,8 +115,8 @@ const ForecastArena = () => {
       <div className="bg-muted/50 border-b border-border">
         <div className="container-page py-3">
           <p className="text-xs text-muted-foreground text-center">
-            This is a forecasting tool for informational purposes only. Not financial advice. 
-            All predictions reflect collective sentiment, not guaranteed outcomes.
+            This is a forecasting platform for informational purposes. Not financial advice.
+            All predictions reflect collective sentiment, not guaranteed outcomes. Platform fee: 3.5%.
           </p>
         </div>
       </div>
@@ -75,6 +128,7 @@ const ForecastArena = () => {
             <div>
               <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Active Forecasts</p>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">Take a Position</h2>
+              <p className="text-sm text-muted-foreground mt-1">Vote free or buy shares to back your conviction</p>
             </div>
           </div>
 
@@ -102,7 +156,7 @@ const ForecastArena = () => {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA — Reports */}
       <section className="section-padding bg-primary">
         <div className="container-page text-center">
           <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
@@ -112,6 +166,7 @@ const ForecastArena = () => {
           <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
             className="text-primary-foreground/70 mb-8 max-w-xl mx-auto">
             Go beyond predictions. Get the full analysis behind Africa's economic trajectory.
+            Stay ahead with our latest reports.
           </motion.p>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
             className="flex flex-col sm:flex-row gap-4 justify-center">

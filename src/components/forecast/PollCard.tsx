@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, DollarSign, HelpCircle, Loader2 } from "lucide-react";
+import { Clock, Users, Lock, Check, DollarSign, HelpCircle, Loader2, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import StakeModal from "./StakeModal";
-import HowItWorksModal from "./HowItWorksModal";
+import TradingWaitlistModal from "./TradingWaitlistModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
+
+// Feature flag — flip to true to re-enable payments
+const TRADING_ENABLED = false;
 
 function getTimeRemaining(closeAt: string) {
   const diff = new Date(closeAt).getTime() - Date.now();
@@ -32,10 +34,8 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
-  const [stakeOpen, setStakeOpen] = useState(false);
-  const [stakeOption, setStakeOption] = useState<PollOption | null>(null);
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const [justVoted, setJustVoted] = useState(false);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   useEffect(() => {
     setLocalOptions(poll.poll_options);
@@ -88,7 +88,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       }
       await supabase.rpc("increment_vote_count", { p_option_id: optionId });
 
-      // Show "updating" state briefly for dopamine
       setJustVoted(true);
       setTimeout(() => setJustVoted(false), 1500);
 
@@ -148,10 +147,10 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </p>
       )}
 
-      {/* "What people are saying" label before voting */}
-      {!hasVoted && !isClosed && totalVotes > 0 && (
+      {/* "What people are saying" label */}
+      {totalVotes > 0 && (
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
-          📊 What people are saying so far
+          📊 What people are saying
         </p>
       )}
 
@@ -194,15 +193,13 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   : "border-border cursor-default"
               }`}
             >
-              {/* Only show progress bar if voted or closed */}
-              {(hasVoted || isClosed) && (
-                <div
-                  className={`absolute inset-0 transition-all duration-700 ${
-                    isYes ? "bg-primary/10" : "bg-accent/10"
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-              )}
+              {/* Always show progress bar with live sentiment */}
+              <div
+                className={`absolute inset-0 transition-all duration-700 ${
+                  isYes ? "bg-primary/10" : "bg-accent/10"
+                }`}
+                style={{ width: `${pct}%` }}
+              />
               <div className="relative flex items-center justify-between px-3 py-2.5">
                 <span className="flex items-center gap-2 text-sm font-medium text-foreground">
                   {isVoted && <Check className="w-3.5 h-3.5 text-accent" />}
@@ -213,7 +210,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                     : `Vote ${option.label}`}
                 </span>
                 <span className="font-mono text-sm font-semibold text-foreground">
-                  {hasVoted || isClosed ? `${pct}%` : ""}
+                  {pct}%
                 </span>
               </div>
             </button>
@@ -226,26 +223,69 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </div>
 
-      {/* Buy shares CTA — always visible after voting or before */}
-      {!isClosed && (
+      {/* Buy shares — COMING SOON (blurred/locked) */}
+      {!isClosed && !TRADING_ENABLED && (
+        <div className="mb-4 pt-3 border-t border-border relative">
+          {/* Blurred content */}
+          <div className="filter blur-[2px] opacity-40 pointer-events-none select-none">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+                  Trading
+                </span>
+                <p className="text-sm font-bold text-foreground">
+                  Buy shares in your prediction
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {localOptions.map((option) => (
+                <div
+                  key={`stake-preview-${option.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent text-sm font-bold"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  Buy {option.label}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg px-4 py-3 text-center shadow-lg">
+              <div className="flex items-center justify-center gap-1.5 mb-1">
+                <Rocket className="w-4 h-4 text-accent" />
+                <span className="text-sm font-bold text-foreground">Coming Soon</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Our team is building share trading.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                onClick={() => setWaitlistOpen(true)}
+              >
+                Register for priority access
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active trading (when TRADING_ENABLED = true) — kept intact for future */}
+      {!isClosed && TRADING_ENABLED && (
         <div className="mb-4 pt-3 border-t border-border">
           <div className="flex items-center justify-between mb-3">
-            <motion.div
-              animate={{ opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="flex items-center gap-2"
-            >
+            <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
-                New Feature
+                Live
               </span>
               <p className="text-sm font-bold text-foreground">
                 Buy shares in your prediction
               </p>
-            </motion.div>
-            <button
-              onClick={() => setHowItWorksOpen(true)}
-              className="flex items-center gap-1 text-[10px] text-primary hover:text-accent transition-colors shrink-0"
-            >
+            </div>
+            <button className="flex items-center gap-1 text-[10px] text-primary hover:text-accent transition-colors shrink-0">
               <HelpCircle className="w-3 h-3" />
               How it works
             </button>
@@ -256,16 +296,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               return (
                 <motion.button
                   key={`stake-${option.id}`}
-                  onClick={() => { setStakeOption(option); setStakeOpen(true); }}
-                  animate={{
-                    scale: [1, 1.02, 1],
-                    boxShadow: [
-                      "0 0 0 0 transparent",
-                      "0 0 10px 3px hsl(var(--accent) / 0.25)",
-                      "0 0 0 0 transparent"
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors text-sm font-bold"
                 >
                   <DollarSign className="w-4 h-4" />
@@ -299,16 +329,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </div>
       )}
 
-      <StakeModal
-        open={stakeOpen}
-        onOpenChange={setStakeOpen}
-        poll={poll}
-        selectedOption={stakeOption}
-      />
-      <HowItWorksModal
-        open={howItWorksOpen}
-        onOpenChange={setHowItWorksOpen}
-      />
+      <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
     </motion.div>
   );
 };

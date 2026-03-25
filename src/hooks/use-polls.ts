@@ -21,6 +21,9 @@ export interface Poll {
   close_at: string;
   resolve_at: string | null;
   created_at: string;
+  winning_option_id?: string | null;
+  settled_at?: string | null;
+  settled_by?: string | null;
   poll_options: PollOption[];
 }
 

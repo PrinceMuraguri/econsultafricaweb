@@ -55,7 +55,7 @@ const Footer = () => {
                 </a>
               ))}
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">hello@econsultafrica.com</p>
+            <p className="mt-4 text-xs text-muted-foreground"><p className="mt-4 text-xs text-muted-foreground">info@econsult.africa</p></p>
           </div>
 
           {footerLinks.map((group) => (

@@ -14,32 +14,133 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          performed_by: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          performed_by?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          performed_by?: string
+        }
+        Relationships: []
+      }
+      payout_transfers: {
+        Row: {
+          amount: number
+          batch_id: string | null
+          created_at: string
+          currency: string
+          error_message: string | null
+          id: string
+          payout_id: string
+          paystack_reference: string | null
+          reason: string | null
+          recipient_code: string
+          retries: number
+          status: string
+          transfer_code: string | null
+          updated_at: string
+          voter_fingerprint: string
+        }
+        Insert: {
+          amount: number
+          batch_id?: string | null
+          created_at?: string
+          currency?: string
+          error_message?: string | null
+          id?: string
+          payout_id: string
+          paystack_reference?: string | null
+          reason?: string | null
+          recipient_code: string
+          retries?: number
+          status?: string
+          transfer_code?: string | null
+          updated_at?: string
+          voter_fingerprint: string
+        }
+        Update: {
+          amount?: number
+          batch_id?: string | null
+          created_at?: string
+          currency?: string
+          error_message?: string | null
+          id?: string
+          payout_id?: string
+          paystack_reference?: string | null
+          reason?: string | null
+          recipient_code?: string
+          retries?: number
+          status?: string
+          transfer_code?: string | null
+          updated_at?: string
+          voter_fingerprint?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_transfers_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payouts: {
         Row: {
           amount: number
           created_at: string
           id: string
+          payout_method: string | null
           poll_id: string
           reference: string | null
+          settled_at: string | null
           status: string
+          transfer_code: string | null
           voter_fingerprint: string
         }
         Insert: {
           amount: number
           created_at?: string
           id?: string
+          payout_method?: string | null
           poll_id: string
           reference?: string | null
+          settled_at?: string | null
           status?: string
+          transfer_code?: string | null
           voter_fingerprint: string
         }
         Update: {
           amount?: number
           created_at?: string
           id?: string
+          payout_method?: string | null
           poll_id?: string
           reference?: string | null
+          settled_at?: string | null
           status?: string
+          transfer_code?: string | null
           voter_fingerprint?: string
         }
         Relationships: [
@@ -97,10 +198,13 @@ export type Database = {
           id: string
           outcome: string | null
           resolve_at: string | null
+          settled_at: string | null
+          settled_by: string | null
           slug: string
           status: string
           title: string
           updated_at: string
+          winning_option_id: string | null
         }
         Insert: {
           category?: string
@@ -111,10 +215,13 @@ export type Database = {
           id?: string
           outcome?: string | null
           resolve_at?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
           slug: string
           status?: string
           title: string
           updated_at?: string
+          winning_option_id?: string | null
         }
         Update: {
           category?: string
@@ -125,12 +232,23 @@ export type Database = {
           id?: string
           outcome?: string | null
           resolve_at?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
           slug?: string
           status?: string
           title?: string
           updated_at?: string
+          winning_option_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "polls_winning_option_id_fkey"
+            columns: ["winning_option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -185,6 +303,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transfer_recipients: {
+        Row: {
+          account_number: string | null
+          bank_code: string | null
+          created_at: string
+          currency: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          recipient_code: string
+          recipient_type: string
+          updated_at: string
+          voter_fingerprint: string
+        }
+        Insert: {
+          account_number?: string | null
+          bank_code?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          recipient_code: string
+          recipient_type?: string
+          updated_at?: string
+          voter_fingerprint: string
+        }
+        Update: {
+          account_number?: string | null
+          bank_code?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          recipient_code?: string
+          recipient_type?: string
+          updated_at?: string
+          voter_fingerprint?: string
+        }
+        Relationships: []
       }
       voter_profiles: {
         Row: {

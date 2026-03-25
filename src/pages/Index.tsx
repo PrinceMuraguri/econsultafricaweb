@@ -63,7 +63,7 @@ const advisors = [
 { name: "Paolo Avitabile", role: "Advisory Board", img: paoloImg, bio: "Senior Business Controller at Nestlé Italy. Expertise in corporate finance, strategy, and multinational operations across European markets." },
 { name: "Pedro L. Zorzano", role: "Advisory Board", img: pedroImg, bio: "Consultant at Nfq Advisory (Madrid). Bridges technology, finance, and macroeconomic analysis across financial services consulting." },
 ];
-
+      </section>
 
 const Index = () => {
   return (

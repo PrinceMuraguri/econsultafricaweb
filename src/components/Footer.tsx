@@ -74,7 +74,15 @@ const Footer = () => {
           ))}
         </div>
 
-        <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-12 pt-6 border-t border-border">
+          <p className="text-[10px] text-muted-foreground text-center leading-relaxed mb-6">
+            Forecast Arena aggregates participant expectations on economic outcomes for research and insight purposes.
+            It is not a trading, betting, or investment platform.{" "}
+            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>
+          </p>
+        </div>
+
+        <div className="pt-4 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Econsult Africa. All rights reserved.
           </p>

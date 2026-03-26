@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { ArrowLeft, BarChart3, DollarSign, TrendingUp, Shield, AlertTriangle, Target, Users } from "lucide-react";
+import { ArrowLeft, BarChart3, TrendingUp, Shield, AlertTriangle, Target, Users } from "lucide-react";
 import ShareCalculator from "@/components/forecast/ShareCalculator";
 
 const fadeUp = {
@@ -14,10 +14,10 @@ const fadeUp = {
 
 const steps = [
   { num: "01", title: "Choose a question", desc: "Browse active forecasts on real economic events — interest rates, inflation, exchange rates, and more." },
-  { num: "02", title: "Pick your position", desc: "Take a position: YES or NO. Your choice reflects your belief about what will happen." },
-  { num: "03", title: "Buy shares in that outcome", desc: "Each share represents your conviction. 1 share = $1 payout if your prediction is correct. Buy as many as you want." },
-  { num: "04", title: "Watch probability shift in real time", desc: "As more people take positions, the market probability adjusts. Share prices reflect collective intelligence." },
-  { num: "05", title: "If you're right, you earn", desc: "When the event resolves, each correct share pays out $1. Your profit is the difference between what you paid and what you receive." },
+  { num: "02", title: "Submit your forecast", desc: "Take a position: Yes or No. Your choice reflects your view about what will happen." },
+  { num: "03", title: "Contribute an allocation (coming soon)", desc: "Each unit represents your conviction. 1 unit = $1 distribution if your forecast is correct. Contribute as much as you're comfortable with." },
+  { num: "04", title: "Watch consensus shift in real time", desc: "As more people submit forecasts, the consensus probability adjusts. Prices reflect collective intelligence." },
+  { num: "05", title: "Accuracy-based distribution", desc: "When the event resolves, each correct forecast unit receives a $1 distribution. Your reward is the difference between what you contributed and what you receive." },
 ];
 
 const HowItWorks = () => {
@@ -46,12 +46,12 @@ const HowItWorks = () => {
             <motion.h1 variants={fadeUp} custom={1}
               className="text-4xl md:text-5xl font-bold text-background leading-[1.1] mb-6">
               Turn Your Insight{" "}
-              <span className="text-accent">Into Outcomes</span>
+              <span className="text-accent">Into Intelligence</span>
             </motion.h1>
             <motion.p variants={fadeUp} custom={2}
               className="text-lg text-background/60 leading-relaxed max-w-2xl">
-              Forecast Arena lets you take a position on real-world economic events — and back it with a stake.
-              Similar to platforms like Polymarket, you buy shares in outcomes you believe will happen.
+              Forecast Arena lets you submit your position on real-world economic events — and track how consensus evolves.
+              Your forecast contributes to a real-time map of economic expectations across Africa.
             </motion.p>
           </motion.div>
         </div>
@@ -85,34 +85,34 @@ const HowItWorks = () => {
         </div>
       </section>
 
-      {/* Example Calculator */}
+      {/* Calculator */}
       <section className="section-padding bg-muted/30">
         <div className="container-page max-w-3xl">
           <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">See It In Action</p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">Share Calculator</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">Forecast Calculator</h2>
           <ShareCalculator />
         </div>
       </section>
 
-      {/* Pricing Explanation */}
+      {/* Consensus Explanation */}
       <section className="section-padding">
         <div className="container-page max-w-3xl">
           <div className="flex items-center gap-3 mb-6">
-            <DollarSign className="w-5 h-5 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">How Share Pricing Works</h2>
+            <BarChart3 className="w-5 h-5 text-primary" />
+            <h2 className="text-2xl font-bold text-foreground">How Consensus Pricing Works</h2>
           </div>
           <div className="bg-card border border-border rounded-lg p-6 space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Share prices reflect the market's collective probability estimate. A share priced at <span className="font-mono font-semibold text-foreground">$0.70</span> means the market believes there is a <span className="font-semibold text-foreground">70% chance</span> the event will happen.
+              Prices reflect the collective consensus probability. A price of <span className="font-mono font-semibold text-foreground">$0.70</span> means participants collectively estimate a <span className="font-semibold text-foreground">70% probability</span> the event will occur.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
                 <p className="font-mono text-lg font-bold text-foreground">$0.30</p>
-                <p className="text-xs text-muted-foreground">Lower price = higher risk, higher potential return</p>
+                <p className="text-xs text-muted-foreground">Lower consensus = higher uncertainty, higher potential accuracy reward</p>
               </div>
               <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
                 <p className="font-mono text-lg font-bold text-foreground">$0.85</p>
-                <p className="text-xs text-muted-foreground">Higher price = lower risk, lower potential return</p>
+                <p className="text-xs text-muted-foreground">Higher consensus = more confidence, lower potential accuracy reward</p>
               </div>
             </div>
           </div>
@@ -127,11 +127,11 @@ const HowItWorks = () => {
             <h2 className="text-2xl font-bold text-foreground">Why This Matters</h2>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-            This is not just a wager — it's a real-time reflection of collective economic expectations.
+            This is a real-time map of collective economic expectations — a sentiment indicator built by those closest to the data.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { icon: TrendingUp, label: "Market Sentiment", desc: "Understand how markets perceive upcoming events" },
+              { icon: TrendingUp, label: "Sentiment Indicator", desc: "Understand how participants perceive upcoming events" },
               { icon: Users, label: "Collective Intelligence", desc: "Aggregate insights from diverse perspectives" },
               { icon: BarChart3, label: "Policy Expectations", desc: "Track expectations on monetary & fiscal policy" },
             ].map((item) => (
@@ -164,7 +164,7 @@ const HowItWorks = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-accent mt-0.5">✓</span>
-                Payouts are automated and proportional to shares held
+                Distributions are accuracy-based and proportional
               </li>
             </ul>
           </div>
@@ -172,11 +172,12 @@ const HowItWorks = () => {
           <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-6">
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="w-4 h-4 text-destructive" />
-              <span className="text-sm font-semibold text-foreground">Risk Disclaimer</span>
+              <span className="text-sm font-semibold text-foreground">Disclaimer</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Forecasting involves uncertainty. Only stake what you are comfortable losing.
-              This is a forecasting tool — not financial advice. Past outcomes do not guarantee future results.
+              Forecasting involves uncertainty. Only participate with what you are comfortable allocating.
+              Forecast Arena aggregates participant expectations on economic outcomes for research and insight purposes.
+              It is not a trading, betting, or investment platform.
             </p>
           </div>
         </div>
@@ -185,9 +186,9 @@ const HowItWorks = () => {
       {/* CTA */}
       <section className="section-padding bg-primary">
         <div className="container-page text-center">
-          <h2 className="text-3xl font-bold text-primary-foreground mb-4">Ready to Take a Position?</h2>
+          <h2 className="text-3xl font-bold text-primary-foreground mb-4">Ready to Submit Your Forecast?</h2>
           <p className="text-primary-foreground/70 mb-8 max-w-xl mx-auto">
-            Browse active economic forecasts and put your insight to the test.
+            Browse active economic forecasts and contribute your view.
           </p>
           <Link
             to="/forecast-arena"

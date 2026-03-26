@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, DollarSign, HelpCircle, Loader2, Rocket } from "lucide-react";
+import { Clock, Users, Lock, Check, HelpCircle, Loader2, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import TradingWaitlistModal from "./TradingWaitlistModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
-// Feature flag — flip to true to re-enable payments
-const TRADING_ENABLED = false;
+// Feature flag — flip to true to re-enable participation allocations
+const PARTICIPATION_ENABLED = false;
 
 function getTimeRemaining(closeAt: string) {
   const diff = new Date(closeAt).getTime() - Date.now();
@@ -36,6 +36,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
   const [justVoted, setJustVoted] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     setLocalOptions(poll.poll_options);
@@ -70,6 +71,12 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       return;
     }
 
+    // Check terms acceptance
+    if (!termsAccepted) {
+      toast({ title: "Terms required", description: "Please accept the Terms of Use before submitting your forecast.", variant: "destructive" });
+      return;
+    }
+
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -80,7 +87,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       });
       if (error) {
         if (error.code === "23505") {
-          toast({ title: "Already voted", description: "You've already taken a position on this poll.", variant: "destructive" });
+          toast({ title: "Already submitted", description: "You've already submitted a forecast on this question.", variant: "destructive" });
           setHasVoted(true);
           return;
         }
@@ -96,9 +103,9 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       setLocalOptions(prev =>
         prev.map(o => o.id === optionId ? { ...o, total_votes_count: o.total_votes_count + 1 } : o)
       );
-      toast({ title: "🎯 Position locked!", description: "Your forecast is in. The market just moved." });
+      toast({ title: "🎯 Forecast submitted!", description: "Your view has been recorded. The consensus just shifted." });
     } catch {
-      toast({ title: "Error", description: "Could not record vote. Try again.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not record forecast. Try again.", variant: "destructive" });
     } finally {
       setVoting(false);
     }
@@ -147,29 +154,29 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </p>
       )}
 
-      {/* "What people are saying" label */}
-      {totalVotes > 0 && (
+      {/* Sentiment label */}
+      {totalVotes > 0 && (hasVoted || isClosed) && (
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
           📊 What people are saying
         </p>
       )}
 
-      {/* Updating votes overlay */}
+      {/* Updating consensus overlay */}
       <AnimatePresence>
         {justVoted && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            className="flex items-center justify-center gap-2 py-3 mb-2 rounded-md bg-accent/10 border border-accent/20"
+            className="flex items-center justify-center gap-2 py-3 mb-2 rounded-md bg-primary/10 border border-primary/20"
           >
-            <Loader2 className="w-4 h-4 text-accent animate-spin" />
-            <span className="text-sm font-semibold text-accent">Updating market data...</span>
+            <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            <span className="text-sm font-semibold text-primary">Updating consensus data...</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Voting bars */}
+      {/* Forecast options */}
       <div className="space-y-2 mb-4 flex-1">
         {localOptions.map((option) => {
           const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 50;
@@ -179,6 +186,11 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           const canVote = !hasVoted && !voting && !isClosed;
           const showBar = hasVoted || isClosed;
 
+          // Green for Yes, Red for No
+          const colorClass = isYes ? "text-green-600" : "text-red-500";
+          const bgColorClass = isYes ? "bg-green-500/10" : "bg-red-500/10";
+          const borderColorClass = isYes ? "border-green-500 ring-green-500/30" : "border-red-500 ring-red-500/30";
+
           return (
             <button
               key={option.id}
@@ -186,34 +198,34 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               disabled={hasVoted || voting || isClosed}
               className={`w-full relative overflow-hidden rounded-md border-2 transition-all text-left ${
                 isVoted
-                  ? "border-accent ring-2 ring-accent/30 bg-accent/5"
+                  ? `${borderColorClass} ring-2 ${bgColorClass}`
                   : isSelected
-                  ? "border-primary ring-2 ring-primary/30 bg-primary/5"
+                  ? `${borderColorClass} ring-2 ${bgColorClass}`
                   : canVote
-                  ? "border-border hover:border-primary/50 cursor-pointer"
+                  ? `border-border hover:${isYes ? "border-green-400" : "border-red-400"} cursor-pointer`
                   : "border-border cursor-default"
               }`}
             >
-              {/* Only show progress bar AFTER voting */}
+              {/* Only show distribution bar AFTER voting */}
               {showBar && (
                 <div
-                  className={`absolute inset-0 transition-all duration-700 ${
-                    isYes ? "bg-primary/10" : "bg-accent/10"
-                  }`}
+                  className={`absolute inset-0 transition-all duration-700 ${bgColorClass}`}
                   style={{ width: `${pct}%` }}
                 />
               )}
               <div className="relative flex items-center justify-between px-3 py-2.5">
-                <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  {isVoted && <Check className="w-3.5 h-3.5 text-accent" />}
+                <span className={`flex items-center gap-2 text-sm font-medium ${isVoted ? colorClass : "text-foreground"}`}>
+                  {isVoted && <Check className={`w-3.5 h-3.5 ${colorClass}`} />}
                   {hasVoted || isClosed
                     ? option.label
                     : isSelected
                     ? `✓ Tap again to confirm ${option.label}`
-                    : `Vote ${option.label}`}
+                    : isYes
+                    ? "Vote Yes"
+                    : "Vote No"}
                 </span>
                 {showBar && (
-                  <span className="font-mono text-sm font-semibold text-foreground">
+                  <span className={`font-mono text-sm font-semibold ${colorClass}`}>
                     {pct}%
                   </span>
                 )}
@@ -221,15 +233,33 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             </button>
           );
         })}
+
+        {/* Terms clickwrap — show before confirmation */}
         {!hasVoted && !isClosed && selectedOptionId && (
-          <p className="text-[10px] text-center text-muted-foreground animate-pulse">
-            Tap your choice again to lock in your forecast
-          </p>
+          <div className="space-y-1.5 pt-1">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-0.5 rounded border-border"
+              />
+              <span className="text-[10px] text-muted-foreground leading-tight">
+                By participating, you agree to the{" "}
+                <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">
+                  Terms of Use
+                </a>.
+              </span>
+            </label>
+            <p className="text-[10px] text-center text-muted-foreground animate-pulse">
+              Tap your choice again to submit your forecast
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Buy shares — COMING SOON (subtle blur, visible preview) */}
-      {!isClosed && !TRADING_ENABLED && (
+      {/* Forecast participation — COMING SOON */}
+      {!isClosed && !PARTICIPATION_ENABLED && (
         <div className="mb-4 pt-3 border-t border-border">
           <div className="relative rounded-lg overflow-hidden">
             {/* Semi-blurred content — visible but not interactive */}
@@ -237,29 +267,33 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
-                    Live
+                    New
                   </span>
                   <p className="text-sm font-bold text-foreground">
-                    Buy shares in your prediction
+                    Participate with a forecast allocation
                   </p>
                 </div>
               </div>
               <div className="flex gap-2">
                 {localOptions.map((option) => {
-                  const sharePrice = totalVotes > 0 ? (option.total_votes_count / totalVotes).toFixed(2) : "0.50";
+                  const consensusPct = totalVotes > 0 ? (option.total_votes_count / totalVotes).toFixed(2) : "0.50";
+                  const isYes = option.label.toLowerCase() === "yes";
                   return (
                     <div
-                      key={`stake-preview-${option.id}`}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent text-sm font-bold"
+                      key={`preview-${option.id}`}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 text-sm font-bold ${
+                        isYes
+                          ? "border-green-500 bg-green-500/10 text-green-600"
+                          : "border-red-500 bg-red-500/10 text-red-500"
+                      }`}
                     >
-                      <DollarSign className="w-4 h-4" />
-                      Buy {option.label} ${sharePrice}
+                      {isYes ? "Yes" : "No"} — ${consensusPct}
                     </div>
                   );
                 })}
               </div>
             </div>
-            {/* Small overlay badge — doesn't cover everything */}
+            {/* Coming soon badge */}
             <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-card/95 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 shadow-md">
               <Rocket className="w-3.5 h-3.5 text-accent" />
               <span className="text-xs font-bold text-foreground">Coming Soon</span>
@@ -267,7 +301,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           </div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-[10px] text-muted-foreground">
-              Share trading is being built by our team.
+              Forecast participation with allocation is being built by our team.
             </p>
             <Button
               size="sm"
@@ -277,40 +311,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             >
               Get priority access →
             </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Active trading (when TRADING_ENABLED = true) — kept intact for future */}
-      {!isClosed && TRADING_ENABLED && (
-        <div className="mb-4 pt-3 border-t border-border">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
-                Live
-              </span>
-              <p className="text-sm font-bold text-foreground">
-                Buy shares in your prediction
-              </p>
-            </div>
-            <button className="flex items-center gap-1 text-[10px] text-primary hover:text-accent transition-colors shrink-0">
-              <HelpCircle className="w-3 h-3" />
-              How it works
-            </button>
-          </div>
-          <div className="flex gap-2">
-            {localOptions.map((option) => {
-              const sharePrice = totalVotes > 0 ? (option.total_votes_count / totalVotes).toFixed(2) : "0.50";
-              return (
-                <motion.button
-                  key={`stake-${option.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 border-accent bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground transition-colors text-sm font-bold"
-                >
-                  <DollarSign className="w-4 h-4" />
-                  Buy {option.label} ${sharePrice}
-                </motion.button>
-              );
-            })}
           </div>
         </div>
       )}
@@ -333,7 +333,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       {isClosed && (
         <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
           <Lock className="w-3 h-3" />
-          Voting closed
+          Forecasting closed
         </div>
       )}
 

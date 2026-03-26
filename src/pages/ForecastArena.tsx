@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, DollarSign, MousePointerClick, Shield, Rocket } from "lucide-react";
+import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, MousePointerClick, Shield, Rocket } from "lucide-react";
 import tradingPreview from "@/assets/trading-preview.jpg";
 
 const fadeUp = {
@@ -19,9 +19,8 @@ const ForecastArena = () => {
 
   return (
     <Layout>
-      {/* Hero — The African Forecast Story */}
+      {/* Hero */}
       <section className="section-padding bg-foreground overflow-hidden relative">
-        {/* Subtle animated grid background */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
             backgroundImage: "linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--accent)) 1px, transparent 1px)",
@@ -48,24 +47,24 @@ const ForecastArena = () => {
 
             <motion.p variants={fadeUp} custom={2}
               className="text-lg md:text-xl text-background/70 leading-relaxed mb-4 max-w-2xl">
-              Africa is your business. Make your forecast count.
+              Contribute to Africa's most dynamic economic intelligence platform.
             </motion.p>
 
             <motion.p variants={fadeUp} custom={3}
               className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl">
-              Join forecasters shaping the narrative on Africa's economy.
-              Vote on live economic questions and see how the market moves in real time.
+              Submit your forecast on live economic questions and see how consensus shifts in real time.
+              Your view shapes the narrative on Africa's economic trajectory.
               <span className="block mt-2 text-accent/80 font-medium">
-                🚀 Share trading is coming soon — start voting now to build your track record.
+                🚀 Forecast participation with allocation is coming soon — start contributing now.
               </span>
             </motion.p>
 
-            {/* How it works — animated steps */}
+            {/* How it works */}
             <motion.div variants={fadeUp} custom={4} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
               {[
-                { icon: MousePointerClick, step: "01", title: "Vote", desc: "Pick your position on a live economic question" },
-                { icon: TrendingUp, step: "02", title: "Track", desc: "Watch sentiment shift in real time as others vote" },
-                { icon: DollarSign, step: "03", title: "Trade (Soon)", desc: "Buy shares in your prediction when trading launches" },
+                { icon: MousePointerClick, step: "01", title: "Submit a Forecast", desc: "Choose your position on a live economic question" },
+                { icon: TrendingUp, step: "02", title: "Track Consensus", desc: "Watch sentiment shift in real time as others contribute" },
+                { icon: BarChart3, step: "03", title: "Allocate (Soon)", desc: "Back your forecast with a participation amount when it launches" },
               ].map((item, i) => (
                 <motion.div
                   key={item.step}
@@ -88,8 +87,8 @@ const ForecastArena = () => {
 
             <motion.div variants={fadeUp} custom={5} className="flex flex-wrap gap-6 mb-6">
               {[
-                { icon: Shield, label: "Secure payments via Paystack" },
-                { icon: Zap, label: "Real-time probability" },
+                { icon: Shield, label: "Secure platform" },
+                { icon: Zap, label: "Real-time consensus probability" },
                 { icon: Globe, label: "100% Africa-focused" },
               ].map((item) => (
                 <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">
@@ -111,7 +110,7 @@ const ForecastArena = () => {
             </motion.div>
           </motion.div>
 
-          {/* Trading Preview Image */}
+          {/* Preview Image */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -121,14 +120,14 @@ const ForecastArena = () => {
             <div className="relative">
               <img
                 src={tradingPreview}
-                alt="Preview of upcoming share trading feature"
+                alt="Preview of upcoming forecast participation feature"
                 className="rounded-xl shadow-2xl border border-background/10"
                 width={400}
                 height={400}
               />
               <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
                 <Rocket className="w-4 h-4" />
-                <span className="text-sm font-bold whitespace-nowrap">Share Trading — Coming Soon</span>
+                <span className="text-sm font-bold whitespace-nowrap">Forecast Allocation — Coming Soon</span>
               </div>
             </div>
           </motion.div>
@@ -139,20 +138,20 @@ const ForecastArena = () => {
       <div className="bg-muted/50 border-b border-border">
         <div className="container-page py-3">
           <p className="text-xs text-muted-foreground text-center">
-            This is a forecasting platform for informational purposes. Not financial advice.
-            All predictions reflect collective sentiment, not guaranteed outcomes. Platform fee: 3.5%.
+            Forecast Arena aggregates participant expectations on economic outcomes for research and insight purposes.
+            It is not a trading, betting, or investment platform. Service fee: 3.5%.
           </p>
         </div>
       </div>
 
-      {/* Active Polls */}
+      {/* Active Forecasts */}
       <section className="section-padding">
         <div className="container-page">
           <div className="flex items-end justify-between mb-8">
             <div>
               <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Active Forecasts</p>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Take a Position</h2>
-              <p className="text-sm text-muted-foreground mt-1">Vote free or buy shares to back your conviction</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Submit Your Forecast</h2>
+              <p className="text-sm text-muted-foreground mt-1">Contribute your view on key economic questions</p>
             </div>
           </div>
 
@@ -189,14 +188,13 @@ const ForecastArena = () => {
           </motion.h2>
           <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
             className="text-primary-foreground/70 mb-8 max-w-xl mx-auto">
-            Go beyond predictions. Get the full analysis behind Africa's economic trajectory.
-            Stay ahead with our latest reports.
+            Go beyond forecasts. Get the full analysis behind Africa's economic trajectory.
           </motion.p>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
             className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/kenya-2026"
               className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-display font-semibold shadow-md hover:bg-accent/90 transition-colors">
-              Buy Kenya Report
+              Get Kenya Report
             </Link>
             <Link to="/products"
               className="inline-flex items-center justify-center rounded-md border-2 border-primary-foreground/30 text-primary-foreground px-6 py-3 font-display font-semibold hover:bg-primary-foreground/10 transition-colors">

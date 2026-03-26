@@ -27,7 +27,7 @@ const StakeResult = () => {
 
         if (error || !data?.success) {
           setStatus("error");
-          setErrorMsg(data?.error || "Payment verification failed.");
+          setErrorMsg(data?.error || "Verification failed.");
           return;
         }
 
@@ -49,8 +49,8 @@ const StakeResult = () => {
           {status === "loading" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-              <h2 className="text-2xl font-bold text-foreground">Verifying Your Stake...</h2>
-              <p className="text-muted-foreground">Please wait while we confirm your payment.</p>
+              <h2 className="text-2xl font-bold text-foreground">Verifying Your Forecast...</h2>
+              <p className="text-muted-foreground">Please wait while we confirm your participation.</p>
             </motion.div>
           )}
 
@@ -59,10 +59,10 @@ const StakeResult = () => {
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">Prediction Locked! 🎯</h2>
+              <h2 className="text-2xl font-bold text-foreground">Forecast Confirmed! 🎯</h2>
               <p className="text-muted-foreground">
-                Your ${details?.amount} stake has been recorded. 
-                You'll share the pool if your prediction is correct.
+                Your ${details?.amount} forecast allocation has been recorded. 
+                You'll receive an accuracy-based distribution if your forecast is correct.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
                 <Link

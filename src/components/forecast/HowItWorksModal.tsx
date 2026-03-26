@@ -10,9 +10,9 @@ interface HowItWorksModalProps {
 
 const steps = [
   { num: "1", title: "Choose a question", desc: "Pick an economic event you have a view on." },
-  { num: "2", title: "Take a position", desc: "Select YES or NO based on your analysis." },
-  { num: "3", title: "Buy shares", desc: "Each share costs the current market price and pays $1 if correct." },
-  { num: "4", title: "If you're right, you earn", desc: "Correct shares pay $1 each. Your profit is the difference." },
+  { num: "2", title: "Submit your forecast", desc: "Select Yes or No based on your analysis." },
+  { num: "3", title: "Contribute an allocation (coming soon)", desc: "Each unit costs the current consensus price and resolves at $1 if correct." },
+  { num: "4", title: "Accuracy-based distribution", desc: "Correct forecasts receive a distribution based on accuracy." },
 ];
 
 const HowItWorksModal = ({ open, onOpenChange }: HowItWorksModalProps) => {
@@ -20,14 +20,13 @@ const HowItWorksModal = ({ open, onOpenChange }: HowItWorksModalProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">How Staking Works</DialogTitle>
+          <DialogTitle className="font-display text-lg">How Forecast Arena Works</DialogTitle>
           <DialogDescription>
-            Buy shares in outcomes you believe will happen. Each correct share pays $1.
+            Submit forecasts on economic outcomes. Correct forecasts receive accuracy-based distributions.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
-          {/* Steps */}
           <div className="space-y-3">
             {steps.map((step) => (
               <div key={step.num} className="flex gap-3">
@@ -42,13 +41,11 @@ const HowItWorksModal = ({ open, onOpenChange }: HowItWorksModalProps) => {
             ))}
           </div>
 
-          {/* Mini calculator */}
           <div>
             <p className="text-xs font-semibold text-foreground mb-2">Try the calculator</p>
             <ShareCalculator />
           </div>
 
-          {/* Link to full page */}
           <Link
             to="/forecast-arena/how-it-works"
             onClick={() => onOpenChange(false)}
@@ -59,7 +56,7 @@ const HowItWorksModal = ({ open, onOpenChange }: HowItWorksModalProps) => {
           </Link>
 
           <p className="text-[10px] text-muted-foreground text-center">
-            Forecasting involves uncertainty. Only stake what you are comfortable losing.
+            Forecasting involves uncertainty. Only participate with what you are comfortable allocating.
           </p>
         </div>
       </DialogContent>

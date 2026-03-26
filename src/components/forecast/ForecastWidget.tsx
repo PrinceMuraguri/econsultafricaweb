@@ -5,9 +5,9 @@ import { usePolls } from "@/hooks/use-polls";
 import PollCard from "./PollCard";
 
 const widgetTexts = [
-  "📊 Africa is predicting — where do you stand?",
-  "⚡ This week's economic call",
-  "💰 Put your insight to the test",
+  "📊 Africa is forecasting — where do you stand?",
+  "⚡ This week's economic question",
+  "🧠 Contribute your economic insight",
 ];
 
 const ForecastWidget = () => {

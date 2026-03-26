@@ -102,9 +102,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">Buy Shares — Back Your Prediction</DialogTitle>
+          <DialogTitle className="font-display text-lg">Forecast Allocation — Back Your View</DialogTitle>
           <DialogDescription>
-            Purchase shares in your predicted outcome. Each share pays KES equivalent of $1 if correct. Platform fee: 3.5%.
+            Contribute to your forecast position. Each unit resolves at $1 if correct. Service fee: 3.5%.
           </DialogDescription>
         </DialogHeader>
 
@@ -118,21 +118,21 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </p>
           </div>
 
-          {/* Share price */}
+          {/* Consensus price */}
           <div className="flex items-center justify-between bg-primary/5 rounded-lg px-4 py-3 border border-primary/10">
             <div>
-              <p className="text-xs text-muted-foreground">Share Price</p>
+              <p className="text-xs text-muted-foreground">Consensus Price</p>
               <p className="font-mono text-xl font-bold text-foreground">${sharePrice.toFixed(2)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Implied Probability</p>
+              <p className="text-xs text-muted-foreground">Consensus Probability</p>
               <p className="font-mono text-xl font-bold text-primary">{Math.round(sharePrice * 100)}%</p>
             </div>
           </div>
 
-          {/* Number of shares */}
+          {/* Forecast units */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Number of Shares</Label>
+            <Label className="text-sm font-medium">Forecast Units</Label>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShares(Math.max(1, shares - 5))}
@@ -171,14 +171,14 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
           </div>
 
-          {/* Cost breakdown */}
+          {/* Allocation breakdown */}
           <div className="bg-muted/30 rounded-lg p-3 border border-border space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{shares} shares × ${sharePrice.toFixed(2)}</span>
+              <span className="text-muted-foreground">{shares} units × ${sharePrice.toFixed(2)}</span>
               <span className="font-mono font-semibold text-foreground">${totalCost.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Platform fee (3.5%)</span>
+              <span className="text-muted-foreground">Service fee (3.5%)</span>
               <span className="font-mono text-muted-foreground">${platformFee.toFixed(2)}</span>
             </div>
             <div className="border-t border-border pt-2 flex justify-between text-sm">
@@ -189,7 +189,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
               <span className="font-mono font-bold text-primary">${potentialPayout.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Potential profit</span>
+              <span className="text-muted-foreground">Potential accuracy reward</span>
               <span className={`font-mono font-bold ${potentialProfit > 0 ? "text-green-600" : "text-red-500"}`}>
                 {potentialProfit > 0 ? "+" : ""}${potentialProfit.toFixed(2)}
               </span>
@@ -230,7 +230,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
           {/* Contact details */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-foreground">Your Details (for payouts & receipts)</p>
+            <p className="text-xs font-semibold text-foreground">Your Details (for distributions & receipts)</p>
 
             <div className="space-y-1.5">
               <Label className="text-xs">Full Name</Label>
@@ -253,7 +253,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Phone Number (for payouts)</Label>
+              <Label className="text-xs">Phone Number (for distributions)</Label>
               <div className="flex gap-2">
                 <Input
                   type="text"
@@ -282,7 +282,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           >
             {loading
               ? "Redirecting to payment..."
-              : `Buy ${shares} Shares — $${totalCost.toFixed(2)}`}
+              : `Submit ${shares} Units — $${totalCost.toFixed(2)}`}
           </Button>
 
           {/* Trust + How it works */}
@@ -301,10 +301,12 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </Link>
           </div>
 
-          {/* Disclaimer */}
+          {/* Terms & Disclaimer */}
           <p className="text-[10px] text-muted-foreground text-center leading-tight">
-            Forecasting involves uncertainty. Only participate with what you are comfortable losing.
-            Platform fee of 3.5% applies. This is not financial advice.
+            By participating, you agree to the{" "}
+            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
+            Forecasting involves uncertainty. Only participate with what you are comfortable allocating.
+            Service fee of 3.5% applies. This is not financial advice.
           </p>
         </div>
       </DialogContent>

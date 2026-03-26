@@ -48,7 +48,6 @@ const TradingWaitlistModal = ({ open, onOpenChange }: TradingWaitlistModalProps)
 
   const handleClose = (val: boolean) => {
     if (!val) {
-      // Reset on close
       setTimeout(() => {
         setSubmitted(false);
         setFullName("");
@@ -70,12 +69,12 @@ const TradingWaitlistModal = ({ open, onOpenChange }: TradingWaitlistModalProps)
             <DialogHeader>
               <DialogTitle className="text-xl mb-2">You're on the waitlist! 🎉</DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-                You'll receive priority access when trading launches.
-                In the meantime, start voting on live forecasts to build your track record.
+                You'll receive priority access when forecast participation with allocation launches.
+                In the meantime, start submitting forecasts to build your track record.
               </DialogDescription>
             </DialogHeader>
             <Button onClick={() => handleClose(false)} className="mt-6">
-              Start Voting
+              Start Forecasting
             </Button>
           </div>
         ) : (
@@ -86,8 +85,8 @@ const TradingWaitlistModal = ({ open, onOpenChange }: TradingWaitlistModalProps)
                 <DialogTitle className="text-lg">Get Priority Access</DialogTitle>
               </div>
               <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-                Trading & staking is coming soon. Register now to be first in line
-                when we launch share trading on Africa's economic forecasts.
+                Forecast participation with allocation is coming soon. Register now to be first in line
+                when we launch this feature for Africa's economic forecasts.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">

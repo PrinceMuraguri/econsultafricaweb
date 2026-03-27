@@ -29,10 +29,10 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "Facebook", href: "https://facebook.com" },
-  { label: "Instagram", href: "https://instagram.com" },
-  { label: "TikTok", href: "https://tiktok.com" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/econsultafrica/" },
+  { label: "X", href: "https://x.com/EconsultAfrica" },
+  { label: "Instagram", href: "https://www.instagram.com/econsultafrica/" },
+  { label: "TikTok", href: "https://www.tiktok.com/@econsultafrica" },
 ];
 
 const Footer = () => {

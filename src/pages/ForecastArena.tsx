@@ -87,10 +87,15 @@ const ForecastArena = () => {
                 <span className="text-accent">Africa's Future.</span>
               </motion.h1>
 
+              <motion.div variants={fadeUp} custom={1.5} className="mb-3">
+                <p className="text-background/70 text-sm">A real-time view of economic sentiment across Africa.</p>
+                <p className="text-accent text-xs mt-1 font-medium">See what people are signaling. Add your voice.</p>
+              </motion.div>
+
               <motion.div variants={fadeUp} custom={2} className="flex flex-wrap gap-6">
                 {[
                   { icon: Shield, label: "Secure platform" },
-                  { icon: Zap, label: "Real-time consensus" },
+                  { icon: Zap, label: "Real-time sentiment" },
                   { icon: Globe, label: "100% Africa-focused" },
                 ].map((item) => (
                   <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">

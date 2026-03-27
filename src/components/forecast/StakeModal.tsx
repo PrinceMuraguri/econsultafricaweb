@@ -19,10 +19,19 @@ interface StakeModalProps {
 
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [countryCode, setCountryCode] = useState("+254");
+  
+  // Auto-populate from stored participant profile
+  const storedProfile = (() => {
+    try {
+      const raw = localStorage.getItem("forecast_participant");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const [email] = useState(storedProfile?.email || "");
+  const [fullName] = useState(storedProfile?.fullName || "");
+  const [phoneNumber] = useState(storedProfile?.phone || "");
+  const [countryCode] = useState(storedProfile?.countryCode || "+254");
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "card">("mpesa");

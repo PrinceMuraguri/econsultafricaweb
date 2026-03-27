@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,9 @@ import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;
 const CONTEXT_PREVIEW_LENGTH = 120;
+
+// The first question (pump price) gets free PDF unlock
+const FREE_INSIGHT_PDF = "/reports/kenya-oil-shortage-assessment-march-2026.pdf";
 
 function getTimeRemaining(closeAt: string) {
   const diff = new Date(closeAt).getTime() - Date.now();
@@ -32,9 +35,10 @@ function isParticipantLoggedIn(): boolean {
 interface PollCardProps {
   poll: Poll;
   compact?: boolean;
+  isTrending?: boolean;
 }
 
-const PollCard = ({ poll, compact = false }: PollCardProps) => {
+const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) => {
   const { toast } = useToast();
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -97,6 +101,45 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
     setStakeOpen(true);
   };
 
+  // Check if this is the pump price question (gets free PDF)
+  const isPumpPriceQuestion = poll.title.toLowerCase().includes("pump price") && poll.title.toLowerCase().includes("kenya");
+
+  const handleUnlockInsight = () => {
+    // For the pump price question, open PDF directly (free)
+    if (isPumpPriceQuestion) {
+      window.open(FREE_INSIGHT_PDF, "_blank");
+      return;
+    }
+
+    if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
+    const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
+    const email = storedProfile?.email || "";
+    if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
+
+    if (poll.expert_insight) {
+      toast({ title: "🔓 Expert Insight", description: poll.expert_insight, duration: 15000 });
+      return;
+    }
+
+    (async () => {
+      try {
+        await supabase.from("inquiries").insert({
+          inquiry_type: "expert_insight",
+          source: "forecast_arena",
+          name: storedProfile?.fullName || null,
+          email,
+          phone: storedProfile?.phone || null,
+          poll_id: poll.id,
+          poll_title: poll.title,
+          message: `Requested expert insight for: ${poll.title}`,
+        });
+        toast({ title: "📩 Request received", description: "Expert insight for this question is being prepared. We'll send it to your email shortly.", duration: 8000 });
+      } catch {
+        toast({ title: "Error", description: "Could not submit request. Try again.", variant: "destructive" });
+      }
+    })();
+  };
+
   useEffect(() => {
     const channel = supabase
       .channel(`poll-options-${poll.id}`)
@@ -122,7 +165,28 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
     : null;
 
   return (
-    <motion.div whileHover={{ y: -2 }} className="bg-card rounded-lg border border-border p-3 card-shadow flex flex-col">
+    <motion.div
+      whileHover={{ y: -2 }}
+      className={`bg-card rounded-lg border p-3 card-shadow flex flex-col relative ${
+        isTrending ? "border-accent ring-2 ring-accent/20 shadow-lg shadow-accent/10" : "border-border"
+      }`}
+      animate={isTrending ? { boxShadow: ["0 0 0px hsl(var(--accent) / 0.1)", "0 0 20px hsl(var(--accent) / 0.25)", "0 0 0px hsl(var(--accent) / 0.1)"] } : {}}
+      transition={isTrending ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
+    >
+      {/* Trending badge */}
+      {isTrending && (
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <motion.span
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 px-2 py-0.5 rounded-full border border-accent/30"
+          >
+            <TrendingUp className="w-3 h-3" />
+            🔥 Trending
+          </motion.span>
+        </div>
+      )}
+
       {/* Header row */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{poll.category}</span>
@@ -139,41 +203,19 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           variant="ghost"
           size="sm"
           className="shrink-0 text-[10px] font-semibold gap-1 px-2 py-1 h-auto text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-500/10"
-          onClick={() => {
-            if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
-            const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
-            const email = storedProfile?.email || "";
-            if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
-
-            // Check if expert insight content exists
-            if (poll.expert_insight) {
-              // Show the insight directly
-              toast({ title: "🔓 Expert Insight", description: poll.expert_insight, duration: 15000 });
-              return;
-            }
-
-            // No content available — collect email as inquiry
-            (async () => {
-              try {
-                await supabase.from("inquiries").insert({
-                  inquiry_type: "expert_insight",
-                  source: "forecast_arena",
-                  name: storedProfile?.fullName || null,
-                  email,
-                  phone: storedProfile?.phone || null,
-                  poll_id: poll.id,
-                  poll_title: poll.title,
-                  message: `Requested expert insight for: ${poll.title}`,
-                });
-                toast({ title: "📩 Request received", description: "Expert insight for this question is being prepared. We'll send it to your email shortly.", duration: 8000 });
-              } catch {
-                toast({ title: "Error", description: "Could not submit request. Try again.", variant: "destructive" });
-              }
-            })();
-          }}
+          onClick={handleUnlockInsight}
         >
-          <Lightbulb className="w-3 h-3 text-amber-500" />
-          Unlock Expert Insight on This Question
+          {isPumpPriceQuestion ? (
+            <>
+              <Download className="w-3 h-3 text-amber-500" />
+              Unlock Insight
+            </>
+          ) : (
+            <>
+              <Lightbulb className="w-3 h-3 text-amber-500" />
+              Unlock Insight
+            </>
+          )}
         </Button>
       </div>
 
@@ -195,7 +237,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       {/* Two-column layout: Left = Vote, Right = Sentiment */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
         {/* LEFT: Make Your Prediction */}
-        <div className="flex flex-col">
+        <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Make Your Prediction</p>
 
           <AnimatePresence>
@@ -208,7 +250,17 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             )}
           </AnimatePresence>
 
-          <div className="space-y-1.5 flex-1">
+          <div className="space-y-1.5 flex-1 relative">
+            {/* Subtle hover pointer hint for non-voted users */}
+            {!hasVoted && !isClosed && isTrending && (
+              <motion.div
+                className="absolute -right-1 top-2 z-10 pointer-events-none"
+                animate={{ x: [0, -4, 0], y: [0, 3, 0], opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <MousePointer2 className="w-5 h-5 text-accent drop-shadow-md" />
+              </motion.div>
+            )}
             {sortedOptions.map((option) => {
               const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : Math.round(100 / sortedOptions.length);
               const isVoted = votedOptionId === option.id;

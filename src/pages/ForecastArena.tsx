@@ -1,11 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { BarChart3, Zap, Globe, Shield, Filter } from "lucide-react";
+import { BarChart3, Zap, Globe, Shield, Filter, Radio, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -17,10 +18,46 @@ const fadeUp = {
 
 const COUNTRIES = ["All", "Kenya", "Nigeria", "South Africa", "Uganda", "Tanzania", "Rwanda", "Pan-African"];
 
+// Priority ordering for polls — matched by substring in title
+const PRIORITY_ORDER = [
+  "pump price",
+  "headline inflation breach 5.0%",
+  "cut the policy rate at the april",
+  "new tax measure in the fy2026",
+  "public debt exceed 72%",
+  "ziidi trader",
+  "list a second state asset",
+];
+
 const ForecastArena = () => {
   const { data: polls, isLoading } = usePolls("active");
   const [selectedCountry, setSelectedCountry] = useState("Kenya");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [onlineUsers, setOnlineUsers] = useState(0);
+  const [showFilterHint, setShowFilterHint] = useState(true);
+
+  // Track online presence via Supabase Realtime
+  useEffect(() => {
+    const channel = supabase.channel('online-users', {
+      config: { presence: { key: Math.random().toString(36).slice(2) } }
+    });
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState();
+      setOnlineUsers(Object.keys(state).length);
+    });
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ online_at: new Date().toISOString() });
+      }
+    });
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // Hide filter hint after 8 seconds
+  useEffect(() => {
+    const t = setTimeout(() => setShowFilterHint(false), 8000);
+    return () => clearTimeout(t);
+  }, []);
 
   const categories = useMemo(() => {
     if (!polls) return ["All"];
@@ -48,13 +85,20 @@ const ForecastArena = () => {
       if (selectedCategory !== "All" && p.category !== selectedCategory) return false;
       return true;
     });
-    // Featured poll: oil shortage question always first
-    const featuredIdx = result.findIndex(p => p.title.toLowerCase().includes("oil shortage"));
-    if (featuredIdx > 0) {
-      const [featured] = result.splice(featuredIdx, 1);
-      result.unshift(featured);
+
+    // Apply priority ordering
+    const prioritized: typeof result = [];
+    const remaining = [...result];
+
+    for (const keyword of PRIORITY_ORDER) {
+      const idx = remaining.findIndex(p => p.title.toLowerCase().includes(keyword));
+      if (idx >= 0) {
+        const [match] = remaining.splice(idx, 1);
+        prioritized.push(match);
+      }
     }
-    return result;
+
+    return [...prioritized, ...remaining];
   }, [polls, selectedCountry, selectedCategory]);
 
   return (
@@ -92,7 +136,7 @@ const ForecastArena = () => {
                 <p className="text-accent text-xs mt-1 font-medium">See what people are signaling. Add your voice.</p>
               </motion.div>
 
-              <motion.div variants={fadeUp} custom={2} className="flex flex-wrap gap-6">
+              <motion.div variants={fadeUp} custom={2} className="flex flex-wrap gap-4 items-center">
                 {[
                   { icon: Shield, label: "Secure platform" },
                   { icon: Zap, label: "Real-time sentiment" },
@@ -103,6 +147,22 @@ const ForecastArena = () => {
                     {item.label}
                   </span>
                 ))}
+                {/* Live Real-Time Data indicator */}
+                <span className="flex items-center gap-1.5 text-xs text-background/90 font-medium">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                  </span>
+                  Live Real-Time Data
+                </span>
+                {/* Online users indicator */}
+                <span className="flex items-center gap-1.5 text-xs text-background/90 font-medium">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                  </span>
+                  {onlineUsers > 0 ? onlineUsers : "—"} online now
+                </span>
               </motion.div>
             </div>
 
@@ -151,10 +211,20 @@ const ForecastArena = () => {
           </div>
 
           {/* Country filter */}
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <div className="flex items-center gap-2 mb-2">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Country</span>
+              {showFilterHint && (
+                <motion.span
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: [0.5, 1, 0.5], x: 0 }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-[10px] text-accent font-medium ml-1"
+                >
+                  ← Tap to explore other economies
+                </motion.span>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               {COUNTRIES.map((country) => (
@@ -172,10 +242,20 @@ const ForecastArena = () => {
           </div>
 
           {/* Category filter */}
-          <div className="mb-8">
+          <div className="mb-8 relative">
             <div className="flex items-center gap-2 mb-2">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
+              {showFilterHint && (
+                <motion.span
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: [0.5, 1, 0.5], x: 0 }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                  className="text-[10px] text-accent font-medium ml-1"
+                >
+                  ← Filter by topic
+                </motion.span>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
@@ -202,7 +282,7 @@ const ForecastArena = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPolls.map((poll, i) => (
                 <motion.div key={poll.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i % 6}>
-                  <PollCard poll={poll} />
+                  <PollCard poll={poll} isTrending={i === 0} />
                 </motion.div>
               ))}
             </div>

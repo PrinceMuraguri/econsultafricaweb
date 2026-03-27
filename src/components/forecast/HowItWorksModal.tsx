@@ -47,7 +47,7 @@ const HowItWorksModal = ({ open, onOpenChange }: HowItWorksModalProps) => {
           </div>
 
           <Link
-            to="/forecast-arena/how-it-works"
+            to="/how-it-works"
             onClick={() => onOpenChange(false)}
             className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-accent transition-colors"
           >

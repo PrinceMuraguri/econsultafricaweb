@@ -76,8 +76,8 @@ const ForecastArena = () => {
                 <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                   <BarChart3 className="w-4 h-4 text-accent" />
                 </div>
-                <span className="font-mono text-xs text-accent uppercase tracking-widest">
-                  Forecast Arena
+                 <span className="font-mono text-xs text-accent uppercase tracking-widest">
+                  Forecast Arena — Economic Sentiment
                 </span>
               </motion.div>
 
@@ -137,10 +137,10 @@ const ForecastArena = () => {
         <div className="container-page">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Active Forecasts</p>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Submit Your Forecast</h2>
+              <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Active Questions</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Share Your View</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                {filteredPolls.length} questions available • Contribute your view on key economic questions
+                {filteredPolls.length} questions available • Share your expectations on key economic questions
               </p>
             </div>
           </div>
@@ -228,9 +228,9 @@ const ForecastArena = () => {
               className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-display font-semibold shadow-md hover:bg-accent/90 transition-colors">
               Get Kenya Report
             </Link>
-            <Link to="/products"
+            <Link to="/intelligence-marketplace"
               className="inline-flex items-center justify-center rounded-md border-2 border-primary-foreground/30 text-primary-foreground px-6 py-3 font-display font-semibold hover:bg-primary-foreground/10 transition-colors">
-              View All Products
+              Browse Intelligence Products
             </Link>
           </motion.div>
         </div>

@@ -47,14 +47,14 @@ const Insights = () => {
         <div className="container-page">
           <div className="max-w-3xl mb-12">
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0} className="font-mono text-xs text-accent uppercase tracking-widest mb-4">
-              Insights
+              Insights & Media
             </motion.p>
             <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1} className="text-4xl md:text-5xl font-bold text-foreground leading-[1.1] mb-6">
               Economic Intelligence by Econsult Africa<br />
               <span className="text-2xl md:text-3xl font-medium opacity-80">from The Economic Whisperer series</span>
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed">
-              Sharp analysis on the forces shaping Kenya's economy — written for decision-makers.
+              Ideas, analysis, and signals from the frontier of African economies.
             </motion.p>
           </div>
 
@@ -221,7 +221,7 @@ const Insights = () => {
                 <Link to="/kenya-2026">Buy Kenya 2026 Outlook <ArrowRight className="ml-1" /></Link>
               </Button>
               <Button variant="hero-outline" size="default" className="hover-sink" asChild>
-                <Link to="/products">View All Reports</Link>
+                <Link to="/intelligence-marketplace">Browse Intelligence Products</Link>
               </Button>
             </div>
           </motion.div>

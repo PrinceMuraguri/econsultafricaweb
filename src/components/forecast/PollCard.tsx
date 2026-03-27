@@ -11,7 +11,6 @@ import StakeModal from "./StakeModal";
 import ParticipantLoginModal from "./ParticipantLoginModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
-// Feature flag — flip to true to enable participation allocations
 const PARTICIPATION_ENABLED = true;
 
 function getTimeRemaining(closeAt: string) {
@@ -50,7 +49,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
     setLocalOptions(poll.poll_options);
   }, [poll.poll_options]);
 
-  // Check if already voted
   useEffect(() => {
     (async () => {
       const fp = await getFingerprint();
@@ -72,14 +70,11 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-
-    // Check if participant is logged in
     if (!isParticipantLoggedIn()) {
       setPendingVoteOptionId(optionId);
       setLoginOpen(true);
       return;
     }
-
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -97,10 +92,8 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         throw error;
       }
       await supabase.rpc("increment_vote_count", { p_option_id: optionId });
-
       setJustVoted(true);
       setTimeout(() => setJustVoted(false), 1500);
-
       setHasVoted(true);
       setVotedOptionId(optionId);
       setLocalOptions(prev =>
@@ -164,6 +157,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       whileHover={{ y: -2 }}
       className="bg-card rounded-lg border border-border p-5 card-shadow flex flex-col"
     >
+      {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-pill">
           {poll.category}
@@ -187,14 +181,37 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </p>
       )}
 
-      {/* Live sentiment header — always visible */}
-      <div className="flex items-center justify-between mb-1.5">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-          📊 What people are saying
-        </p>
-        <p className="text-[10px] text-muted-foreground font-mono">
-          {totalVotes} {totalVotes === 1 ? "vote" : "votes"}
-        </p>
+      {/* Compact vote breakdown table */}
+      <div className="mb-3 rounded-md border border-border overflow-hidden">
+        <div className="bg-muted/50 px-3 py-1.5 flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            📊 Current voting breakdown
+          </p>
+          <p className="text-[10px] text-muted-foreground font-mono">
+            {totalVotes} {totalVotes === 1 ? "vote" : "votes"}
+          </p>
+        </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left px-3 py-1 text-muted-foreground font-medium">Choice</th>
+              <th className="text-right px-3 py-1 text-muted-foreground font-medium">Votes</th>
+              <th className="text-right px-3 py-1 text-muted-foreground font-medium">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedOptions.map((option) => {
+              const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 0;
+              return (
+                <tr key={option.id} className="border-b border-border last:border-0">
+                  <td className="px-3 py-1 text-foreground">{option.label}</td>
+                  <td className="text-right px-3 py-1 font-mono text-foreground">{option.total_votes_count}</td>
+                  <td className="text-right px-3 py-1 font-mono text-muted-foreground">{pct}%</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* Updating consensus overlay */}
@@ -212,19 +229,24 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </AnimatePresence>
 
-      {/* Forecast options */}
+      {/* Forecast options — vote buttons */}
       <div className="space-y-2 mb-3 flex-1">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+          Cast your forecast
+        </p>
         {sortedOptions.map((option) => {
           const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : Math.round(100 / sortedOptions.length);
-          const isYes = option.label.toLowerCase() === "yes";
-          const isNo = option.label.toLowerCase() === "no";
           const isVoted = votedOptionId === option.id;
           const canVote = !hasVoted && !voting && !isClosed;
 
-          // Color system: Green for Yes, Red for No, Primary for other
-          const colorClass = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
-          const bgColorClass = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
-          const borderColorClass = isYes ? "border-green-500 ring-green-500/30" : isNo ? "border-red-500 ring-red-500/30" : "border-primary ring-primary/30";
+          const isYes = option.label.toLowerCase() === "yes";
+          const isNo = option.label.toLowerCase() === "no";
+
+          // Selected state colors
+          const selectedBorderClass = isYes ? "border-green-500 ring-2 ring-green-500/30" : isNo ? "border-red-500 ring-2 ring-red-500/30" : "border-primary ring-2 ring-primary/30";
+          const selectedBgClass = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
+          const selectedTextClass = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
+          const selectedPctClass = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
 
           return (
             <button
@@ -233,25 +255,27 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               disabled={hasVoted || voting || isClosed}
               className={`w-full relative overflow-hidden rounded-md border-2 transition-all text-left ${
                 isVoted
-                  ? `${borderColorClass} ring-2 ${bgColorClass}`
+                  ? `${selectedBorderClass} ${selectedBgClass}`
                   : canVote
-                  ? `border-border hover:${isYes ? "border-green-400" : isNo ? "border-red-400" : "border-primary/60"} cursor-pointer`
-                  : "border-border cursor-default"
+                  ? "border-border hover:border-muted-foreground/40 cursor-pointer bg-transparent"
+                  : "border-border cursor-default bg-transparent"
               }`}
             >
-              {/* Distribution bar — always visible */}
-              <div
-                className={`absolute inset-0 transition-all duration-700 ${bgColorClass} opacity-40`}
-                style={{ width: `${pct}%` }}
-              />
+              {/* Distribution bar — only show after voting or when closed */}
+              {(hasVoted || isClosed) && (
+                <div
+                  className={`absolute inset-0 transition-all duration-700 ${isVoted ? selectedBgClass : "bg-muted/30"} opacity-40`}
+                  style={{ width: `${pct}%` }}
+                />
+              )}
               <div className="relative flex items-center justify-between px-3 py-2">
-                <span className={`flex items-center gap-2 text-sm font-medium ${isVoted ? colorClass : "text-foreground"}`}>
-                  {isVoted && <Check className={`w-3.5 h-3.5 ${colorClass}`} />}
+                <span className={`flex items-center gap-2 text-sm font-medium ${isVoted ? selectedTextClass : "text-foreground"}`}>
+                  {isVoted && <Check className={`w-3.5 h-3.5 ${selectedTextClass}`} />}
                   {canVote && isYesNo
                     ? (isYes ? "Vote Yes" : "Vote No")
                     : option.label}
                 </span>
-                <span className={`font-mono text-sm font-semibold ${colorClass}`}>
+                <span className={`font-mono text-sm font-semibold ${isVoted ? selectedPctClass : "text-muted-foreground"}`}>
                   {pct}%
                 </span>
               </div>
@@ -270,6 +294,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </div>
 
+      {/* Capital commitment section — after voting */}
       {!isClosed && PARTICIPATION_ENABLED && hasVoted && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
@@ -289,19 +314,18 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               </p>
             </div>
             <motion.div
-              animate={{ opacity: [1, 0.6, 1] }}
+              animate={{ opacity: [1, 0.85, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => handleAllocate(votedOption)}
-                className={`w-full text-sm font-bold transition-all ${
+                className={`w-full text-sm font-bold text-white transition-all ${
                   isYes
-                    ? "border-green-500 hover:bg-green-500/10 text-green-600"
+                    ? "bg-green-600 hover:bg-green-700 active:bg-green-800"
                     : isNo
-                    ? "border-red-500 hover:bg-red-500/10 text-red-500"
-                    : "border-primary hover:bg-primary/10 text-primary"
+                    ? "bg-red-500 hover:bg-red-600 active:bg-red-700"
+                    : "bg-primary hover:bg-primary/90 active:bg-primary/80"
                 }`}
               >
                 BUY {label}: ${price.toFixed(2)}

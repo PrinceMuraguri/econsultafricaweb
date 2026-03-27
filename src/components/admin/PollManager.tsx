@@ -30,6 +30,29 @@ const PollManager = ({ adminKey }: { adminKey: string }) => {
   const [newRows, setNewRows] = useState<PollRow[]>([]);
   const [saving, setSaving] = useState(false);
 
+  const invokeAdminPolls = async (payload: Record<string, unknown>) => {
+    const { data, error } = await supabase.functions.invoke("admin-polls", {
+      body: { admin_key: adminKey.trim(), ...payload },
+    });
+
+    if (error) {
+      const context = (error as any)?.context;
+      if (context && typeof context.json === "function") {
+        const parsed = await context.json().catch(() => null);
+        if (parsed?.message || parsed?.error) {
+          throw new Error(parsed.message || parsed.error);
+        }
+      }
+      throw error;
+    }
+
+    if ((data as any)?.error) {
+      throw new Error((data as any).message || (data as any).error);
+    }
+
+    return data;
+  };
+
   const { data: polls, isLoading } = useQuery({
     queryKey: ["admin-poll-manager"],
     queryFn: async () => {
@@ -99,54 +122,44 @@ const PollManager = ({ adminKey }: { adminKey: string }) => {
     try {
       for (const [pollId, row] of Object.entries(editedRows)) {
         if (!row.isDirty) continue;
-        const { data, error } = await supabase.functions.invoke("admin-polls", {
-          body: {
-            admin_key: adminKey,
-            action: "update_poll",
-            poll_id: pollId,
-            updates: {
-              title: row.title,
-              category: row.category,
-              context: row.context || null,
-              resolution_criteria: row.resolution_criteria || null,
-              expert_insight: row.expert_insight || null,
-              close_at: new Date(row.close_at).toISOString(),
-              country: row.country || null,
-              question_type: row.question_type,
-              index_number: row.index_number,
-            },
+        await invokeAdminPolls({
+          action: "update_poll",
+          poll_id: pollId,
+          updates: {
+            title: row.title,
+            category: row.category,
+            context: row.context || null,
+            resolution_criteria: row.resolution_criteria || null,
+            expert_insight: row.expert_insight || null,
+            close_at: new Date(row.close_at).toISOString(),
+            country: row.country || null,
+            question_type: row.question_type,
+            index_number: row.index_number,
           },
         });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
       }
 
       for (const row of newRows) {
         if (!row.title.trim()) continue;
         const slug = `q${row.index_number}-${row.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50)}`;
         const options = row.options.split(",").map(o => o.trim()).filter(Boolean);
-        const { data, error } = await supabase.functions.invoke("admin-polls", {
-          body: {
-            admin_key: adminKey,
-            action: "create_poll",
-            poll: {
-              title: row.title,
-              slug,
-              category: row.category,
-              context: row.context || null,
-              close_at: new Date(row.close_at).toISOString(),
-              status: "active",
-              country: row.country || null,
-              question_type: row.question_type,
-              index_number: row.index_number,
-              resolution_criteria: row.resolution_criteria || null,
-              expert_insight: row.expert_insight || null,
-            },
-            options,
+        await invokeAdminPolls({
+          action: "create_poll",
+          poll: {
+            title: row.title,
+            slug,
+            category: row.category,
+            context: row.context || null,
+            close_at: new Date(row.close_at).toISOString(),
+            status: "active",
+            country: row.country || null,
+            question_type: row.question_type,
+            index_number: row.index_number,
+            resolution_criteria: row.resolution_criteria || null,
+            expert_insight: row.expert_insight || null,
           },
+          options,
         });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
       }
 
       setEditedRows({});

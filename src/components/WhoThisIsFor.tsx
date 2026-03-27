@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, Target, TrendingUp, Globe } from "lucide-react";
+import { Users, Target, TrendingUp, Globe, Home } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
@@ -30,6 +30,11 @@ const segments = [
     title: "Development Organizations",
     benefit: "Understanding the economic landscape to design effective programs.",
   },
+  {
+    icon: Home,
+    title: "Households & Individuals",
+    benefit: "Understanding the forces shaping their financial lives — because they are the real economy.",
+  },
 ];
 
 const WhoThisIsFor = () => (
@@ -59,7 +64,7 @@ const WhoThisIsFor = () => (
         </motion.p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {segments.map((seg, i) => (
           <motion.div
             key={seg.title}

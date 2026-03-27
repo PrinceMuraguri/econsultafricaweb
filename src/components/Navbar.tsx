@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/econsult-africa-logo.png";
@@ -19,6 +19,11 @@ const navLinks = [
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isParticipant, setIsParticipant] = useState(false);
+
+  useEffect(() => {
+    setIsParticipant(!!localStorage.getItem("forecast_participant"));
+  }, [location.pathname]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -46,6 +51,11 @@ const Navbar = () => {
               ) : link.label}
             </Link>
           ))}
+          {isParticipant && (
+            <Link to="/my-dashboard" className={`text-sm font-medium transition-colors ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"}`}>
+              <User className="w-4 h-4 inline mr-1" />Dashboard
+            </Link>
+          )}
           <Button variant="hero" size="sm" className="hover-sink" asChild>
             <Link to="/kenya-2026">Buy Report</Link>
           </Button>
@@ -76,6 +86,12 @@ const Navbar = () => {
                   ) : link.label}
                 </Link>
               ))}
+              {isParticipant && (
+                <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
+                  className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
+                  <User className="w-4 h-4" /> My Dashboard
+                </Link>
+              )}
               <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>
                 <Link to="/kenya-2026" onClick={() => setMobileOpen(false)}>Buy Report</Link>
               </Button>

@@ -113,6 +113,7 @@ const AdminDashboard = () => {
     },
     enabled: isAuthenticated,
     refetchInterval: 30000,
+    refetchInterval: 30000,
   });
 
   // Fetch all staked entries
@@ -130,6 +131,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch transactions
@@ -146,6 +148,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch payouts
@@ -162,6 +165,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch payout winners view
@@ -175,6 +179,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch audit log
@@ -190,6 +195,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
    // Fetch sample downloads
@@ -205,6 +211,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch registered users (voter_profiles)
@@ -219,6 +226,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch inquiries
@@ -234,6 +242,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   const { data: allTransactions } = useQuery({
@@ -248,6 +257,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch ALL votes
@@ -263,6 +273,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Settle market mutation

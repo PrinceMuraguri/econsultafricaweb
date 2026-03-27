@@ -19,7 +19,7 @@ const AdminDashboard = () => {
   const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE) || "");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
   const [keyInput, setKeyInput] = useState("");
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries">("polls");
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
 

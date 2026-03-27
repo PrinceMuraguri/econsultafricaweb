@@ -115,7 +115,7 @@ const ForecastArena = () => {
                 100+ live economic questions across 6 African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
               </p>
               <p className="text-accent/90 text-xs font-medium">
-                🚀 New: You can now commit capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.
+                🚀 New Feature Available: You can now commit real capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.
               </p>
             </motion.div>
           </motion.div>

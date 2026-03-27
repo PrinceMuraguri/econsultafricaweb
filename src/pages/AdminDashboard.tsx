@@ -112,6 +112,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch all staked entries

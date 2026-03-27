@@ -21,7 +21,7 @@ const ForecastWidget = () => {
     return () => clearTimeout(timer);
   }, [dismissed]);
 
-  const featuredPoll = polls?.find(p => p.title.toLowerCase().includes("oil shortage")) || polls?.[0];
+  const featuredPoll = polls?.find(p => p.title.toLowerCase().includes("pump price") && p.title.toLowerCase().includes("kenya")) || polls?.find(p => p.title.toLowerCase().includes("oil")) || polls?.[0];
   if (!featuredPoll || dismissed) return null;
 
   const randomText = widgetTexts[Math.floor(Math.random() * widgetTexts.length)];

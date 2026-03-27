@@ -99,7 +99,7 @@ const PollManager = ({ adminKey }: { adminKey: string }) => {
     try {
       for (const [pollId, row] of Object.entries(editedRows)) {
         if (!row.isDirty) continue;
-        const { error } = await supabase.functions.invoke("settle-market", {
+        const { data, error } = await supabase.functions.invoke("admin-polls", {
           body: {
             admin_key: adminKey,
             action: "update_poll",
@@ -107,47 +107,46 @@ const PollManager = ({ adminKey }: { adminKey: string }) => {
             updates: {
               title: row.title,
               category: row.category,
-              context: row.context,
-              resolution_criteria: row.resolution_criteria,
-              expert_insight: row.expert_insight,
+              context: row.context || null,
+              resolution_criteria: row.resolution_criteria || null,
+              expert_insight: row.expert_insight || null,
               close_at: new Date(row.close_at).toISOString(),
-              country: row.country,
+              country: row.country || null,
               question_type: row.question_type,
               index_number: row.index_number,
             },
           },
         });
         if (error) throw error;
+        if (data?.error) throw new Error(data.error);
       }
 
       for (const row of newRows) {
         if (!row.title.trim()) continue;
         const slug = `q${row.index_number}-${row.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50)}`;
-        const { data: newPoll, error: pollError } = await supabase
-          .from("polls")
-          .insert({
-            title: row.title,
-            slug,
-            category: row.category,
-            context: row.context || null,
-            close_at: new Date(row.close_at).toISOString(),
-            status: "active",
-            country: row.country,
-            question_type: row.question_type,
-            index_number: row.index_number,
-            resolution_criteria: row.resolution_criteria || null,
-            expert_insight: row.expert_insight || null,
-          } as any)
-          .select("id")
-          .single();
-        if (pollError) throw pollError;
-
         const options = row.options.split(",").map(o => o.trim()).filter(Boolean);
-        for (const label of options) {
-          const { error: optError } = await supabase
-            .from("poll_options")
-            .insert({ poll_id: newPoll.id, label } as any);
-          if (optError) throw optError;
+        const { data, error } = await supabase.functions.invoke("admin-polls", {
+          body: {
+            admin_key: adminKey,
+            action: "create_poll",
+            poll: {
+              title: row.title,
+              slug,
+              category: row.category,
+              context: row.context || null,
+              close_at: new Date(row.close_at).toISOString(),
+              status: "active",
+              country: row.country || null,
+              question_type: row.question_type,
+              index_number: row.index_number,
+              resolution_criteria: row.resolution_criteria || null,
+              expert_insight: row.expert_insight || null,
+            },
+            options,
+          },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
         }
       }
 

@@ -105,7 +105,7 @@ const Index = () => {
                   <span className="font-medium text-foreground">Very few get insight they can actually use.</span>
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Econsult Africa translates macroeconomic trends across Africa into clear, decision-focused intelligence for leaders, investors, businesses, and households making real financial decisions everyday.
+                  Econsult Africa translates macroeconomic trends across Africa into clear, decision-focused intelligence for leaders, businesses, and households making real financial decisions everyday.
                 </p>
               </motion.div>
 

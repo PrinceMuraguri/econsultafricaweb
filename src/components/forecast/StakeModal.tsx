@@ -20,19 +20,28 @@ interface StakeModalProps {
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
 
-  const storedProfile = (() => {
-    try {
-      const raw = localStorage.getItem("forecast_participant");
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  })();
-
-  const [email] = useState(storedProfile?.email || "");
-  const [fullName] = useState(storedProfile?.fullName || "");
-  const [phoneNumber] = useState(storedProfile?.phone || "");
-  const [countryCode] = useState(storedProfile?.countryCode || "+254");
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [countryCode, setCountryCode] = useState("+254");
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
+
+  // Re-read profile from localStorage every time the modal opens
+  useEffect(() => {
+    if (open) {
+      try {
+        const raw = localStorage.getItem("forecast_participant");
+        if (raw) {
+          const profile = JSON.parse(raw);
+          setEmail(profile.email || "");
+          setFullName(profile.fullName || "");
+          setPhoneNumber(profile.phone || "");
+          setCountryCode(profile.countryCode || "+254");
+        }
+      } catch { /* ignore */ }
+    }
+  }, [open]);
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 

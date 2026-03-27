@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FileText, BarChart3, Users, Briefcase, Zap, Globe } from "lucide-react";
+import ProductInterestModal from "@/components/ProductInterestModal";
+import { ArrowRight, FileText, BarChart3, Users, Briefcase, Zap, Globe, Eye } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -18,8 +19,9 @@ const tiers = [
     title: "Sample Report Preview",
     description: "Selected pages from the Kenya 2026 Economic Outlook. Get a taste of what decision-grade economic intelligence looks like.",
     price: "Free",
-    cta: "Browse the Sample",
-    href: "/sample-report",
+    purchaseHref: null, // not purchasable
+    sampleHref: "/sample-report",
+    available: true,
     featured: false,
   },
   {
@@ -30,8 +32,9 @@ const tiers = [
     description: "120+ page flagship report. GDP, inflation, currency, fiscal policy, and 10 sector deep-dives. The definitive intelligence product for Kenya.",
     price: "$495",
     priceNote: "Single organization license",
-    cta: "Buy Report",
-    href: "/kenya-2026",
+    purchaseHref: "/kenya-2026",
+    sampleHref: "/sample-report",
+    available: true,
     featured: true,
   },
   {
@@ -42,8 +45,9 @@ const tiers = [
     description: "Shorter, sharper, sector-specific analysis. Tourism, financial services, agriculture, energy — with opportunity and risk mapping.",
     price: "$95 – $250",
     priceNote: "Per sector report",
-    cta: "Inquire",
-    href: "/contact",
+    purchaseHref: null,
+    sampleHref: null,
+    available: false,
     featured: false,
   },
   {
@@ -54,8 +58,9 @@ const tiers = [
     description: "We translate the macroeconomic environment into insights tailored specifically to your organization, sector, and strategy.",
     price: "$1,000 – $5,000+",
     priceNote: "Scope-dependent",
-    cta: "Request a Brief",
-    href: "/contact",
+    purchaseHref: "/contact",
+    sampleHref: null,
+    available: true,
     featured: false,
   },
   {
@@ -66,8 +71,9 @@ const tiers = [
     description: "We present the insights directly to your leadership team, break them down, and answer your questions in real time. Virtual or in-person.",
     price: "$1,500 – $10,000+",
     priceNote: "Session-based pricing",
-    cta: "Book a Briefing",
-    href: "/contact",
+    purchaseHref: "/contact",
+    sampleHref: null,
+    available: true,
     featured: false,
   },
   {
@@ -78,27 +84,32 @@ const tiers = [
     description: "Ongoing insights, priority updates, and direct advisory access. Stay ahead of economic shifts — not reacting to them.",
     price: "$300 – $1,000/mo",
     priceNote: "Monthly or annual",
-    cta: "Discuss Access",
-    href: "/contact",
+    purchaseHref: "/contact",
+    sampleHref: null,
+    available: true,
     featured: false,
   },
 ];
 
-const quickInsights = [
-  { title: "Kenya Inflation Watch Q2 2026", price: "$25", topic: "Inflation" },
-  { title: "KES vs USD: H2 Projection Brief", price: "$35", topic: "Currency" },
-  { title: "Tourism Sector Snapshot", price: "$15", topic: "Tourism" },
-  { title: "Agriculture Export Risk Brief", price: "$25", topic: "Agriculture" },
+const sectorReports = [
+  { title: "Kenya Banking Sector Outlook", price: "$195", type: "Financial Services", available: false },
+  { title: "Africa Tourism Sector Brief", price: "$150", type: "Tourism", available: false },
+  { title: "Kenya Agriculture Outlook", price: "$195", type: "Agriculture", available: false },
+  { title: "Energy & Infrastructure Brief", price: "$195", type: "Energy", available: false },
 ];
 
-const sectorReports = [
-  { title: "Kenya Banking Sector Outlook", price: "$195", type: "Financial Services" },
-  { title: "Africa Tourism Sector Brief", price: "$150", type: "Tourism" },
-  { title: "Kenya Agriculture Outlook", price: "$195", type: "Agriculture" },
-  { title: "Energy & Infrastructure Brief", price: "$195", type: "Energy" },
+const quickInsights = [
+  { title: "Kenya Inflation Watch Q2 2026", price: "$25", topic: "Inflation", available: false },
+  { title: "KES vs USD: H2 Projection Brief", price: "$35", topic: "Currency", available: false },
+  { title: "Tourism Sector Snapshot", price: "$15", topic: "Tourism", available: false },
+  { title: "Agriculture Export Risk Brief", price: "$25", topic: "Agriculture", available: false },
 ];
 
 const Products = () => {
+  const [interestModal, setInterestModal] = useState<{ open: boolean; title: string }>({ open: false, title: "" });
+
+  const openInterest = (title: string) => setInterestModal({ open: true, title });
+
   return (
     <Layout>
       {/* Hero */}
@@ -158,16 +169,43 @@ const Products = () => {
                     </p>
                   )}
                 </div>
-                <Button
-                  variant={tier.featured ? "gold" : "hero-outline"}
-                  size="sm"
-                  className="w-full hover-sink"
-                  asChild
-                >
-                  <Link to={tier.href}>
-                    {tier.cta} <ArrowRight className="ml-1" />
-                  </Link>
-                </Button>
+                <div className="flex flex-col gap-2">
+                  {/* Purchase button */}
+                  {tier.available && tier.purchaseHref ? (
+                    <Button
+                      variant={tier.featured ? "gold" : "hero-outline"}
+                      size="sm"
+                      className="w-full hover-sink"
+                      asChild
+                    >
+                      <Link to={tier.purchaseHref}>
+                        Purchase Item <ArrowRight className="ml-1" />
+                      </Link>
+                    </Button>
+                  ) : tier.tier !== "Free" ? (
+                    <Button
+                      variant={tier.featured ? "gold" : "hero-outline"}
+                      size="sm"
+                      className="w-full hover-sink"
+                      onClick={() => openInterest(tier.title)}
+                    >
+                      Register Interest <ArrowRight className="ml-1" />
+                    </Button>
+                  ) : null}
+                  {/* Browse sample button */}
+                  {tier.sampleHref && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`w-full ${tier.featured ? "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" : "text-muted-foreground hover:text-foreground"}`}
+                      asChild
+                    >
+                      <Link to={tier.sampleHref}>
+                        <Eye className="w-4 h-4 mr-1" /> Browse Free Sample
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>
@@ -199,9 +237,11 @@ const Products = () => {
                 <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-pill mb-3">{report.type}</span>
                 <h3 className="font-display font-bold text-foreground mb-2">{report.title}</h3>
                 <p className="font-display font-bold text-xl text-primary mb-4">{report.price}</p>
-                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
-                  <Link to="/contact">Inquire <ArrowRight className="ml-1" /></Link>
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button variant="hero-outline" size="sm" className="w-full hover-sink" onClick={() => openInterest(report.title)}>
+                    Register Interest <ArrowRight className="ml-1" />
+                  </Button>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -233,8 +273,8 @@ const Products = () => {
                 <span className="inline-block text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-pill mb-3">{brief.topic}</span>
                 <h3 className="font-display font-bold text-foreground mb-2 text-sm">{brief.title}</h3>
                 <p className="font-display font-bold text-xl text-primary mb-4">{brief.price}</p>
-                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
-                  <Link to="/contact">Get Brief <ArrowRight className="ml-1" /></Link>
+                <Button variant="hero-outline" size="sm" className="w-full hover-sink" onClick={() => openInterest(brief.title)}>
+                  Register Interest <ArrowRight className="ml-1" />
                 </Button>
               </motion.div>
             ))}
@@ -256,6 +296,12 @@ const Products = () => {
           </Button>
         </div>
       </section>
+
+      <ProductInterestModal
+        open={interestModal.open}
+        onOpenChange={(open) => setInterestModal(prev => ({ ...prev, open }))}
+        productTitle={interestModal.title}
+      />
     </Layout>
   );
 };

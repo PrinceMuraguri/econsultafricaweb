@@ -103,8 +103,11 @@ Deno.serve(async (req) => {
         throw pollError;
       }
 
-      for (const label of options) {
-        await supabase.from('poll_options').insert({ poll_id: newPoll.id, label });
+      const optionInserts = options.map((label: string) => ({ poll_id: newPoll.id, label }));
+      const { error: optError } = await supabase.from('poll_options').insert(optionInserts);
+      if (optError) {
+        console.error('Options insert error:', JSON.stringify(optError));
+        throw optError;
       }
 
       await supabase.from('admin_audit_log').insert({

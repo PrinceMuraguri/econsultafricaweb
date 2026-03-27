@@ -65,17 +65,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
 
-    // First click = select, second click on same = confirm
-    if (selectedOptionId !== optionId) {
-      setSelectedOptionId(optionId);
-      return;
-    }
-
-    // Check terms acceptance
-    if (!termsAccepted) {
-      toast({ title: "Terms required", description: "Please accept the Terms of Use before submitting your forecast.", variant: "destructive" });
-      return;
-    }
+    // Single click to vote — no confirmation step
 
     setVoting(true);
     try {
@@ -176,9 +166,13 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </AnimatePresence>
 
-      {/* Forecast options */}
+      {/* Forecast options — YES always first, NO always second */}
       <div className="space-y-2 mb-4 flex-1">
-        {localOptions.map((option) => {
+        {[...localOptions].sort((a, b) => {
+          const aYes = a.label.toLowerCase() === "yes" ? 0 : 1;
+          const bYes = b.label.toLowerCase() === "yes" ? 0 : 1;
+          return aYes - bYes;
+        }).map((option) => {
           const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 50;
           const isYes = option.label.toLowerCase() === "yes";
           const isVoted = votedOptionId === option.id;
@@ -218,8 +212,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   {isVoted && <Check className={`w-3.5 h-3.5 ${colorClass}`} />}
                   {hasVoted || isClosed
                     ? option.label
-                    : isSelected
-                    ? `✓ Tap again to confirm ${option.label}`
                     : isYes
                     ? "Vote Yes"
                     : "Vote No"}
@@ -234,27 +226,14 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           );
         })}
 
-        {/* Terms clickwrap — show before confirmation */}
-        {!hasVoted && !isClosed && selectedOptionId && (
-          <div className="space-y-1.5 pt-1">
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 rounded border-border"
-              />
-              <span className="text-[10px] text-muted-foreground leading-tight">
-                By participating, you agree to the{" "}
-                <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">
-                  Terms of Use
-                </a>.
-              </span>
-            </label>
-            <p className="text-[10px] text-center text-muted-foreground animate-pulse">
-              Tap your choice again to submit your forecast
-            </p>
-          </div>
+        {/* Inline terms notice */}
+        {!hasVoted && !isClosed && (
+          <p className="text-[10px] text-muted-foreground text-center pt-1">
+            By participating, you agree to the{" "}
+            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">
+              Terms of Use
+            </a>.
+          </p>
         )}
       </div>
 

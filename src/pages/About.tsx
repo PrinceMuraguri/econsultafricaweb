@@ -25,11 +25,6 @@ const team = [
     featured: false,
     img: mosesImg,
   },
-  {
-    name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL",
-    bio: "Noel advises organizations on cross-border strategy and market entry across Africa. With experience spanning 12 economies, he translates macroeconomic intelligence into actionable business frameworks.",
-    featured: false,
-  },
 ];
 
 const About = () => {

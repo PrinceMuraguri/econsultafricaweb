@@ -168,6 +168,9 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-pill">
           {poll.category}
         </span>
+        <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+          New Feature
+        </span>
         <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />
           {getTimeRemaining(poll.close_at)}
@@ -267,47 +270,49 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </div>
 
-      {/* Forecast participation — active */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (
-        <div className="mb-3 pt-3 border-t border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-pulse">
-              Live
-            </span>
-            <p className="text-xs font-bold text-foreground">
-              Commit capital to your forecast position
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (() => {
+        const votedOption = sortedOptions.find(o => o.id === votedOptionId);
+        if (!votedOption) return null;
+        const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
+        const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
+        const isYes = votedOption.label.toLowerCase() === "yes";
+        const isNo = votedOption.label.toLowerCase() === "no";
+        const label = isYes ? "YES" : isNo ? "NO" : votedOption.label.toUpperCase();
+        return (
+          <div className="mb-3 pt-3 border-t border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+                New Feature
+              </span>
+              <p className="text-xs font-bold text-foreground">
+                Commit capital to your forecast position
+              </p>
+            </div>
+            <motion.div
+              animate={{ opacity: [1, 0.6, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAllocate(votedOption)}
+                className={`w-full text-sm font-bold transition-all ${
+                  isYes
+                    ? "border-green-500 hover:bg-green-500/10 text-green-600"
+                    : isNo
+                    ? "border-red-500 hover:bg-red-500/10 text-red-500"
+                    : "border-primary hover:bg-primary/10 text-primary"
+                }`}
+              >
+                BUY {label}: ${price.toFixed(2)}
+              </Button>
+            </motion.div>
+            <p className="text-[9px] text-muted-foreground mt-1.5 text-center">
+              Each unit resolves at $1 if correct. Service fee: 3.5%.
             </p>
           </div>
-          <div className="flex gap-2">
-            {sortedOptions.map((option) => {
-              const consensusPct = totalVotes > 0 ? (option.total_votes_count / totalVotes) : 0.50;
-              const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
-              const isYes = option.label.toLowerCase() === "yes";
-              const isNo = option.label.toLowerCase() === "no";
-              return (
-                <Button
-                  key={`allocate-${option.id}`}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAllocate(option)}
-                  className={`flex-1 text-xs font-bold transition-all ${
-                    isYes
-                      ? "border-green-500 hover:bg-green-500/10 text-green-600"
-                      : isNo
-                      ? "border-red-500 hover:bg-red-500/10 text-red-500"
-                      : "border-primary hover:bg-primary/10 text-primary"
-                  }`}
-                >
-                  {isYesNo ? (isYes ? "Yes" : "No") : option.label} — ${price.toFixed(2)}
-                </Button>
-              );
-            })}
-          </div>
-          <p className="text-[9px] text-muted-foreground mt-1.5 text-center">
-            Each unit resolves at $1 if correct. Service fee: 3.5%.
-          </p>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Vote first prompt */}
       {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (

@@ -19,10 +19,19 @@ interface StakeModalProps {
 
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [countryCode, setCountryCode] = useState("+254");
+  
+  // Auto-populate from stored participant profile
+  const storedProfile = (() => {
+    try {
+      const raw = localStorage.getItem("forecast_participant");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const [email] = useState(storedProfile?.email || "");
+  const [fullName] = useState(storedProfile?.fullName || "");
+  const [phoneNumber] = useState(storedProfile?.phone || "");
+  const [countryCode] = useState(storedProfile?.countryCode || "+254");
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "card">("mpesa");
@@ -228,49 +237,12 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </p>
           </div>
 
-          {/* Contact details */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-foreground">Your Details (for distributions & receipts)</p>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Full Name</Label>
-              <Input
-                type="text"
-                placeholder="John Mwangi"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Email</Label>
-              <Input
-                type="email"
-                placeholder="you@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Phone Number (for distributions)</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-20 font-mono text-center"
-                  placeholder="+254"
-                />
-                <Input
-                  type="tel"
-                  placeholder="712345678"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
+          {/* User details auto-filled from profile */}
+          <div className="bg-muted/30 rounded-lg p-3 border border-border">
+            <p className="text-xs font-semibold text-foreground mb-1">Your Details</p>
+            <p className="text-[11px] text-muted-foreground">
+              {fullName || "—"} · {email || "—"} · {countryCode}{phoneNumber || "—"}
+            </p>
           </div>
 
           {/* CTA */}

@@ -114,7 +114,7 @@ const Index = () => {
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="text-sm font-medium text-foreground mb-4">
-                For leadership teams, investors, and strategy units operating in Africa.
+                For leadership teams, investors, strategy units, and everyday decision-makers operating in Africa.
               </motion.p>
 
               {/* Micro trust signals */}

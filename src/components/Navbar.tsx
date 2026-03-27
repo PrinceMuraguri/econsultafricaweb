@@ -51,6 +51,11 @@ const Navbar = () => {
               ) : link.label}
             </Link>
           ))}
+          {isParticipant && (
+            <Link to="/my-dashboard" className={`text-sm font-medium transition-colors ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"}`}>
+              <User className="w-4 h-4 inline mr-1" />Dashboard
+            </Link>
+          )}
           <Button variant="hero" size="sm" className="hover-sink" asChild>
             <Link to="/kenya-2026">Buy Report</Link>
           </Button>

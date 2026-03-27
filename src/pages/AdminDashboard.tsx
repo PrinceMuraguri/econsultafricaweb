@@ -19,7 +19,7 @@ const AdminDashboard = () => {
   const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE) || "");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
   const [keyInput, setKeyInput] = useState("");
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries">("polls");
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
 
@@ -155,7 +155,21 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
 
-  // Fetch ALL transactions (not just staked)
+  // Fetch inquiries
+  const { data: inquiries } = useQuery({
+    queryKey: ["admin-inquiries"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("inquiries")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
   const { data: allTransactions } = useQuery({
     queryKey: ["admin-all-transactions"],
     queryFn: async () => {
@@ -312,6 +326,7 @@ const AdminDashboard = () => {
               { key: "payouts", label: "Payouts & Transfers" },
               { key: "users", label: "Registered Users" },
               { key: "all-transactions", label: "All Transactions" },
+              { key: "inquiries", label: "📬 Inquiries" },
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
             ] as const).map((tab) => (
@@ -835,6 +850,80 @@ const AdminDashboard = () => {
                 </table>
                 {(!allTransactions || allTransactions.length === 0) && (
                   <p className="text-center text-muted-foreground py-4">No transactions yet.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab: Inquiries */}
+          {activeTab === "inquiries" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold text-foreground">Inquiries ({inquiries?.length || 0})</h2>
+                <Button variant="outline" size="sm" onClick={() => exportCSV(inquiries || [], "inquiries")}>
+                  <Download className="w-4 h-4 mr-1" /> Export CSV
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {[
+                  { label: "Total", value: inquiries?.length || 0 },
+                  { label: "Expert Insights", value: inquiries?.filter((i: any) => i.inquiry_type === "expert_insight").length || 0 },
+                  { label: "Report Requests", value: inquiries?.filter((i: any) => i.inquiry_type === "report").length || 0 },
+                  { label: "General", value: inquiries?.filter((i: any) => i.inquiry_type === "general").length || 0 },
+                ].map(stat => (
+                  <div key={stat.label} className="bg-card border border-border rounded-lg p-4">
+                    <p className="text-2xl font-bold font-mono text-foreground">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto bg-card border border-border rounded-lg">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Type</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Name</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Phone</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Source</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Related Question</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Message</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inquiries?.map((inq: any) => (
+                      <tr key={inq.id} className="border-t border-border/50">
+                        <td className="px-3 py-1.5 text-foreground">{new Date(inq.created_at).toLocaleString()}</td>
+                        <td className="px-3 py-1.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            inq.inquiry_type === "expert_insight" ? "bg-amber-100 text-amber-700" :
+                            inq.inquiry_type === "report" ? "bg-blue-100 text-blue-700" :
+                            "bg-muted text-muted-foreground"
+                          }`}>{inq.inquiry_type}</span>
+                        </td>
+                        <td className="px-3 py-1.5 text-foreground">{inq.name || "—"}</td>
+                        <td className="px-3 py-1.5 text-foreground">{inq.email}</td>
+                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{inq.phone || "—"}</td>
+                        <td className="px-3 py-1.5 text-muted-foreground">{inq.source}</td>
+                        <td className="px-3 py-1.5 text-foreground max-w-[200px] truncate">{inq.poll_title || "—"}</td>
+                        <td className="px-3 py-1.5 text-muted-foreground max-w-[200px] truncate">{inq.message || "—"}</td>
+                        <td className="px-3 py-1.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            inq.status === "new" ? "bg-green-100 text-green-700" :
+                            inq.status === "responded" ? "bg-blue-100 text-blue-700" :
+                            "bg-muted text-muted-foreground"
+                          }`}>{inq.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(!inquiries || inquiries.length === 0) && (
+                  <p className="text-center text-muted-foreground py-8">No inquiries yet.</p>
                 )}
               </div>
             </div>

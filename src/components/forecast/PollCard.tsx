@@ -144,31 +144,36 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
             const email = storedProfile?.email || "";
             if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
+
+            // Check if expert insight content exists
+            if (poll.expert_insight) {
+              // Show the insight directly
+              toast({ title: "🔓 Expert Insight", description: poll.expert_insight, duration: 15000 });
+              return;
+            }
+
+            // No content available — collect email as inquiry
             (async () => {
               try {
-                const fp = await getFingerprint();
-                const callbackUrl = `${window.location.origin}/forecast-arena?insight=success`;
-                const { data, error } = await supabase.functions.invoke("stake-checkout", {
-                  body: {
-                    email,
-                    amount: 1.00,
-                    poll_id: poll.id,
-                    option_id: poll.poll_options[0]?.id,
-                    voter_fingerprint: fp,
-                    callback_url: callbackUrl,
-                    metadata: { type: "expert_insight", poll_title: poll.title },
-                  },
+                await supabase.from("inquiries").insert({
+                  inquiry_type: "expert_insight",
+                  source: "forecast_arena",
+                  name: storedProfile?.fullName || null,
+                  email,
+                  phone: storedProfile?.phone || null,
+                  poll_id: poll.id,
+                  poll_title: poll.title,
+                  message: `Requested expert insight for: ${poll.title}`,
                 });
-                if (error || !data?.authorization_url) throw new Error("Failed to initialize payment");
-                window.location.href = data.authorization_url;
+                toast({ title: "📩 Request received", description: "Expert insight for this question is being prepared. We'll send it to your email shortly.", duration: 8000 });
               } catch {
-                toast({ title: "Error", description: "Could not initiate payment. Try again.", variant: "destructive" });
+                toast({ title: "Error", description: "Could not submit request. Try again.", variant: "destructive" });
               }
             })();
           }}
         >
           <Lightbulb className="w-3 h-3 text-amber-500" />
-          Unlock Expert Insight — $1.00
+          Unlock Expert Insight on This Question
         </Button>
       </div>
 

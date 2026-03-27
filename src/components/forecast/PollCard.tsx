@@ -168,6 +168,9 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-pill">
           {poll.category}
         </span>
+        <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
+          New Feature
+        </span>
         <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />
           {getTimeRemaining(poll.close_at)}

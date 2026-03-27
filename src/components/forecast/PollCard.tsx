@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -223,9 +223,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
                 <Button size="sm" onClick={() => handleAllocate(votedOption)}
-                  className={`w-full text-xs font-bold text-white transition-all ${
-                    isYes ? "bg-green-600 hover:bg-green-700" : isNo ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
-                  }`}>
+                  className="w-full text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
                   Commit capital (${price.toFixed(2)})
                 </Button>
               </div>

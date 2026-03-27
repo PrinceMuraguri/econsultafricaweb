@@ -5,25 +5,19 @@ const corsHeaders = {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Fallback USD/KES rate — updated periodically
 const FALLBACK_USD_KES_RATE = 129;
 
 async function getUsdToKesRate(): Promise<number> {
   try {
-    // Try to fetch a live rate (free API)
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
     if (res.ok) {
       const data = await res.json();
       const rate = data?.rates?.KES;
-      if (rate && rate > 50 && rate < 300) {
-        console.log('Live USD/KES rate:', rate);
-        return rate;
-      }
+      if (rate && rate > 50 && rate < 300) return rate;
     }
   } catch (e) {
-    console.log('Could not fetch live FX rate, using fallback:', e.message);
+    console.log('FX fallback:', e.message);
   }
-  console.log('Using fallback USD/KES rate:', FALLBACK_USD_KES_RATE);
   return FALLBACK_USD_KES_RATE;
 }
 
@@ -51,6 +45,7 @@ Deno.serve(async (req) => {
 
     const paystackSecretKey = (Deno.env.get('PAYSTACK_SECRET_KEY') ?? Deno.env.get('Paystack_KEY') ?? '').trim();
     if (!paystackSecretKey) {
+      console.error('No Paystack key found. Available env keys:', Object.keys(Deno.env.toObject()).filter(k => k.toLowerCase().includes('pay')));
       return new Response(JSON.stringify({ error: 'Payment configuration error. Please contact support.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -61,46 +56,24 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if user already voted on this poll
-    const { data: existingVote } = await supabase
-      .from('votes')
-      .select('id')
-      .eq('poll_id', poll_id)
-      .eq('voter_fingerprint', voter_fingerprint)
-      .maybeSingle();
-
-    if (existingVote) {
-      return new Response(JSON.stringify({ error: 'You have already voted on this poll' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Convert USD amount to KES
+    // Convert USD to KES
     const usdToKesRate = await getUsdToKesRate();
     const amountKes = Math.round(amount * usdToKesRate * 100) / 100;
-    const amountInKobo = Math.round(amountKes * 100); // Paystack uses lowest denomination
+    const amountInKobo = Math.round(amountKes * 100);
 
-    console.log(`Amount: $${amount} USD → KES ${amountKes} (rate: ${usdToKesRate}), kobo: ${amountInKobo}`);
+    console.log(`Stake: $${amount} USD → KES ${amountKes} (rate: ${usdToKesRate}), kobo: ${amountInKobo}`);
 
-    // Calculate platform fee (3.5%) in USD for metadata
     const platformFee = Math.round(amount * 0.035 * 100) / 100;
-    const netStake = Math.round((amount - platformFee) * 100) / 100;
-    const totalVotes = await getTotalVotes(supabase, poll_id);
-    const optionVotes = await getOptionVotes(supabase, option_id);
-    const impliedProbability = totalVotes > 0 ? optionVotes / totalVotes : 0.5;
-
     const reference = `stake_${poll_id.slice(0, 8)}_${Date.now()}`;
-    const useMpesa = !!phone;
 
-    // Create pending transaction — store original USD amount
+    // Create pending transaction
     const { error: txError } = await supabase.from('transactions').insert({
       voter_fingerprint,
       poll_id,
       option_id,
-      amount, // Store in USD
+      amount,
       currency: 'USD',
-      channel: useMpesa ? 'mpesa' : 'paystack',
+      channel: 'paystack',
       status: 'pending',
       reference,
     });
@@ -122,27 +95,20 @@ Deno.serve(async (req) => {
       amount_kes: amountKes,
       fx_rate: usdToKesRate,
       platform_fee: platformFee,
-      net_stake: netStake,
-      implied_probability: impliedProbability,
     };
 
-    // Always use Paystack hosted checkout (supports M-PESA, Card, Airtel Money, etc.)
-    const channelsList = [];
-    if (useMpesa) {
-      channelsList.push('mobile_money');
-    } else {
-      channelsList.push('card', 'mobile_money');
-    }
-
+    // Initialize Paystack — allow all channels (Card, M-PESA, Airtel Money, etc.)
     const initBody: Record<string, unknown> = {
       email,
       amount: amountInKobo,
       currency: 'KES',
       reference,
       callback_url: callback_url || undefined,
-      channels: channelsList,
+      channels: ['card', 'mobile_money'],
       metadata,
     };
+
+    console.log('Paystack init body:', JSON.stringify(initBody));
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -154,6 +120,7 @@ Deno.serve(async (req) => {
     });
 
     const data = await response.json();
+    console.log('Paystack response:', response.status, JSON.stringify(data));
 
     if (!data.status) {
       return new Response(JSON.stringify({ error: data.message || 'Failed to initialize payment' }), {
@@ -170,27 +137,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Stake checkout error:', error.message);
+    console.error('Stake checkout error:', error.message, error.stack);
     return new Response(JSON.stringify({ error: 'Something went wrong. Please try again.' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
-
-async function getTotalVotes(supabase: any, pollId: string): Promise<number> {
-  const { data } = await supabase
-    .from('poll_options')
-    .select('total_votes_count')
-    .eq('poll_id', pollId);
-  return data?.reduce((s: number, o: any) => s + o.total_votes_count, 0) || 0;
-}
-
-async function getOptionVotes(supabase: any, optionId: string): Promise<number> {
-  const { data } = await supabase
-    .from('poll_options')
-    .select('total_votes_count')
-    .eq('id', optionId)
-    .single();
-  return data?.total_votes_count || 0;
-}

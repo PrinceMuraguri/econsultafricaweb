@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, TrendingUp, HelpCircle, Minus, Plus, Smartphone, CreditCard } from "lucide-react";
+import { Shield, TrendingUp, HelpCircle, Minus, Plus } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
 
@@ -19,8 +19,7 @@ interface StakeModalProps {
 
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
-  
-  // Auto-populate from stored participant profile
+
   const storedProfile = (() => {
     try {
       const raw = localStorage.getItem("forecast_participant");
@@ -34,7 +33,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const [countryCode] = useState(storedProfile?.countryCode || "+254");
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "card">("mpesa");
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 
@@ -59,7 +57,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     try {
       const fp = await getFingerprint();
 
-      // Save/update voter profile
       await supabase
         .from("voter_profiles")
         .upsert({
@@ -71,12 +68,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           updated_at: new Date().toISOString(),
         }, { onConflict: "voter_fingerprint" });
 
-      const fullPhone = phoneNumber.startsWith("0")
-        ? phoneNumber.replace(/^0/, "254")
-        : phoneNumber.startsWith("+")
-        ? phoneNumber.replace(/^\+/, "")
-        : countryCode.replace("+", "") + phoneNumber;
-
       const callbackUrl = `${window.location.origin}/forecast-arena/stake-result?reference={reference}`;
 
       const { data, error } = await supabase.functions.invoke("stake-checkout", {
@@ -86,7 +77,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           poll_id: poll.id,
           option_id: selectedOption.id,
           voter_fingerprint: fp,
-          phone: paymentMethod === "mpesa" ? fullPhone : undefined,
           callback_url: callbackUrl,
         },
       });
@@ -95,7 +85,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         throw new Error(data?.error || "Failed to initialize payment");
       }
 
-      // Both methods redirect to Paystack hosted checkout
       window.location.href = data.authorization_url;
     } catch (err: any) {
       toast({ title: "Payment Error", description: err.message || "Could not initiate payment.", variant: "destructive" });
@@ -113,7 +102,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         <DialogHeader>
           <DialogTitle className="font-display text-lg">Commit Capital — Back Your Forecast</DialogTitle>
           <DialogDescription>
-            Turn your conviction into a position. Each unit resolves at $1 if your forecast is correct. Service fee: 3.5%.
+            Each unit resolves at $1 if your forecast is correct. Service fee: 3.5%.
           </DialogDescription>
         </DialogHeader>
 
@@ -143,37 +132,18 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           <div className="space-y-2">
             <Label className="text-sm font-medium">Forecast Units</Label>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShares(Math.max(1, shares - 5))}
-                className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
-              >
+              <button onClick={() => setShares(Math.max(1, shares - 5))} className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors">
                 <Minus className="w-4 h-4" />
               </button>
-              <Input
-                type="number"
-                value={shares}
-                onChange={(e) => setShares(Math.max(1, Math.floor(Number(e.target.value))))}
-                className="font-mono text-center text-lg font-semibold flex-1"
-                min={1}
-              />
-              <button
-                onClick={() => setShares(shares + 5)}
-                className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors"
-              >
+              <Input type="number" value={shares} onChange={(e) => setShares(Math.max(1, Math.floor(Number(e.target.value))))} className="font-mono text-center text-lg font-semibold flex-1" min={1} />
+              <button onClick={() => setShares(shares + 5)} className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center hover:bg-muted transition-colors">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
             <div className="flex gap-2">
               {[5, 10, 25, 50, 100].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setShares(n)}
-                  className={`flex-1 py-1.5 rounded text-xs font-mono font-medium transition-all border ${
-                    shares === n
-                      ? "bg-accent text-accent-foreground border-accent"
-                      : "bg-card text-foreground border-border hover:border-primary/40"
-                  }`}
-                >
+                <button key={n} onClick={() => setShares(n)}
+                  className={`flex-1 py-1.5 rounded text-xs font-mono font-medium transition-all border ${shares === n ? "bg-accent text-accent-foreground border-accent" : "bg-card text-foreground border-border hover:border-primary/40"}`}>
                   {n}
                 </button>
               ))}
@@ -192,8 +162,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
             <div className="border-t border-border pt-2 flex justify-between text-sm">
               <span className="text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                If correct, you receive
+                <TrendingUp className="w-3.5 h-3.5 text-primary" />If correct, you receive
               </span>
               <span className="font-mono font-bold text-primary">${potentialPayout.toFixed(2)}</span>
             </div>
@@ -205,39 +174,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </div>
           </div>
 
-          {/* Payment method toggle */}
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold">Preferred Payment Method</Label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPaymentMethod("mpesa")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md border-2 transition-all text-sm font-semibold ${
-                  paymentMethod === "mpesa"
-                    ? "border-green-500 bg-green-500/10 text-green-700"
-                    : "border-border bg-card text-muted-foreground hover:border-green-500/40"
-                }`}
-              >
-                <Smartphone className="w-4 h-4" />
-                M-PESA
-              </button>
-              <button
-                onClick={() => setPaymentMethod("card")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md border-2 transition-all text-sm font-semibold ${
-                  paymentMethod === "card"
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
-                }`}
-              >
-                <CreditCard className="w-4 h-4" />
-                Card
-              </button>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              You'll be redirected to a secure Paystack page where you can pay via M-PESA, Card, or Airtel Money.
-            </p>
-          </div>
-
-          {/* User details auto-filled from profile */}
+          {/* User details */}
           <div className="bg-muted/30 rounded-lg p-3 border border-border">
             <p className="text-xs font-semibold text-foreground mb-1">Your Details</p>
             <p className="text-[11px] text-muted-foreground">
@@ -245,7 +182,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </p>
           </div>
 
-          {/* CTA */}
+          {/* Single CTA button */}
           <Button
             onClick={handleStake}
             disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
@@ -254,31 +191,21 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           >
             {loading
               ? "Redirecting to payment..."
-              : `Submit ${shares} Units — $${totalCost.toFixed(2)}`}
+              : `Commit $${totalCost.toFixed(2)} — Pay via M-PESA or Card`}
           </Button>
 
           {/* Trust + How it works */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Shield className="w-3 h-3" />
-              Secure checkout via Paystack
-            </span>
-            <Link
-              to="/forecast-arena/how-it-works"
-              className="flex items-center gap-1 text-primary hover:text-accent transition-colors"
-              onClick={() => onOpenChange(false)}
-            >
-              <HelpCircle className="w-3 h-3" />
-              How it works
+            <span className="flex items-center gap-1"><Shield className="w-3 h-3" />Secure checkout via Paystack</span>
+            <Link to="/forecast-arena/how-it-works" className="flex items-center gap-1 text-primary hover:text-accent transition-colors" onClick={() => onOpenChange(false)}>
+              <HelpCircle className="w-3 h-3" />How it works
             </Link>
           </div>
 
-          {/* Terms & Disclaimer */}
           <p className="text-[10px] text-muted-foreground text-center leading-tight">
             By participating, you agree to the{" "}
             <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
-            Forecasting involves uncertainty. Only participate with what you are comfortable allocating.
-            Service fee of 3.5% applies. This is not financial advice.
+            Forecasting involves uncertainty. Only participate with what you are comfortable allocating. Service fee of 3.5% applies.
           </p>
         </div>
       </DialogContent>

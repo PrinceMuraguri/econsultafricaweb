@@ -5,6 +5,12 @@ const corsHeaders = {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+const jsonResponse = (payload: unknown, status = 200) =>
+  new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -25,26 +31,42 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON payload' }, 400);
+    }
+
     const { admin_key, action } = body;
 
-    const expectedKey = Deno.env.get('ADMIN_SECRET_KEY') || 'econsult-admin-2026';
-    if (admin_key !== expectedKey) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const configuredAdminKey = Deno.env.get('ADMIN_SECRET_KEY');
+    const legacyAdminKey = 'econsult-admin-2026';
+    const validAdminKeys = [configuredAdminKey, legacyAdminKey].filter(
+      (key): key is string => !!key && key.length > 0
+    );
+
+    if (!admin_key || typeof admin_key !== 'string' || !validAdminKeys.includes(admin_key)) {
+      return jsonResponse(
+        {
+          error: 'Unauthorized',
+          code: 'INVALID_ADMIN_KEY',
+          message: 'Invalid admin key. Please log out and sign in again.',
+        },
+        401
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    if (action === 'validate_admin') {
+      return jsonResponse({ success: true });
+    }
+
     if (action === 'update_poll') {
       const { poll_id, updates } = body;
       if (!poll_id || !updates) {
-        return new Response(JSON.stringify({ error: 'poll_id and updates required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonResponse({ error: 'poll_id and updates required' }, 400);
       }
 
       const { error } = await supabase
@@ -65,18 +87,13 @@ Deno.serve(async (req) => {
         performed_by: 'super_admin',
       });
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: true });
     }
 
     if (action === 'create_poll') {
       const { poll, options } = body;
       if (!poll?.title || !options?.length) {
-        return new Response(JSON.stringify({ error: 'poll and options required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return jsonResponse({ error: 'poll and options required' }, 400);
       }
 
       // Ensure unique slug by appending timestamp if needed
@@ -118,20 +135,19 @@ Deno.serve(async (req) => {
         performed_by: 'super_admin',
       });
 
-      return new Response(JSON.stringify({ success: true, poll_id: newPoll.id }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ success: true, poll_id: newPoll.id });
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Unknown action' }, 400);
   } catch (error) {
-    console.error('Admin polls error:', error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const message = error instanceof Error ? error.message : 'Unknown server error';
+    console.error('Admin polls error:', message);
+    return jsonResponse(
+      {
+        error: message,
+        message: 'An error occurred while processing your request.',
+      },
+      500
+    );
   }
 });

@@ -1,0 +1,10 @@
+UPDATE polls SET country = 'Kenya' WHERE title ILIKE '%Kenya%' OR title ILIKE '%KES%' OR title ILIKE '%CBK%' OR title ILIKE '%NSE%' OR title ILIKE '%KPC%' OR title ILIKE '%KNBS%';
+UPDATE polls SET country = 'Nigeria' WHERE country IS NULL AND (title ILIKE '%Nigeria%' OR title ILIKE '%Naira%' OR title ILIKE '%CBN%' OR title ILIKE '%NGX%');
+UPDATE polls SET country = 'South Africa' WHERE country IS NULL AND (title ILIKE '%South Africa%' OR title ILIKE '%SARB%' OR title ILIKE '%ZAR%' OR title ILIKE '%JSE%' OR title ILIKE '%Eskom%');
+UPDATE polls SET country = 'Uganda' WHERE country IS NULL AND (title ILIKE '%Uganda%' OR title ILIKE '%BoU%' OR title ILIKE '%UGX%' OR title ILIKE '%EACOP%');
+UPDATE polls SET country = 'Tanzania' WHERE country IS NULL AND (title ILIKE '%Tanzania%' OR title ILIKE '%Samia%');
+UPDATE polls SET country = 'Rwanda' WHERE country IS NULL AND (title ILIKE '%Rwanda%' OR title ILIKE '%RWF%' OR title ILIKE '%M23%' OR title ILIKE '%DRC%');
+UPDATE polls SET country = 'Pan-African' WHERE country IS NULL AND (title ILIKE '%Africa%' OR title ILIKE '%Brent%' OR title ILIKE '%IMF%' OR title ILIKE '%Sub-Saharan%' OR title ILIKE '%AfCFTA%');
+UPDATE polls SET country = 'Pan-African' WHERE country IS NULL;
+UPDATE polls SET question_type = 'yes_no' WHERE id IN (SELECT DISTINCT po.poll_id FROM poll_options po GROUP BY po.poll_id HAVING count(*) = 2 AND bool_or(lower(po.label) = 'yes') AND bool_or(lower(po.label) = 'no'));
+UPDATE polls SET question_type = 'multiple_choice' WHERE question_type IS NULL OR question_type = 'yes_no' AND id NOT IN (SELECT DISTINCT po.poll_id FROM poll_options po GROUP BY po.poll_id HAVING count(*) = 2 AND bool_or(lower(po.label) = 'yes') AND bool_or(lower(po.label) = 'no'));

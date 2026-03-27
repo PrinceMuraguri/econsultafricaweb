@@ -102,7 +102,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         <DialogHeader>
           <DialogTitle className="font-display text-lg">Commit Capital — Back Your Forecast</DialogTitle>
           <DialogDescription>
-            Each unit resolves at $1 if your forecast is correct. Service fee: 3.5%.
+            Each unit resolves at $1 if your forecast is correct. Platform fees: 3.5%.
           </DialogDescription>
         </DialogHeader>
 
@@ -157,7 +157,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
               <span className="font-mono font-semibold text-foreground">${totalCost.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Service fee (3.5%)</span>
+              <span className="text-muted-foreground">Platform fees (3.5%)</span>
               <span className="font-mono text-muted-foreground">${platformFee.toFixed(2)}</span>
             </div>
             <div className="border-t border-border pt-2 flex justify-between text-sm">
@@ -186,7 +186,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           <Button
             onClick={handleStake}
             disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
-            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-display font-semibold"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-display font-semibold"
             size="lg"
           >
             {loading
@@ -205,7 +205,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           <p className="text-[10px] text-muted-foreground text-center leading-tight">
             By participating, you agree to the{" "}
             <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
-            Forecasting involves uncertainty. Only participate with what you are comfortable allocating. Service fee of 3.5% applies.
+            Forecasting involves uncertainty. Only participate with what you are comfortable allocating. Platform fees of 3.5% applies.
           </p>
         </div>
       </DialogContent>

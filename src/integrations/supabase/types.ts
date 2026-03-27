@@ -193,10 +193,15 @@ export type Database = {
           category: string
           close_at: string
           context: string | null
+          country: string | null
           created_at: string
           description: string | null
+          expert_insight: string | null
           id: string
+          index_number: number | null
           outcome: string | null
+          question_type: string | null
+          resolution_criteria: string | null
           resolve_at: string | null
           settled_at: string | null
           settled_by: string | null
@@ -210,10 +215,15 @@ export type Database = {
           category?: string
           close_at: string
           context?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
+          expert_insight?: string | null
           id?: string
+          index_number?: number | null
           outcome?: string | null
+          question_type?: string | null
+          resolution_criteria?: string | null
           resolve_at?: string | null
           settled_at?: string | null
           settled_by?: string | null
@@ -227,10 +237,15 @@ export type Database = {
           category?: string
           close_at?: string
           context?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
+          expert_insight?: string | null
           id?: string
+          index_number?: number | null
           outcome?: string | null
+          question_type?: string | null
+          resolution_criteria?: string | null
           resolve_at?: string | null
           settled_at?: string | null
           settled_by?: string | null

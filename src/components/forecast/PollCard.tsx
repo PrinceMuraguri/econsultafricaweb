@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -223,9 +223,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
                 <Button size="sm" onClick={() => handleAllocate(votedOption)}
-                  className={`w-full text-xs font-bold text-white transition-all ${
-                    isYes ? "bg-green-600 hover:bg-green-700" : isNo ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
-                  }`}>
+                  className="w-full text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
                   Commit capital (${price.toFixed(2)})
                 </Button>
               </div>
@@ -283,6 +281,45 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Unlock Expert Insight */}
+      <div className="border-t border-border pt-2 mt-1">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs font-semibold gap-1.5"
+          onClick={() => {
+            if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
+            const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
+            const email = storedProfile?.email || "";
+            if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
+            (async () => {
+              try {
+                const fp = await getFingerprint();
+                const callbackUrl = `${window.location.origin}/forecast-arena?insight=success`;
+                const { data, error } = await supabase.functions.invoke("stake-checkout", {
+                  body: {
+                    email,
+                    amount: 1.00,
+                    poll_id: poll.id,
+                    option_id: poll.poll_options[0]?.id,
+                    voter_fingerprint: fp,
+                    callback_url: callbackUrl,
+                    metadata: { type: "expert_insight", poll_title: poll.title },
+                  },
+                });
+                if (error || !data?.authorization_url) throw new Error("Failed to initialize payment");
+                window.location.href = data.authorization_url;
+              } catch {
+                toast({ title: "Error", description: "Could not initiate payment. Try again.", variant: "destructive" });
+              }
+            })();
+          }}
+        >
+          <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+          Unlock Expert Insight — $1.00
+        </Button>
       </div>
 
       {isClosed && (

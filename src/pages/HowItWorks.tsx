@@ -27,7 +27,7 @@ const HowItWorks = () => {
       <section className="section-padding bg-foreground">
         <div className="container-page max-w-3xl">
           <Link
-            to="/forecast-arena"
+            to="/"
             className="inline-flex items-center gap-2 text-sm text-background/50 hover:text-accent transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -191,7 +191,7 @@ const HowItWorks = () => {
             Browse active economic forecasts and contribute your view.
           </p>
           <Link
-            to="/forecast-arena"
+            to="/"
             className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-display font-semibold shadow-md hover:bg-accent/90 transition-colors"
           >
             Explore Forecast Arena

@@ -79,16 +79,35 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Ensure unique slug by appending timestamp if needed
+      let finalPoll = { ...poll };
+      if (finalPoll.slug) {
+        const { data: existing } = await supabase
+          .from('polls')
+          .select('id')
+          .eq('slug', finalPoll.slug)
+          .maybeSingle();
+        if (existing) {
+          finalPoll.slug = `${finalPoll.slug}-${Date.now()}`;
+        }
+      }
+
       const { data: newPoll, error: pollError } = await supabase
         .from('polls')
-        .insert(poll)
+        .insert(finalPoll)
         .select('id')
         .single();
 
-      if (pollError) throw pollError;
+      if (pollError) {
+        console.error('Poll insert error:', JSON.stringify(pollError));
+        throw pollError;
+      }
 
-      for (const label of options) {
-        await supabase.from('poll_options').insert({ poll_id: newPoll.id, label });
+      const optionInserts = options.map((label: string) => ({ poll_id: newPoll.id, label }));
+      const { error: optError } = await supabase.from('poll_options').insert(optionInserts);
+      if (optError) {
+        console.error('Options insert error:', JSON.stringify(optError));
+        throw optError;
       }
 
       await supabase.from('admin_audit_log').insert({

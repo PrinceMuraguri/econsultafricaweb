@@ -100,7 +100,7 @@ const Index = () => {
                 className="space-y-4 mb-6 max-w-xl">
                 
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Most organizations receive economic updates.
+                  Most people receive economic updates.
                   <br />
                   <span className="font-medium text-foreground">Very few get insight they can actually use.</span>
                 </p>

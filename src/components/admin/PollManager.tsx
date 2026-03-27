@@ -147,7 +147,6 @@ const PollManager = ({ adminKey }: { adminKey: string }) => {
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-        }
       }
 
       setEditedRows({});

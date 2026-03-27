@@ -9,6 +9,7 @@ import {
   Shield, Lock, Eye, CheckCircle, DollarSign, Download,
   AlertTriangle, Loader2, BarChart3, Users, TrendingUp
 } from "lucide-react";
+import PollManager from "@/components/admin/PollManager";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 
@@ -18,7 +19,7 @@ const AdminDashboard = () => {
   const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE) || "");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
   const [keyInput, setKeyInput] = useState("");
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls">("polls");
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
 
@@ -305,6 +306,7 @@ const AdminDashboard = () => {
           {/* Tabs */}
           <div className="flex gap-2 mb-6 border-b border-border pb-4 flex-wrap">
             {([
+              { key: "manage-polls", label: "📋 Manage Questions" },
               { key: "polls", label: "Polls & Settlement" },
               { key: "entries", label: "Staked Entries" },
               { key: "payouts", label: "Payouts & Transfers" },

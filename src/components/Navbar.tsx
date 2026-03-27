@@ -27,6 +27,37 @@ const Navbar = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+      {/* Mobile top nav strip - scrollable key links */}
+      <div className="lg:hidden overflow-x-auto border-b border-border/50 bg-background/60">
+        <div className="flex items-center gap-1 px-3 py-1.5 min-w-max">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
+                location.pathname === link.href
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+          {isParticipant && (
+            <Link
+              to="/my-dashboard"
+              className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
+                location.pathname === "/my-dashboard"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              Dashboard
+            </Link>
+          )}
+        </div>
+      </div>
+
       <nav className="container-page flex items-center justify-between h-16">
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />

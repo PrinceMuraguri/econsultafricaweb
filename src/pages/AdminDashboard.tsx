@@ -66,7 +66,7 @@ const AdminDashboard = () => {
   };
 
   // Set up realtime subscriptions for live updates
-  useState(() => {
+  useEffect(() => {
     if (!isAuthenticated) return;
     const channel = supabase
       .channel('admin-realtime')
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  });
+  }, [isAuthenticated, queryClient]);
 
   // Fetch all polls
   const { data: polls, isLoading: pollsLoading } = useQuery({

@@ -32,7 +32,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
-  
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
   const [justVoted, setJustVoted] = useState(false);
 

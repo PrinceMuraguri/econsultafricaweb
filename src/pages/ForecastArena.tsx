@@ -69,38 +69,54 @@ const ForecastArena = () => {
         </div>
 
         <div className="container-page relative z-10">
-          <motion.div initial="hidden" animate="visible" className="max-w-3xl">
-            <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-accent" />
-              </div>
-              <span className="font-mono text-xs text-accent uppercase tracking-widest">
-                Forecast Arena
-              </span>
-            </motion.div>
-
-            <motion.h1 variants={fadeUp} custom={1}
-              className="text-3xl md:text-4xl lg:text-5xl font-bold text-background leading-[1.1] mb-3">
-              Your Voice.{" "}
-              <span className="text-accent">Africa's Future.</span>
-            </motion.h1>
-
-            <motion.div variants={fadeUp} custom={2}
-              className="text-base md:text-lg text-background/70 leading-relaxed mb-3 max-w-2xl">
-              <p>Take a position on where Africa's economy is headed.</p>
-            </motion.div>
-
-            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-6">
-              {[
-                { icon: Shield, label: "Secure platform" },
-                { icon: Zap, label: "Real-time consensus" },
-                { icon: Globe, label: "100% Africa-focused" },
-              ].map((item) => (
-                <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">
-                  <item.icon className="w-4 h-4 text-accent" />
-                  {item.label}
+          <motion.div initial="hidden" animate="visible" className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            {/* Left side — branding */}
+            <div className="max-w-md">
+              <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-accent" />
+                </div>
+                <span className="font-mono text-xs text-accent uppercase tracking-widest">
+                  Forecast Arena
                 </span>
-              ))}
+              </motion.div>
+
+              <motion.h1 variants={fadeUp} custom={1}
+                className="text-3xl md:text-4xl lg:text-5xl font-bold text-background leading-[1.1] mb-3">
+                Your Voice.{" "}
+                <span className="text-accent">Africa's Future.</span>
+              </motion.h1>
+
+              <motion.div variants={fadeUp} custom={2} className="flex flex-wrap gap-6">
+                {[
+                  { icon: Shield, label: "Secure platform" },
+                  { icon: Zap, label: "Real-time consensus" },
+                  { icon: Globe, label: "100% Africa-focused" },
+                ].map((item) => (
+                  <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">
+                    <item.icon className="w-4 h-4 text-accent" />
+                    {item.label}
+                  </span>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* Right side — detail copy */}
+            <motion.div variants={fadeUp} custom={2} className="max-w-md text-background/60 text-sm leading-relaxed space-y-3">
+              <p className="text-background/90 font-semibold text-base">
+                Move beyond just observing the economy.{" "}
+                <span className="text-accent">Take a position on where it's headed.</span>
+              </p>
+              <p>
+                This is a platform built on what people across Africa actually believe — not just headlines, not just reports.
+              </p>
+              <p className="text-background/80 font-medium">How well can you read the economy?</p>
+              <p>
+                100 live economic questions across 6 African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
+              </p>
+              <p className="text-accent/90 text-xs font-medium">
+                🚀 New: You can now commit capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.
+              </p>
             </motion.div>
           </motion.div>
         </div>

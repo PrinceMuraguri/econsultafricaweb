@@ -102,9 +102,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">Forecast Allocation — Back Your View</DialogTitle>
+          <DialogTitle className="font-display text-lg">Commit Capital — Back Your Forecast</DialogTitle>
           <DialogDescription>
-            Contribute to your forecast position. Each unit resolves at $1 if correct. Service fee: 3.5%.
+            Turn your conviction into a position. Each unit resolves at $1 if your forecast is correct. Service fee: 3.5%.
           </DialogDescription>
         </DialogHeader>
 

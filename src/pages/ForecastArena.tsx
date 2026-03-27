@@ -97,7 +97,7 @@ const ForecastArena = () => {
               {[
                 { icon: MousePointerClick, step: "01", title: "Submit a Forecast", desc: "Choose your position on a live economic question" },
                 { icon: TrendingUp, step: "02", title: "Track Consensus", desc: "Watch sentiment shift in real time as others contribute" },
-                { icon: BarChart3, step: "03", title: "Allocate Funds", desc: "Back your forecast with a participation amount" },
+                { icon: BarChart3, step: "03", title: "Commit Capital", desc: "Back your forecast position with real conviction" },
               ].map((item, i) => (
                 <motion.div
                   key={item.step}

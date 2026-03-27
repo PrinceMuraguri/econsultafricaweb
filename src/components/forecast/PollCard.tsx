@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ import ParticipantLoginModal from "./ParticipantLoginModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;
+const CONTEXT_PREVIEW_LENGTH = 120;
 
 function getTimeRemaining(closeAt: string) {
   const diff = new Date(closeAt).getTime() - Date.now();
@@ -107,162 +109,181 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
     return () => { supabase.removeChannel(channel); };
   }, [poll.id]);
 
-  const sortedOptions = [...localOptions].sort((a, b) => {
-    const aYes = a.label.toLowerCase() === "yes" ? 0 : a.label.toLowerCase() === "no" ? 2 : 1;
-    const bYes = b.label.toLowerCase() === "yes" ? 0 : b.label.toLowerCase() === "no" ? 2 : 1;
-    return aYes - bYes;
-  });
+  const sortedOptions = useMemo(() => [...localOptions].sort((a, b) => {
+    const rank = (l: string) => l === "yes" ? 0 : l === "no" ? 2 : 1;
+    return rank(a.label.toLowerCase()) - rank(b.label.toLowerCase());
+  }), [localOptions]);
 
   const isYesNo = sortedOptions.length === 2 && sortedOptions.some(o => o.label.toLowerCase() === "yes") && sortedOptions.some(o => o.label.toLowerCase() === "no");
 
+  const contextIsLong = (poll.context?.length || 0) > CONTEXT_PREVIEW_LENGTH;
+  const contextPreview = poll.context
+    ? contextIsLong ? poll.context.slice(0, CONTEXT_PREVIEW_LENGTH) + "…" : poll.context
+    : null;
+
   return (
     <motion.div whileHover={{ y: -2 }} className="bg-card rounded-lg border border-border p-3 card-shadow flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-pill">{poll.category}</span>
+      {/* Header row */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{poll.category}</span>
         <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />{getTimeRemaining(poll.close_at)}
         </span>
       </div>
 
-      <h3 className="font-display font-bold text-foreground leading-snug mb-1.5 text-sm">{poll.title}</h3>
+      {/* Question title */}
+      <h3 className="font-display font-bold text-foreground leading-snug text-sm mb-1">{poll.title}</h3>
 
-      {/* Collapsible context/resolution */}
+      {/* Context preview — show inline, expand if long */}
       {poll.context && (
         <div className="mb-2">
-          <button onClick={() => setDetailsExpanded(!detailsExpanded)} className="flex items-center gap-1 text-[10px] text-primary hover:text-accent transition-colors">
-            {detailsExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {detailsExpanded ? "Hide details" : "View details"}
-          </button>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            {detailsExpanded ? poll.context : contextPreview}
+          </p>
+          {contextIsLong && (
+            <button onClick={() => setDetailsExpanded(!detailsExpanded)} className="flex items-center gap-0.5 text-[10px] text-primary hover:text-accent transition-colors mt-0.5">
+              {detailsExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {detailsExpanded ? "Less" : "View details"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Two-column layout: Left = Vote, Right = Sentiment */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+        {/* LEFT: Make Your Prediction */}
+        <div className="flex flex-col">
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Make Your Prediction</p>
+
           <AnimatePresence>
-            {detailsExpanded && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                <p className="text-[11px] text-muted-foreground leading-relaxed mt-1 p-2 bg-muted/30 rounded border border-border">{poll.context}</p>
+            {justVoted && (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                className="flex items-center justify-center gap-2 py-1 mb-1.5 rounded-md bg-primary/10 border border-primary/20">
+                <Loader2 className="w-3 h-3 text-primary animate-spin" />
+                <span className="text-[10px] font-semibold text-primary">Updating…</span>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-      )}
 
-      {/* Compact vote breakdown */}
-      <div className="mb-2 rounded border border-border overflow-hidden">
-        <div className="bg-muted/50 px-2 py-1 flex items-center justify-between">
-          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">📊 Breakdown</p>
-          <p className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</p>
-        </div>
-        <div className="divide-y divide-border">
-          {sortedOptions.map((option) => {
-            const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 0;
+          <div className="space-y-1.5 flex-1">
+            {sortedOptions.map((option) => {
+              const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : Math.round(100 / sortedOptions.length);
+              const isVoted = votedOptionId === option.id;
+              const canVote = !hasVoted && !voting && !isClosed;
+              const isYes = option.label.toLowerCase() === "yes";
+              const isNo = option.label.toLowerCase() === "no";
+
+              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-red-500 ring-1 ring-red-500/30" : "border-primary ring-1 ring-primary/30";
+              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
+              const selectedText = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
+
+              return (
+                <button key={option.id} onClick={() => handleVote(option.id)} disabled={hasVoted || voting || isClosed}
+                  className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
+                    isVoted ? `${selectedBorder} ${selectedBg}` : canVote ? "border-border hover:border-muted-foreground/40 cursor-pointer bg-transparent" : "border-border cursor-default bg-transparent"
+                  }`}>
+                  {(hasVoted || isClosed) && (
+                    <div className={`absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />
+                  )}
+                  <div className="relative flex items-center justify-between px-2.5 py-2">
+                    <span className={`flex items-center gap-1.5 text-sm font-semibold ${isVoted ? selectedText : "text-foreground"}`}>
+                      {isVoted && <Check className={`w-3.5 h-3.5 ${selectedText}`} />}
+                      {canVote && isYesNo ? (isYes ? "Vote Yes" : "Vote No") : option.label}
+                    </span>
+                    {(hasVoted || isClosed) && (
+                      <span className={`font-mono text-xs font-semibold ${isVoted ? selectedText : "text-muted-foreground"}`}>{pct}%</span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {!hasVoted && !isClosed && (
+            <p className="text-[9px] text-muted-foreground text-center mt-1.5">
+              By participating, you agree to the{" "}
+              <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
+            </p>
+          )}
+
+          {/* Capital commitment — after voting */}
+          {!isClosed && PARTICIPATION_ENABLED && hasVoted && (() => {
+            const votedOption = sortedOptions.find(o => o.id === votedOptionId);
+            if (!votedOption) return null;
+            const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
+            const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
+            const isYes = votedOption.label.toLowerCase() === "yes";
+            const isNo = votedOption.label.toLowerCase() === "no";
+            const label = isYes ? "YES" : isNo ? "NO" : votedOption.label.toUpperCase();
             return (
-              <div key={option.id} className="flex items-center justify-between px-2 py-0.5 text-[11px]">
-                <span className="text-foreground">{option.label}</span>
-                <span className="font-mono text-muted-foreground">{option.total_votes_count} <span className="text-[9px]">({pct}%)</span></span>
+              <div className="mt-2 pt-2 border-t border-border">
+                <Button size="sm" onClick={() => handleAllocate(votedOption)}
+                  className={`w-full text-xs font-bold text-white transition-all ${
+                    isYes ? "bg-green-600 hover:bg-green-700" : isNo ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
+                  }`}>
+                  BUY {label}: ${price.toFixed(2)}
+                </Button>
+                <p className="text-[8px] text-muted-foreground mt-1 text-center">Resolves at $1 if correct. Fee: 3.5%.</p>
               </div>
             );
-          })}
+          })()}
+
+          {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
+            <div className="mt-1.5 pt-1.5 border-t border-border">
+              <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
+                <Rocket className="w-3 h-3 text-accent" />
+                Vote first to commit capital
+              </p>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Updating consensus overlay */}
-      <AnimatePresence>
-        {justVoted && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-            className="flex items-center justify-center gap-2 py-1.5 mb-1.5 rounded-md bg-primary/10 border border-primary/20">
-            <Loader2 className="w-3 h-3 text-primary animate-spin" />
-            <span className="text-[10px] font-semibold text-primary">Updating consensus...</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Vote buttons */}
-      <div className="space-y-1.5 mb-2 flex-1">
-        <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Cast your forecast</p>
-        {sortedOptions.map((option) => {
-          const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : Math.round(100 / sortedOptions.length);
-          const isVoted = votedOptionId === option.id;
-          const canVote = !hasVoted && !voting && !isClosed;
-          const isYes = option.label.toLowerCase() === "yes";
-          const isNo = option.label.toLowerCase() === "no";
-          const selectedBorderClass = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-red-500 ring-1 ring-red-500/30" : "border-primary ring-1 ring-primary/30";
-          const selectedBgClass = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
-          const selectedTextClass = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
-
-          return (
-            <button key={option.id} onClick={() => handleVote(option.id)} disabled={hasVoted || voting || isClosed}
-              className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
-                isVoted ? `${selectedBorderClass} ${selectedBgClass}` : canVote ? "border-border hover:border-muted-foreground/40 cursor-pointer bg-transparent" : "border-border cursor-default bg-transparent"
-              }`}>
-              {(hasVoted || isClosed) && (
-                <div className={`absolute inset-0 transition-all duration-700 ${isVoted ? selectedBgClass : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />
-              )}
-              <div className="relative flex items-center justify-between px-2.5 py-1.5">
-                <span className={`flex items-center gap-1.5 text-xs font-medium ${isVoted ? selectedTextClass : "text-foreground"}`}>
-                  {isVoted && <Check className={`w-3 h-3 ${selectedTextClass}`} />}
-                  {canVote && isYesNo ? (isYes ? "Vote Yes" : "Vote No") : option.label}
-                </span>
-                <span className={`font-mono text-xs font-semibold ${isVoted ? selectedTextClass : "text-muted-foreground"}`}>{pct}%</span>
-              </div>
-            </button>
-          );
-        })}
-
-        {!hasVoted && !isClosed && (
-          <p className="text-[9px] text-muted-foreground text-center">
-            By participating, you agree to the{" "}
-            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
-          </p>
-        )}
-      </div>
-
-      {/* Capital commitment — after voting */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (() => {
-        const votedOption = sortedOptions.find(o => o.id === votedOptionId);
-        if (!votedOption) return null;
-        const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
-        const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
-        const isYes = votedOption.label.toLowerCase() === "yes";
-        const isNo = votedOption.label.toLowerCase() === "no";
-        const label = isYes ? "YES" : isNo ? "NO" : votedOption.label.toUpperCase();
-        return (
-          <div className="mb-2 pt-2 border-t border-border">
-            <p className="text-[10px] font-bold text-foreground mb-1.5">Commit capital to your position</p>
-            <motion.div animate={{ opacity: [1, 0.85, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-              <Button size="sm" onClick={() => handleAllocate(votedOption)}
-                className={`w-full text-xs font-bold text-white transition-all ${
-                  isYes ? "bg-green-600 hover:bg-green-700" : isNo ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
-                }`}>
-                BUY {label}: ${price.toFixed(2)}
-              </Button>
-            </motion.div>
-            <p className="text-[8px] text-muted-foreground mt-1 text-center">Each unit resolves at $1 if correct. Fee: 3.5%.</p>
+        {/* RIGHT: What Others Are Saying */}
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Others Are Saying</p>
+            <span className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</span>
           </div>
-        );
-      })()}
 
-      {/* Vote first prompt */}
-      {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
-        <div className="mb-2 pt-1.5 border-t border-border">
-          <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
-            <Rocket className="w-3 h-3 text-accent" />
-            Vote first to commit capital
-          </p>
+          <div className="space-y-2 flex-1">
+            {sortedOptions.map((option) => {
+              const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 0;
+              const isYes = option.label.toLowerCase() === "yes";
+              const isNo = option.label.toLowerCase() === "no";
+              const barColor = isYes ? "bg-green-500" : isNo ? "bg-red-400" : "bg-primary";
+
+              return (
+                <div key={option.id} className="space-y-0.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-foreground font-medium">{option.label}</span>
+                    <span className="font-mono text-muted-foreground">
+                      {option.total_votes_count} <span className="text-[9px]">({pct}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                    <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border">
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Users className="w-3 h-3" />{totalVotes} forecasts
+            </span>
+            {!compact && (
+              <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
+                Full details →
+              </Link>
+            )}
+          </div>
         </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Users className="w-3 h-3" />{totalVotes} forecasts
-        </span>
-        {!compact && (
-          <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
-            Full details →
-          </Link>
-        )}
       </div>
 
       {isClosed && (
-        <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Lock className="w-3 h-3" />Forecasting closed
         </div>
       )}

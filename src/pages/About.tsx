@@ -39,7 +39,7 @@ const About = () => {
               We exist because African markets deserve better economic intelligence.
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2} className="text-lg text-muted-foreground leading-relaxed">
-              Econsult Africa is an Africa-focused economic intelligence firm. We translate macroeconomic signals into strategic clarity — so the organizations shaping the continent's future can make better decisions.
+              Econsult Africa is an Africa-focused economic intelligence and sentiment aggregation firm. We translate macroeconomic signals into strategic clarity — surfacing collective expectations from the ground to help organizations shaping the continent's future make better decisions.
             </motion.p>
           </div>
         </div>

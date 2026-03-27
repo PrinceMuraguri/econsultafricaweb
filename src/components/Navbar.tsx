@@ -6,13 +6,11 @@ import { Button } from "@/components/ui/button";
 import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Kenya 2026", href: "/kenya-2026" },
-  { label: "Forecast Arena", href: "/forecast-arena" },
-  { label: "Products", href: "/products" },
-  { label: "Services", href: "/services" },
-  { label: "Insights", href: "/insights" },
-  { label: "About", href: "/about" },
+  { label: "Forecast Arena", href: "/" },
+  { label: "Our Philosophy", href: "/our-philosophy" },
+  { label: "Intelligence Marketplace", href: "/intelligence-marketplace" },
+  { label: "Insights & Media", href: "/insights" },
+  { label: "About Us", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -27,7 +25,7 @@ const Navbar = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-      {/* Mobile top nav strip - scrollable key links */}
+      {/* Mobile top nav strip */}
       <div className="lg:hidden overflow-x-auto border-b border-border/50 bg-background/60">
         <div className="flex items-center gap-1 px-3 py-1.5 min-w-max">
           {navLinks.map((link) => (
@@ -70,16 +68,9 @@ const Navbar = () => {
               to={link.href}
               className={`text-sm font-medium transition-colors duration-200 ${
                 location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
-              } ${link.href === "/forecast-arena" ? "font-bold flex items-center gap-1.5" : ""}`}
+              }`}
             >
-              {link.href === "/forecast-arena" ? (
-                <>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-[pulse_3s_ease-in-out_infinite]">
-                    New
-                  </span>
-                  <span className="text-foreground">Forecast Arena</span>
-                </>
-              ) : link.label}
+              {link.label}
             </Link>
           ))}
           {isParticipant && (
@@ -106,21 +97,14 @@ const Navbar = () => {
             <div className="container-page py-4 flex flex-col gap-3">
               {navLinks.map((link) => (
                 <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
-                  className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"} ${link.href === "/forecast-arena" ? "font-bold" : ""}`}>
-                  {link.href === "/forecast-arena" ? (
-                    <>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-[pulse_3s_ease-in-out_infinite]">
-                        New
-                      </span>
-                      <span className="text-foreground">Forecast Arena</span>
-                    </>
-                  ) : link.label}
+                  className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"}`}>
+                  {link.label}
                 </Link>
               ))}
               {isParticipant && (
                 <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
                   className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
-                  <User className="w-4 h-4" /> My Dashboard
+                  <User className="w-4 h-4" /> Dashboard
                 </Link>
               )}
               <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>

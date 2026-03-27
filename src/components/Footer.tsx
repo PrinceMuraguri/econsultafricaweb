@@ -5,24 +5,18 @@ const footerLinks = [
   {
     title: "Intelligence",
     links: [
+      { label: "Forecast Arena", href: "/" },
       { label: "Kenya 2026 Outlook", href: "/kenya-2026" },
-      { label: "Products", href: "/products" },
-      { label: "Insights", href: "/insights" },
+      { label: "Intelligence Marketplace", href: "/intelligence-marketplace" },
       { label: "Sample Report", href: "/sample-report" },
     ],
   },
   {
-    title: "Advisory",
+    title: "Explore",
     links: [
-      { label: "Services", href: "/services" },
-      { label: "Executive Briefings", href: "/contact" },
-      { label: "Quarterly Retainer", href: "/services" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About", href: "/about" },
+      { label: "Our Philosophy", href: "/our-philosophy" },
+      { label: "Insights & Media", href: "/insights" },
+      { label: "About Us", href: "/about" },
       { label: "Contact", href: "/contact" },
     ],
   },
@@ -39,13 +33,13 @@ const Footer = () => {
   return (
     <footer className="border-t border-border bg-muted/50">
       <div className="container-page py-16">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2">
               <img src={logo} alt="Econsult Africa" className="h-14 w-auto" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
-              Strategic economic intelligence for African markets.
+              Strategic economic intelligence for African markets. Real-time sentiment. Collective intelligence from the ground.
             </p>
             <div className="mt-6 flex gap-4">
               {socialLinks.map((social) => (
@@ -55,7 +49,7 @@ const Footer = () => {
                 </a>
               ))}
             </div>
-            <p className="mt-4 text-xs text-muted-foreground"><p className="mt-4 text-xs text-muted-foreground">info@econsult.africa</p></p>
+            <p className="mt-4 text-xs text-muted-foreground">info@econsult.africa</p>
           </div>
 
           {footerLinks.map((group) => (
@@ -76,7 +70,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-6 border-t border-border">
           <p className="text-[10px] text-muted-foreground text-center leading-relaxed mb-6">
-            Forecast Arena aggregates participant expectations on economic outcomes for research and insight purposes.
+            Forecast Arena aggregates users' expectations on economic outcomes for research and insight purposes.
             It is not a trading, betting, or investment platform.{" "}
             <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>
           </p>

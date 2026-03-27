@@ -149,7 +149,7 @@ const MyDashboard = () => {
             <p className="text-sm text-muted-foreground mb-6">
               You need to participate in the Forecast Arena first to view your dashboard.
             </p>
-            <Link to="/forecast-arena">
+            <Link to="/">
               <Button>Go to Forecast Arena</Button>
             </Link>
           </div>
@@ -203,7 +203,7 @@ const MyDashboard = () => {
             ) : activePositions.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">
                 <p className="text-sm text-muted-foreground mb-3">No active positions yet.</p>
-                <Link to="/forecast-arena">
+                <Link to="/">
                   <Button variant="outline" size="sm">
                     Browse Forecast Questions <ArrowRight className="w-3.5 h-3.5 ml-1" />
                   </Button>

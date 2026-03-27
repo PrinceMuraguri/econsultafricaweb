@@ -31,7 +31,7 @@ const ForecastPollDetail = () => {
         <section className="section-padding">
           <div className="container-page max-w-3xl text-center">
             <h2 className="text-2xl font-bold text-foreground mb-4">Poll not found</h2>
-            <Link to="/forecast-arena" className="text-primary hover:text-accent transition-colors">
+            <Link to="/" className="text-primary hover:text-accent transition-colors">
               ← Back to Forecast Arena
             </Link>
           </div>
@@ -47,7 +47,7 @@ const ForecastPollDetail = () => {
       <section className="section-padding">
         <div className="container-page max-w-3xl">
           <Link
-            to="/forecast-arena"
+            to="/"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />

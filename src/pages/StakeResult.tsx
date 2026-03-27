@@ -66,7 +66,7 @@ const StakeResult = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
                 <Link
-                  to="/forecast-arena"
+                  to="/"
                   className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-display font-semibold shadow-md hover:bg-accent/90 transition-colors"
                 >
                   Back to Forecast Arena
@@ -89,7 +89,7 @@ const StakeResult = () => {
               <h2 className="text-2xl font-bold text-foreground">Verification Failed</h2>
               <p className="text-muted-foreground">{errorMsg}</p>
               <Link
-                to="/forecast-arena"
+                to="/"
                 className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-6 py-3 font-display font-semibold hover:bg-primary/90 transition-colors"
               >
                 Return to Forecast Arena

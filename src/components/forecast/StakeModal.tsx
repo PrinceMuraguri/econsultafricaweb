@@ -77,7 +77,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           updated_at: new Date().toISOString(),
         }, { onConflict: "voter_fingerprint" });
 
-      const callbackUrl = `${window.location.origin}/forecast-arena/stake-result`;
+      const callbackUrl = `${window.location.origin}/stake-result`;
 
       const { data, error } = await supabase.functions.invoke("stake-checkout", {
         body: {
@@ -206,7 +206,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           {/* Trust + How it works */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><Shield className="w-3 h-3" />Secure checkout via Paystack</span>
-            <Link to="/forecast-arena/how-it-works" className="flex items-center gap-1 text-primary hover:text-accent transition-colors" onClick={() => onOpenChange(false)}>
+            <Link to="/how-it-works" className="flex items-center gap-1 text-primary hover:text-accent transition-colors" onClick={() => onOpenChange(false)}>
               <HelpCircle className="w-3 h-3" />How it works
             </Link>
           </div>

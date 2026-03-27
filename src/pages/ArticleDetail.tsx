@@ -112,7 +112,7 @@ const ArticleDetail = () => {
                   <Link to="/kenya-2026">Buy Kenya 2026 Outlook <ArrowRight className="ml-1 w-4 h-4" /></Link>
                 </Button>
                 <Button variant="hero-outline" size="default" className="hover-sink" asChild>
-                  <Link to="/products">View All Reports</Link>
+                  <Link to="/intelligence-marketplace">Browse Intelligence Products</Link>
                 </Button>
               </div>
             </div>

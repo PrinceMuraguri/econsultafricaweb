@@ -45,7 +45,7 @@ const Footer = () => {
               <img src={logo} alt="Econsult Africa" className="h-14 w-auto" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
-              Strategic economic intelligence for organizations navigating African markets.
+              Strategic economic intelligence for African markets.
             </p>
             <div className="mt-6 flex gap-4">
               {socialLinks.map((social) => (

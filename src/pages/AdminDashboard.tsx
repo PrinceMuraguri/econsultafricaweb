@@ -706,6 +706,134 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {/* Tab: Registered Users */}
+          {activeTab === "users" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold text-foreground">Registered Users ({registeredUsers?.length || 0})</h2>
+                <Button variant="outline" size="sm" onClick={() => exportCSV(registeredUsers || [], "registered_users")}>
+                  <Download className="w-4 h-4 mr-1" /> Export CSV
+                </Button>
+              </div>
+              <div className="overflow-x-auto bg-card border border-border rounded-lg">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Name</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Phone</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Registered</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Fingerprint</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {registeredUsers?.map((u: any) => (
+                      <tr key={u.id} className="border-t border-border/50">
+                        <td className="px-4 py-2 font-medium text-foreground">{u.full_name}</td>
+                        <td className="px-4 py-2 text-foreground">{u.email}</td>
+                        <td className="px-4 py-2 font-mono text-foreground">{u.country_code}{u.phone_number}</td>
+                        <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(u.created_at).toLocaleString()}</td>
+                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{u.voter_fingerprint?.slice(0, 12)}…</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(!registeredUsers || registeredUsers.length === 0) && (
+                  <p className="text-center text-muted-foreground py-8">No registered users yet.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab: All Transactions */}
+          {activeTab === "all-transactions" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold text-foreground">All Transactions ({allTransactions?.length || 0})</h2>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportCSV(allTransactions || [], "transactions")}>
+                    <Download className="w-4 h-4 mr-1" /> Transactions CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => exportCSV(allVotes || [], "votes")}>
+                    <Download className="w-4 h-4 mr-1" /> Votes CSV
+                  </Button>
+                </div>
+              </div>
+
+              {/* Votes table */}
+              <h3 className="text-sm font-semibold text-foreground mt-4">All Votes ({allVotes?.length || 0})</h3>
+              <div className="overflow-x-auto bg-card border border-border rounded-lg">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fingerprint</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll ID</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Option ID</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Staked</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allVotes?.map((v: any) => (
+                      <tr key={v.id} className="border-t border-border/50">
+                        <td className="px-3 py-1.5 text-foreground">{new Date(v.created_at).toLocaleString()}</td>
+                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.voter_fingerprint?.slice(0, 12)}…</td>
+                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.poll_id?.slice(0, 8)}…</td>
+                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.option_id?.slice(0, 8)}…</td>
+                        <td className="px-3 py-1.5">{v.is_staked ? "✅" : "—"}</td>
+                        <td className="px-3 py-1.5 font-mono">{v.stake_amount ? `$${v.stake_amount.toFixed(2)}` : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(!allVotes || allVotes.length === 0) && (
+                  <p className="text-center text-muted-foreground py-4">No votes yet.</p>
+                )}
+              </div>
+
+              {/* Transactions table */}
+              <h3 className="text-sm font-semibold text-foreground mt-6">Payment Transactions ({allTransactions?.length || 0})</h3>
+              <div className="overflow-x-auto bg-card border border-border rounded-lg">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fingerprint</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Currency</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Channel</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allTransactions?.map((tx: any) => (
+                      <tr key={tx.id} className="border-t border-border/50">
+                        <td className="px-3 py-1.5 text-foreground">{new Date(tx.created_at).toLocaleString()}</td>
+                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{tx.voter_fingerprint?.slice(0, 12)}…</td>
+                        <td className="px-3 py-1.5 font-mono font-semibold">${tx.amount?.toFixed(2)}</td>
+                        <td className="px-3 py-1.5">{tx.currency}</td>
+                        <td className="px-3 py-1.5 capitalize">{tx.channel}</td>
+                        <td className="px-3 py-1.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                            tx.status === "completed" ? "bg-green-100 text-green-700" :
+                            tx.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                            "bg-red-100 text-red-700"
+                          }`}>{tx.status}</span>
+                        </td>
+                        <td className="px-3 py-1.5 font-mono text-[10px] text-muted-foreground">{tx.reference}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(!allTransactions || allTransactions.length === 0) && (
+                  <p className="text-center text-muted-foreground py-4">No transactions yet.</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </Layout>

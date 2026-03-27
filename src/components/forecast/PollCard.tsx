@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
 import ParticipantLoginModal from "./ParticipantLoginModal";
+import HowItWorksPdfModal from "./HowItWorksPdfModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;
@@ -51,6 +52,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
   const [loginOpen, setLoginOpen] = useState(false);
   const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
 
   useEffect(() => { setLocalOptions(poll.poll_options); }, [poll.poll_options]);
 
@@ -238,7 +240,17 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
         {/* LEFT: Make Your Prediction */}
         <div className="flex flex-col relative">
-          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">Make Your Prediction</p>
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Take Your Position</p>
+          <p className="text-[9px] text-muted-foreground mb-1.5 flex items-center gap-1 flex-wrap">
+            <motion.span
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded"
+            >
+              New Feature
+            </motion.span>
+            Commit to your view and earn rewards if you are correct.
+          </p>
 
           <AnimatePresence>
             {justVoted && (
@@ -316,10 +328,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
                   <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
                   Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
-                <Button size="sm" onClick={() => handleAllocate(votedOption)}
-                  className="w-full text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
-                  Commit capital (${price.toFixed(2)})
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => handleAllocate(votedOption)}
+                    className="flex-1 text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
+                    Commit capital (${price.toFixed(2)})
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
+                    className="text-xs font-medium gap-1 shrink-0">
+                    <HelpCircle className="w-3 h-3" /> How it works
+                  </Button>
+                </div>
               </div>
             );
           })()}
@@ -387,6 +405,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       <ParticipantLoginModal open={loginOpen} onOpenChange={setLoginOpen} onSuccess={handleLoginSuccess} />
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={poll} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
+      <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
     </motion.div>
   );
 };

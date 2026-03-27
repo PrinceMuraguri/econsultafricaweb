@@ -19,6 +19,11 @@ const navLinks = [
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isParticipant, setIsParticipant] = useState(false);
+
+  useEffect(() => {
+    setIsParticipant(!!localStorage.getItem("forecast_participant"));
+  }, [location.pathname]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">

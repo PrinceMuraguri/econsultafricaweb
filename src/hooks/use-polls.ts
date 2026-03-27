@@ -15,6 +15,7 @@ export interface Poll {
   slug: string;
   description: string | null;
   context: string | null;
+  expert_insight: string | null;
   category: string;
   status: string;
   outcome: string | null;

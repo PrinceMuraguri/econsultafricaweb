@@ -312,6 +312,7 @@ const AdminDashboard = () => {
               { key: "payouts", label: "Payouts & Transfers" },
               { key: "users", label: "Registered Users" },
               { key: "all-transactions", label: "All Transactions" },
+              { key: "inquiries", label: "📬 Inquiries" },
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
             ] as const).map((tab) => (

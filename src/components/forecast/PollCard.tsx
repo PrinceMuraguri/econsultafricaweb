@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, HelpCircle, Loader2, Rocket } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
 import TradingWaitlistModal from "./TradingWaitlistModal";
+import StakeModal from "./StakeModal";
+import ParticipantLoginModal from "./ParticipantLoginModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
-// Feature flag — flip to true to re-enable participation allocations
-const PARTICIPATION_ENABLED = false;
+// Feature flag — flip to true to enable participation allocations
+const PARTICIPATION_ENABLED = true;
 
 function getTimeRemaining(closeAt: string) {
   const diff = new Date(closeAt).getTime() - Date.now();
@@ -20,6 +22,10 @@ function getTimeRemaining(closeAt: string) {
   if (days > 0) return `${days}d ${hours}h left`;
   const mins = Math.floor((diff / (1000 * 60)) % 60);
   return `${hours}h ${mins}m left`;
+}
+
+function isParticipantLoggedIn(): boolean {
+  return !!localStorage.getItem("forecast_participant");
 }
 
 interface PollCardProps {
@@ -32,11 +38,13 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
   const [justVoted, setJustVoted] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [stakeOpen, setStakeOpen] = useState(false);
+  const [stakeOption, setStakeOption] = useState<PollOption | null>(null);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalOptions(poll.poll_options);
@@ -65,7 +73,12 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
 
-    // Single click to vote — no confirmation step
+    // Check if participant is logged in
+    if (!isParticipantLoggedIn()) {
+      setPendingVoteOptionId(optionId);
+      setLoginOpen(true);
+      return;
+    }
 
     setVoting(true);
     try {
@@ -101,6 +114,22 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
     }
   };
 
+  const handleLoginSuccess = () => {
+    if (pendingVoteOptionId) {
+      handleVote(pendingVoteOptionId);
+      setPendingVoteOptionId(null);
+    }
+  };
+
+  const handleAllocate = (option: PollOption) => {
+    if (!isParticipantLoggedIn()) {
+      setLoginOpen(true);
+      return;
+    }
+    setStakeOption(option);
+    setStakeOpen(true);
+  };
+
   // Realtime
   useEffect(() => {
     const channel = supabase
@@ -119,10 +148,21 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
     return () => { supabase.removeChannel(channel); };
   }, [poll.id]);
 
+  // Sort: Yes always first for Yes/No questions, otherwise keep order
+  const sortedOptions = [...localOptions].sort((a, b) => {
+    const aYes = a.label.toLowerCase() === "yes" ? 0 : a.label.toLowerCase() === "no" ? 2 : 1;
+    const bYes = b.label.toLowerCase() === "yes" ? 0 : b.label.toLowerCase() === "no" ? 2 : 1;
+    return aYes - bYes;
+  });
+
+  const isYesNo = sortedOptions.length === 2 &&
+    sortedOptions.some(o => o.label.toLowerCase() === "yes") &&
+    sortedOptions.some(o => o.label.toLowerCase() === "no");
+
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="bg-card rounded-lg border border-border p-6 card-shadow flex flex-col"
+      className="bg-card rounded-lg border border-border p-5 card-shadow flex flex-col"
     >
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-pill">
@@ -134,22 +174,25 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </span>
       </div>
 
-      <h3 className="font-display font-bold text-foreground leading-snug mb-3 text-sm md:text-base">
+      <h3 className="font-display font-bold text-foreground leading-snug mb-2 text-sm md:text-base">
         {poll.title}
       </h3>
 
       {!compact && poll.context && (
-        <p className="text-xs text-muted-foreground leading-relaxed mb-4 line-clamp-2">
+        <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2">
           {poll.context}
         </p>
       )}
 
-      {/* Sentiment label */}
-      {totalVotes > 0 && (hasVoted || isClosed) && (
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
+      {/* Live sentiment header — always visible */}
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
           📊 What people are saying
         </p>
-      )}
+        <p className="text-[10px] text-muted-foreground font-mono">
+          {totalVotes} {totalVotes === 1 ? "vote" : "votes"}
+        </p>
+      </div>
 
       {/* Updating consensus overlay */}
       <AnimatePresence>
@@ -158,32 +201,27 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            className="flex items-center justify-center gap-2 py-3 mb-2 rounded-md bg-primary/10 border border-primary/20"
+            className="flex items-center justify-center gap-2 py-2 mb-2 rounded-md bg-primary/10 border border-primary/20"
           >
             <Loader2 className="w-4 h-4 text-primary animate-spin" />
-            <span className="text-sm font-semibold text-primary">Updating consensus data...</span>
+            <span className="text-xs font-semibold text-primary">Updating consensus data...</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Forecast options — YES always first, NO always second */}
-      <div className="space-y-2 mb-4 flex-1">
-        {[...localOptions].sort((a, b) => {
-          const aYes = a.label.toLowerCase() === "yes" ? 0 : 1;
-          const bYes = b.label.toLowerCase() === "yes" ? 0 : 1;
-          return aYes - bYes;
-        }).map((option) => {
-          const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 50;
+      {/* Forecast options */}
+      <div className="space-y-2 mb-3 flex-1">
+        {sortedOptions.map((option) => {
+          const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : Math.round(100 / sortedOptions.length);
           const isYes = option.label.toLowerCase() === "yes";
+          const isNo = option.label.toLowerCase() === "no";
           const isVoted = votedOptionId === option.id;
-          const isSelected = selectedOptionId === option.id;
           const canVote = !hasVoted && !voting && !isClosed;
-          const showBar = hasVoted || isClosed;
 
-          // Green for Yes, Red for No
-          const colorClass = isYes ? "text-green-600" : "text-red-500";
-          const bgColorClass = isYes ? "bg-green-500/10" : "bg-red-500/10";
-          const borderColorClass = isYes ? "border-green-500 ring-green-500/30" : "border-red-500 ring-red-500/30";
+          // Color system: Green for Yes, Red for No, Primary for other
+          const colorClass = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
+          const bgColorClass = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
+          const borderColorClass = isYes ? "border-green-500 ring-green-500/30" : isNo ? "border-red-500 ring-red-500/30" : "border-primary ring-primary/30";
 
           return (
             <button
@@ -193,34 +231,26 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               className={`w-full relative overflow-hidden rounded-md border-2 transition-all text-left ${
                 isVoted
                   ? `${borderColorClass} ring-2 ${bgColorClass}`
-                  : isSelected
-                  ? `${borderColorClass} ring-2 ${bgColorClass}`
                   : canVote
-                  ? `border-border hover:${isYes ? "border-green-400" : "border-red-400"} cursor-pointer`
+                  ? `border-border hover:${isYes ? "border-green-400" : isNo ? "border-red-400" : "border-primary/60"} cursor-pointer`
                   : "border-border cursor-default"
               }`}
             >
-              {/* Only show distribution bar AFTER voting */}
-              {showBar && (
-                <div
-                  className={`absolute inset-0 transition-all duration-700 ${bgColorClass}`}
-                  style={{ width: `${pct}%` }}
-                />
-              )}
-              <div className="relative flex items-center justify-between px-3 py-2.5">
+              {/* Distribution bar — always visible */}
+              <div
+                className={`absolute inset-0 transition-all duration-700 ${bgColorClass} opacity-40`}
+                style={{ width: `${pct}%` }}
+              />
+              <div className="relative flex items-center justify-between px-3 py-2">
                 <span className={`flex items-center gap-2 text-sm font-medium ${isVoted ? colorClass : "text-foreground"}`}>
                   {isVoted && <Check className={`w-3.5 h-3.5 ${colorClass}`} />}
-                  {hasVoted || isClosed
-                    ? option.label
-                    : isYes
-                    ? "Vote Yes"
-                    : "Vote No"}
+                  {canVote && isYesNo
+                    ? (isYes ? "Vote Yes" : "Vote No")
+                    : option.label}
                 </span>
-                {showBar && (
-                  <span className={`font-mono text-sm font-semibold ${colorClass}`}>
-                    {pct}%
-                  </span>
-                )}
+                <span className={`font-mono text-sm font-semibold ${colorClass}`}>
+                  {pct}%
+                </span>
               </div>
             </button>
           );
@@ -228,7 +258,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
 
         {/* Inline terms notice */}
         {!hasVoted && !isClosed && (
-          <p className="text-[10px] text-muted-foreground text-center pt-1">
+          <p className="text-[10px] text-muted-foreground text-center pt-0.5">
             By participating, you agree to the{" "}
             <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">
               Terms of Use
@@ -237,60 +267,55 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </div>
 
-      {/* Forecast participation — COMING SOON */}
-      {!isClosed && !PARTICIPATION_ENABLED && (
-        <div className="mb-4 pt-3 border-t border-border">
-          <div className="relative rounded-lg overflow-hidden">
-            {/* Semi-blurred content — visible but not interactive */}
-            <div className="filter blur-[1px] opacity-60 pointer-events-none select-none p-3 bg-muted/30">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded">
-                    New
-                  </span>
-                  <p className="text-sm font-bold text-foreground">
-                    Participate with a forecast allocation
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {localOptions.map((option) => {
-                  const consensusPct = totalVotes > 0 ? (option.total_votes_count / totalVotes).toFixed(2) : "0.50";
-                  const isYes = option.label.toLowerCase() === "yes";
-                  return (
-                    <div
-                      key={`preview-${option.id}`}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md border-2 text-sm font-bold ${
-                        isYes
-                          ? "border-green-500 bg-green-500/10 text-green-600"
-                          : "border-red-500 bg-red-500/10 text-red-500"
-                      }`}
-                    >
-                      {isYes ? "Yes" : "No"} — ${consensusPct}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {/* Coming soon badge */}
-            <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-card/95 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 shadow-md">
-              <Rocket className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-bold text-foreground">Coming Soon</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-[10px] text-muted-foreground">
-              Forecast participation with allocation is being built by our team.
+      {/* Forecast participation — active */}
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (
+        <div className="mb-3 pt-3 border-t border-border">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-pulse">
+              New
+            </span>
+            <p className="text-xs font-bold text-foreground">
+              Back your forecast with a participation amount
             </p>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-xs text-accent hover:text-accent hover:bg-accent/10 h-7 px-2"
-              onClick={() => setWaitlistOpen(true)}
-            >
-              Get priority access →
-            </Button>
           </div>
+          <div className="flex gap-2">
+            {sortedOptions.map((option) => {
+              const consensusPct = totalVotes > 0 ? (option.total_votes_count / totalVotes) : 0.50;
+              const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
+              const isYes = option.label.toLowerCase() === "yes";
+              const isNo = option.label.toLowerCase() === "no";
+              return (
+                <Button
+                  key={`allocate-${option.id}`}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAllocate(option)}
+                  className={`flex-1 text-xs font-bold transition-all ${
+                    isYes
+                      ? "border-green-500 hover:bg-green-500/10 text-green-600"
+                      : isNo
+                      ? "border-red-500 hover:bg-red-500/10 text-red-500"
+                      : "border-primary hover:bg-primary/10 text-primary"
+                  }`}
+                >
+                  {isYesNo ? (isYes ? "Allocate Yes" : "Allocate No") : `Allocate ${option.label}`} — ${price.toFixed(2)}
+                </Button>
+              );
+            })}
+          </div>
+          <p className="text-[9px] text-muted-foreground mt-1.5 text-center">
+            Each unit resolves at $1 if correct. Service fee: 3.5%.
+          </p>
+        </div>
+      )}
+
+      {/* Coming soon for non-voted users */}
+      {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
+        <div className="mb-3 pt-2 border-t border-border">
+          <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
+            <Rocket className="w-3 h-3 text-accent" />
+            Vote first to unlock forecast allocation
+          </p>
         </div>
       )}
 
@@ -316,6 +341,17 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </div>
       )}
 
+      <ParticipantLoginModal
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        onSuccess={handleLoginSuccess}
+      />
+      <StakeModal
+        open={stakeOpen}
+        onOpenChange={setStakeOpen}
+        poll={poll}
+        selectedOption={stakeOption}
+      />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
     </motion.div>
   );

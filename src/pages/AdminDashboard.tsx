@@ -125,7 +125,7 @@ const AdminDashboard = () => {
     enabled: isAuthenticated,
   });
 
-  // Fetch sample downloads
+   // Fetch sample downloads
   const { data: sampleDownloads } = useQuery({
     queryKey: ["admin-sample-downloads"],
     queryFn: async () => {
@@ -134,6 +134,50 @@ const AdminDashboard = () => {
         .select("*")
         .order("downloaded_at", { ascending: false })
         .limit(200);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Fetch registered users (voter_profiles)
+  const { data: registeredUsers } = useQuery({
+    queryKey: ["admin-registered-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("voter_profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Fetch ALL transactions (not just staked)
+  const { data: allTransactions } = useQuery({
+    queryKey: ["admin-all-transactions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Fetch ALL votes
+  const { data: allVotes } = useQuery({
+    queryKey: ["admin-all-votes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("votes")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return data;
     },
@@ -264,6 +308,8 @@ const AdminDashboard = () => {
               { key: "polls", label: "Polls & Settlement" },
               { key: "entries", label: "Staked Entries" },
               { key: "payouts", label: "Payouts & Transfers" },
+              { key: "users", label: "Registered Users" },
+              { key: "all-transactions", label: "All Transactions" },
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
             ] as const).map((tab) => (

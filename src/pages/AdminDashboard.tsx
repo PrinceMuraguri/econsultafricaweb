@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,24 +16,89 @@ const ADMIN_KEY_STORAGE = "econsult_admin_key";
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE) || "");
+  const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE)?.trim() || "");
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
   const [keyInput, setKeyInput] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries">("polls");
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
 
-  const handleLogin = () => {
-    localStorage.setItem(ADMIN_KEY_STORAGE, keyInput);
-    setAdminKey(keyInput);
-    setIsAuthenticated(true);
+  const handleLogin = async () => {
+    const trimmedKey = keyInput.trim();
+    if (!trimmedKey) return;
+    setLoginLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-polls", {
+        body: { admin_key: trimmedKey, action: "validate_admin" },
+      });
+      if (error) {
+        // Try to parse the error context for a message
+        const context = (error as any)?.context;
+        let msg = "Invalid admin key.";
+        if (context && typeof context.json === "function") {
+          const parsed = await context.json().catch(() => null);
+          if (parsed?.message || parsed?.error) msg = parsed.message || parsed.error;
+        }
+        toast({ title: "Access Denied", description: msg, variant: "destructive" });
+        return;
+      }
+      if (data?.error) {
+        toast({ title: "Access Denied", description: data.message || data.error, variant: "destructive" });
+        return;
+      }
+      localStorage.setItem(ADMIN_KEY_STORAGE, trimmedKey);
+      setAdminKey(trimmedKey);
+      setIsAuthenticated(true);
+      toast({ title: "✅ Authenticated", description: "Welcome back, admin." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Could not validate key.", variant: "destructive" });
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem(ADMIN_KEY_STORAGE);
     setAdminKey("");
     setIsAuthenticated(false);
+    queryClient.clear();
   };
+
+  // Set up realtime subscriptions for live updates
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const channel = supabase
+      .channel('admin-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-all-votes"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-entries"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-transactions"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'voter_profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-registered-users"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payouts' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-payout-winners"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payout_transfers' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inquiries' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-inquiries"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-manager"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAuthenticated, queryClient]);
 
   // Fetch all polls
   const { data: polls, isLoading: pollsLoading } = useQuery({
@@ -47,6 +112,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch all staked entries
@@ -64,6 +130,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch transactions
@@ -80,6 +147,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch payouts
@@ -96,6 +164,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch payout winners view
@@ -109,6 +178,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch audit log
@@ -124,6 +194,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
    // Fetch sample downloads
@@ -139,6 +210,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch registered users (voter_profiles)
@@ -153,6 +225,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch inquiries
@@ -168,6 +241,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   const { data: allTransactions } = useQuery({
@@ -182,6 +256,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Fetch ALL votes
@@ -197,6 +272,7 @@ const AdminDashboard = () => {
       return data;
     },
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   });
 
   // Settle market mutation
@@ -274,9 +350,9 @@ const AdminDashboard = () => {
                   onChange={(e) => setKeyInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 />
-                <Button onClick={handleLogin} className="w-full" disabled={!keyInput}>
-                  <Shield className="w-4 h-4 mr-2" />
-                  Access Dashboard
+                <Button onClick={handleLogin} className="w-full" disabled={!keyInput.trim() || loginLoading}>
+                  {loginLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shield className="w-4 h-4 mr-2" />}
+                  {loginLoading ? "Validating..." : "Access Dashboard"}
                 </Button>
               </div>
             </div>

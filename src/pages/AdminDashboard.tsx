@@ -344,6 +344,9 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          {/* Tab: Manage Questions */}
+          {activeTab === "manage-polls" && <PollManager adminKey={adminKey} />}
+
           {/* Tab: Polls & Settlement */}
           {activeTab === "polls" && (
             <div className="space-y-4">

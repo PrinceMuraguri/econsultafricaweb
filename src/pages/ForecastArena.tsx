@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, MousePointerClick, Shield, Filter } from "lucide-react";
+import { BarChart3, Zap, Globe, Shield, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const fadeUp = {
@@ -30,8 +30,7 @@ const ForecastArena = () => {
 
   const filteredPolls = useMemo(() => {
     if (!polls) return [];
-    return polls.filter(p => {
-      // Country filter: match based on title/context containing country name
+    let result = polls.filter(p => {
       if (selectedCountry !== "All") {
         const countryMap: Record<string, string[]> = {
           "Kenya": ["Kenya", "CBK", "KES", "NSE", "KNBS", "KPC"],
@@ -49,6 +48,13 @@ const ForecastArena = () => {
       if (selectedCategory !== "All" && p.category !== selectedCategory) return false;
       return true;
     });
+    // Featured poll: oil shortage question always first
+    const featuredIdx = result.findIndex(p => p.title.toLowerCase().includes("oil shortage"));
+    if (featuredIdx > 0) {
+      const [featured] = result.splice(featuredIdx, 1);
+      result.unshift(featured);
+    }
+    return result;
   }, [polls, selectedCountry, selectedCategory]);
 
   return (

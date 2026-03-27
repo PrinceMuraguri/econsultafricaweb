@@ -77,7 +77,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           updated_at: new Date().toISOString(),
         }, { onConflict: "voter_fingerprint" });
 
-      const callbackUrl = `${window.location.origin}/forecast-arena/stake-result?reference={reference}`;
+      const callbackUrl = `${window.location.origin}/forecast-arena/stake-result`;
 
       const { data, error } = await supabase.functions.invoke("stake-checkout", {
         body: {

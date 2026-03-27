@@ -126,7 +126,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
       {/* Header row */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{poll.category}</span>
-        <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
+        
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />{getTimeRemaining(poll.close_at)}
         </span>
@@ -215,16 +215,19 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
             const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
             const isYes = votedOption.label.toLowerCase() === "yes";
             const isNo = votedOption.label.toLowerCase() === "no";
-            const label = isYes ? "YES" : isNo ? "NO" : votedOption.label.toUpperCase();
+            const potentialGain = (1 - price).toFixed(2);
             return (
               <div className="mt-2 pt-2 border-t border-border">
+                <p className="text-[9px] text-muted-foreground mb-1.5 text-center flex items-center justify-center gap-1 flex-wrap">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
+                  Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
+                </p>
                 <Button size="sm" onClick={() => handleAllocate(votedOption)}
                   className={`w-full text-xs font-bold text-white transition-all ${
                     isYes ? "bg-green-600 hover:bg-green-700" : isNo ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
                   }`}>
-                  BUY {label}: ${price.toFixed(2)}
+                  Commit capital (${price.toFixed(2)})
                 </Button>
-                <p className="text-[8px] text-muted-foreground mt-1 text-center">Resolves at $1 if correct. Fee: 3.5%.</p>
               </div>
             );
           })()}

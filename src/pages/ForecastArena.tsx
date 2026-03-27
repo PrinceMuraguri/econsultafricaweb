@@ -79,22 +79,19 @@ const ForecastArena = () => {
               <span className="text-accent">Africa's Future.</span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} custom={2}
-              className="text-lg md:text-xl text-background/70 leading-relaxed mb-4 max-w-2xl whitespace-pre-line">
-              Move beyond just observing the economy.{"\n"}
-              Take a position on where it’s headed.
-            </motion.p>
+            <motion.div variants={fadeUp} custom={2}
+              className="text-lg md:text-xl text-background/70 leading-relaxed mb-4 max-w-2xl">
+              <p>Move beyond just observing the economy.</p>
+              <p>Take a position on where it's headed.</p>
+            </motion.div>
 
-            <motion.p variants={fadeUp} custom={3}
-              className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl whitespace-pre-line">
-              This is a platform built on what people across Africa actually believe — not just headlines, not just reports.{"\n\n"}
-              How well can you read the economy?{"\n\n"}
-              100 live economic questions across 6 African economies.{"\n"}
-              Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.{"\n\n"}
-              <span className="text-accent/80 font-medium">
-                🚀 New: You can now commit capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.
-              </span>
-            </motion.p>
+            <motion.div variants={fadeUp} custom={3}
+              className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl space-y-3">
+              <p>This is a platform built on what people across Africa actually believe — not just headlines, not just reports.</p>
+              <p className="font-medium text-background/60">How well can you read the economy?</p>
+              <p>100 live economic questions across 6 African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.</p>
+              <p className="text-accent/80 font-medium">🚀 New: You can now commit capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.</p>
+            </motion.div>
 
             {/* How it works */}
             <motion.div variants={fadeUp} custom={4} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">

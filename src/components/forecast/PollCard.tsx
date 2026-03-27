@@ -32,11 +32,9 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
   const [justVoted, setJustVoted] = useState(false);
-  const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     setLocalOptions(poll.poll_options);
@@ -64,18 +62,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-
-    // First click = select, second click on same = confirm
-    if (selectedOptionId !== optionId) {
-      setSelectedOptionId(optionId);
-      return;
-    }
-
-    // Check terms acceptance
-    if (!termsAccepted) {
-      toast({ title: "Terms required", description: "Please accept the Terms of Use before submitting your forecast.", variant: "destructive" });
-      return;
-    }
 
     setVoting(true);
     try {

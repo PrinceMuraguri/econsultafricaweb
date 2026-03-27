@@ -1,10 +1,11 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, MousePointerClick, Shield, Rocket } from "lucide-react";
-import tradingPreview from "@/assets/trading-preview.jpg";
+import { BarChart3, TrendingUp, Zap, Globe, ArrowDown, MousePointerClick, Shield, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -14,8 +15,41 @@ const fadeUp = {
   })
 };
 
+const COUNTRIES = ["All", "Kenya", "Nigeria", "South Africa", "Uganda", "Tanzania", "Rwanda", "Pan-African"];
+
 const ForecastArena = () => {
-  const { data: polls, isLoading } = usePolls();
+  const { data: polls, isLoading } = usePolls("active");
+  const [selectedCountry, setSelectedCountry] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const categories = useMemo(() => {
+    if (!polls) return ["All"];
+    const cats = [...new Set(polls.map(p => p.category))];
+    return ["All", ...cats.sort()];
+  }, [polls]);
+
+  const filteredPolls = useMemo(() => {
+    if (!polls) return [];
+    return polls.filter(p => {
+      // Country filter: match based on title/context containing country name
+      if (selectedCountry !== "All") {
+        const countryMap: Record<string, string[]> = {
+          "Kenya": ["Kenya", "CBK", "KES", "NSE", "KNBS", "KPC"],
+          "Nigeria": ["Nigeria", "CBN", "Naira", "NGX", "NBS"],
+          "South Africa": ["South Africa", "SARB", "ZAR", "JSE", "Eskom"],
+          "Uganda": ["Uganda", "BoU", "UGX", "USE", "EACOP", "Bobi Wine", "Museveni"],
+          "Tanzania": ["Tanzania", "BoT", "TZS", "DSE", "Samia"],
+          "Rwanda": ["Rwanda", "NBR", "RWF", "RSE", "M23", "DRC"],
+          "Pan-African": ["Pan-African", "Africa", "AfCFTA", "Sub-Saharan", "Brent crude", "IMF"],
+        };
+        const keywords = countryMap[selectedCountry] || [];
+        const text = `${p.title} ${p.context || ""} ${p.description || ""}`;
+        if (!keywords.some(k => text.includes(k))) return false;
+      }
+      if (selectedCategory !== "All" && p.category !== selectedCategory) return false;
+      return true;
+    });
+  }, [polls, selectedCountry, selectedCategory]);
 
   return (
     <Layout>
@@ -47,15 +81,14 @@ const ForecastArena = () => {
 
             <motion.p variants={fadeUp} custom={2}
               className="text-lg md:text-xl text-background/70 leading-relaxed mb-4 max-w-2xl">
-              Contribute to Africa's most dynamic economic intelligence platform.
+              100 live economic questions across 6 African economies. Submit your forecast and shape the consensus.
             </motion.p>
 
             <motion.p variants={fadeUp} custom={3}
               className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl">
-              Submit your forecast on live economic questions and see how consensus shifts in real time.
-              Your view shapes the narrative on Africa's economic trajectory.
+              Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
               <span className="block mt-2 text-accent/80 font-medium">
-                🚀 Forecast participation with allocation is coming soon — start contributing now.
+                🚀 Forecast participation with allocation is now live — back your predictions.
               </span>
             </motion.p>
 
@@ -64,7 +97,7 @@ const ForecastArena = () => {
               {[
                 { icon: MousePointerClick, step: "01", title: "Submit a Forecast", desc: "Choose your position on a live economic question" },
                 { icon: TrendingUp, step: "02", title: "Track Consensus", desc: "Watch sentiment shift in real time as others contribute" },
-                { icon: BarChart3, step: "03", title: "Allocate (Soon)", desc: "Back your forecast with a participation amount when it launches" },
+                { icon: BarChart3, step: "03", title: "Allocate Funds", desc: "Back your forecast with a participation amount" },
               ].map((item, i) => (
                 <motion.div
                   key={item.step}
@@ -109,28 +142,6 @@ const ForecastArena = () => {
               <span className="text-xs font-mono uppercase tracking-wider">Scroll to start forecasting</span>
             </motion.div>
           </motion.div>
-
-          {/* Preview Image */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.8, duration: 0.7 }}
-            className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 max-w-sm"
-          >
-            <div className="relative">
-              <img
-                src={tradingPreview}
-                alt="Preview of upcoming forecast participation feature"
-                className="rounded-xl shadow-2xl border border-background/10"
-                width={400}
-                height={400}
-              />
-              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-                <Rocket className="w-4 h-4" />
-                <span className="text-sm font-bold whitespace-nowrap">Forecast Allocation — Coming Soon</span>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
@@ -144,14 +155,58 @@ const ForecastArena = () => {
         </div>
       </div>
 
-      {/* Active Forecasts */}
+      {/* Filters + Active Forecasts */}
       <section className="section-padding">
         <div className="container-page">
-          <div className="flex items-end justify-between mb-8">
+          <div className="flex items-end justify-between mb-6">
             <div>
               <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Active Forecasts</p>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">Submit Your Forecast</h2>
-              <p className="text-sm text-muted-foreground mt-1">Contribute your view on key economic questions</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {filteredPolls.length} questions available • Contribute your view on key economic questions
+              </p>
+            </div>
+          </div>
+
+          {/* Country filter */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Country</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {COUNTRIES.map((country) => (
+                <Button
+                  key={country}
+                  variant={selectedCountry === country ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCountry(country)}
+                  className="text-xs h-7"
+                >
+                  {country}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Category filter */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-2">
+              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  variant={selectedCategory === cat ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat)}
+                  className="text-xs h-7"
+                >
+                  {cat}
+                </Button>
+              ))}
             </div>
           </div>
 
@@ -163,17 +218,17 @@ const ForecastArena = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {polls?.map((poll, i) => (
-                <motion.div key={poll.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
+              {filteredPolls.map((poll, i) => (
+                <motion.div key={poll.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i % 6}>
                   <PollCard poll={poll} />
                 </motion.div>
               ))}
             </div>
           )}
 
-          {polls && polls.length === 0 && (
+          {filteredPolls.length === 0 && !isLoading && (
             <div className="text-center py-16">
-              <p className="text-muted-foreground">No active forecasts at the moment. Check back soon.</p>
+              <p className="text-muted-foreground">No forecasts match your filters. Try a different selection.</p>
             </div>
           )}
         </div>

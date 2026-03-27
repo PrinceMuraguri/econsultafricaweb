@@ -132,8 +132,45 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </span>
       </div>
 
-      {/* Question title */}
-      <h3 className="font-display font-bold text-foreground leading-snug text-sm mb-1">{poll.title}</h3>
+      {/* Question title + Expert Insight */}
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <h3 className="font-display font-bold text-foreground leading-snug text-sm">{poll.title}</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="shrink-0 text-[10px] font-semibold gap-1 px-2 py-1 h-auto text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-500/10"
+          onClick={() => {
+            if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
+            const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
+            const email = storedProfile?.email || "";
+            if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
+            (async () => {
+              try {
+                const fp = await getFingerprint();
+                const callbackUrl = `${window.location.origin}/forecast-arena?insight=success`;
+                const { data, error } = await supabase.functions.invoke("stake-checkout", {
+                  body: {
+                    email,
+                    amount: 1.00,
+                    poll_id: poll.id,
+                    option_id: poll.poll_options[0]?.id,
+                    voter_fingerprint: fp,
+                    callback_url: callbackUrl,
+                    metadata: { type: "expert_insight", poll_title: poll.title },
+                  },
+                });
+                if (error || !data?.authorization_url) throw new Error("Failed to initialize payment");
+                window.location.href = data.authorization_url;
+              } catch {
+                toast({ title: "Error", description: "Could not initiate payment. Try again.", variant: "destructive" });
+              }
+            })();
+          }}
+        >
+          <Lightbulb className="w-3 h-3 text-amber-500" />
+          Unlock Expert Insight — $1.00
+        </Button>
+      </div>
 
       {/* Context preview — show inline, expand if long */}
       {poll.context && (
@@ -283,44 +320,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </div>
       </div>
 
-      {/* Unlock Expert Insight */}
-      <div className="border-t border-border pt-2 mt-1">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs font-semibold gap-1.5"
-          onClick={() => {
-            if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
-            const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
-            const email = storedProfile?.email || "";
-            if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
-            (async () => {
-              try {
-                const fp = await getFingerprint();
-                const callbackUrl = `${window.location.origin}/forecast-arena?insight=success`;
-                const { data, error } = await supabase.functions.invoke("stake-checkout", {
-                  body: {
-                    email,
-                    amount: 1.00,
-                    poll_id: poll.id,
-                    option_id: poll.poll_options[0]?.id,
-                    voter_fingerprint: fp,
-                    callback_url: callbackUrl,
-                    metadata: { type: "expert_insight", poll_title: poll.title },
-                  },
-                });
-                if (error || !data?.authorization_url) throw new Error("Failed to initialize payment");
-                window.location.href = data.authorization_url;
-              } catch {
-                toast({ title: "Error", description: "Could not initiate payment. Try again.", variant: "destructive" });
-              }
-            })();
-          }}
-        >
-          <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-          Unlock Expert Insight — $1.00
-        </Button>
-      </div>
 
       {isClosed && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">

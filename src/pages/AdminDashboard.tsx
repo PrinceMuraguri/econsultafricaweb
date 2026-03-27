@@ -339,9 +339,9 @@ const AdminDashboard = () => {
                   onChange={(e) => setKeyInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 />
-                <Button onClick={handleLogin} className="w-full" disabled={!keyInput}>
-                  <Shield className="w-4 h-4 mr-2" />
-                  Access Dashboard
+                <Button onClick={handleLogin} className="w-full" disabled={!keyInput.trim() || loginLoading}>
+                  {loginLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shield className="w-4 h-4 mr-2" />}
+                  {loginLoading ? "Validating..." : "Access Dashboard"}
                 </Button>
               </div>
             </div>

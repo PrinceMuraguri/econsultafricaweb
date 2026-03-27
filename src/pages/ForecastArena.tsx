@@ -127,7 +127,7 @@ const ForecastArena = () => {
         <div className="container-page py-3">
           <p className="text-xs text-muted-foreground text-center">
             Forecast Arena aggregates participant expectations on economic outcomes for research and insight purposes.
-            It is not a trading, betting, or investment platform. Platform fees: 3.5%.
+            It is not a trading, betting, or investment platform.
           </p>
         </div>
       </div>

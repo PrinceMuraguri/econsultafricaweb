@@ -176,17 +176,21 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         )}
       </AnimatePresence>
 
-      {/* Forecast options */}
+      {/* Forecast options — YES always on top */}
       <div className="space-y-2 mb-4 flex-1">
-        {localOptions.map((option) => {
+        {[...localOptions]
+          .sort((a, b) => {
+            const aYes = a.label.toLowerCase() === "yes" ? 0 : 1;
+            const bYes = b.label.toLowerCase() === "yes" ? 0 : 1;
+            return aYes - bYes;
+          })
+          .map((option) => {
           const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 50;
           const isYes = option.label.toLowerCase() === "yes";
           const isVoted = votedOptionId === option.id;
-          const isSelected = selectedOptionId === option.id;
           const canVote = !hasVoted && !voting && !isClosed;
           const showBar = hasVoted || isClosed;
 
-          // Green for Yes, Red for No
           const colorClass = isYes ? "text-green-600" : "text-red-500";
           const bgColorClass = isYes ? "bg-green-500/10" : "bg-red-500/10";
           const borderColorClass = isYes ? "border-green-500 ring-green-500/30" : "border-red-500 ring-red-500/30";
@@ -199,14 +203,11 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
               className={`w-full relative overflow-hidden rounded-md border-2 transition-all text-left ${
                 isVoted
                   ? `${borderColorClass} ring-2 ${bgColorClass}`
-                  : isSelected
-                  ? `${borderColorClass} ring-2 ${bgColorClass}`
                   : canVote
                   ? `border-border hover:${isYes ? "border-green-400" : "border-red-400"} cursor-pointer`
                   : "border-border cursor-default"
               }`}
             >
-              {/* Only show distribution bar AFTER voting */}
               {showBar && (
                 <div
                   className={`absolute inset-0 transition-all duration-700 ${bgColorClass}`}
@@ -218,8 +219,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   {isVoted && <Check className={`w-3.5 h-3.5 ${colorClass}`} />}
                   {hasVoted || isClosed
                     ? option.label
-                    : isSelected
-                    ? `✓ Tap again to confirm ${option.label}`
                     : isYes
                     ? "Vote Yes"
                     : "Vote No"}
@@ -234,27 +233,14 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
           );
         })}
 
-        {/* Terms clickwrap — show before confirmation */}
-        {!hasVoted && !isClosed && selectedOptionId && (
-          <div className="space-y-1.5 pt-1">
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 rounded border-border"
-              />
-              <span className="text-[10px] text-muted-foreground leading-tight">
-                By participating, you agree to the{" "}
-                <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">
-                  Terms of Use
-                </a>.
-              </span>
-            </label>
-            <p className="text-[10px] text-center text-muted-foreground animate-pulse">
-              Tap your choice again to submit your forecast
-            </p>
-          </div>
+        {/* Inline terms line */}
+        {!hasVoted && !isClosed && (
+          <p className="text-[10px] text-muted-foreground text-center pt-1">
+            By participating, you agree to the{" "}
+            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">
+              Terms of Use
+            </a>.
+          </p>
         )}
       </div>
 

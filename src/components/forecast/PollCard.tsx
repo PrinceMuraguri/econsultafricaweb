@@ -212,8 +212,6 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                   {isVoted && <Check className={`w-3.5 h-3.5 ${colorClass}`} />}
                   {hasVoted || isClosed
                     ? option.label
-                    : isSelected
-                    ? `✓ Tap again to confirm ${option.label}`
                     : isYes
                     ? "Vote Yes"
                     : "Vote No"}

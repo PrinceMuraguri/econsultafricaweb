@@ -3,7 +3,12 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FileText, BarChart3, Users, Briefcase, Zap, Globe } from "lucide-react";
+import { ArrowRight, FileText, BarChart3, Users, Briefcase, Zap, Globe, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -18,8 +23,9 @@ const tiers = [
     title: "Sample Report Preview",
     description: "Selected pages from the Kenya 2026 Economic Outlook. Get a taste of what decision-grade economic intelligence looks like.",
     price: "Free",
-    cta: "Browse the Sample",
-    href: "/sample-report",
+    purchaseHref: "/sample-report",
+    sampleHref: "/sample-report",
+    available: true,
     featured: false,
   },
   {
@@ -30,8 +36,9 @@ const tiers = [
     description: "120+ page flagship report. GDP, inflation, currency, fiscal policy, and 10 sector deep-dives. The definitive intelligence product for Kenya.",
     price: "$495",
     priceNote: "Single organization license",
-    cta: "Buy Report",
-    href: "/kenya-2026",
+    purchaseHref: "/kenya-2026",
+    sampleHref: "/sample-report",
+    available: true,
     featured: true,
   },
   {
@@ -42,8 +49,9 @@ const tiers = [
     description: "Shorter, sharper, sector-specific analysis. Tourism, financial services, agriculture, energy — with opportunity and risk mapping.",
     price: "$95 – $250",
     priceNote: "Per sector report",
-    cta: "Inquire",
-    href: "/contact",
+    purchaseHref: null,
+    sampleHref: null,
+    available: false,
     featured: false,
   },
   {
@@ -54,8 +62,9 @@ const tiers = [
     description: "We translate the macroeconomic environment into insights tailored specifically to your organization, sector, and strategy.",
     price: "$1,000 – $5,000+",
     priceNote: "Scope-dependent",
-    cta: "Request a Brief",
-    href: "/contact",
+    purchaseHref: null,
+    sampleHref: null,
+    available: false,
     featured: false,
   },
   {
@@ -66,8 +75,9 @@ const tiers = [
     description: "We present the insights directly to your leadership team, break them down, and answer your questions in real time. Virtual or in-person.",
     price: "$1,500 – $10,000+",
     priceNote: "Session-based pricing",
-    cta: "Book a Briefing",
-    href: "/contact",
+    purchaseHref: null,
+    sampleHref: null,
+    available: false,
     featured: false,
   },
   {
@@ -78,8 +88,9 @@ const tiers = [
     description: "Ongoing insights, priority updates, and direct advisory access. Stay ahead of economic shifts — not reacting to them.",
     price: "$300 – $1,000/mo",
     priceNote: "Monthly or annual",
-    cta: "Discuss Access",
-    href: "/contact",
+    purchaseHref: null,
+    sampleHref: null,
+    available: false,
     featured: false,
   },
 ];
@@ -98,7 +109,63 @@ const sectorReports = [
   { title: "Energy & Infrastructure Brief", price: "$195", type: "Energy" },
 ];
 
+const InterestModal = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
+  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) return;
+    setSubmitting(true);
+    try {
+      await supabase.from("sample_downloads").insert({
+        source_page: "products-interest",
+        fingerprint: email,
+        referrer: name,
+      });
+      toast({ title: "Interest registered!", description: "We'll contact you once this product is available." });
+      onOpenChange(false);
+      setName("");
+      setEmail("");
+    } catch {
+      toast({ title: "Error", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display">Get Notified When Available</DialogTitle>
+          <DialogDescription>
+            Leave your details and we'll contact you directly once this product is ready.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div>
+            <Label htmlFor="interest-name">Full Name</Label>
+            <Input id="interest-name" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" required />
+          </div>
+          <div>
+            <Label htmlFor="interest-email">Email</Label>
+            <Input id="interest-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" required />
+          </div>
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Submitting..." : "Notify Me"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Products = () => {
+  const [interestOpen, setInterestOpen] = useState(false);
+
   return (
     <Layout>
       {/* Hero */}
@@ -158,16 +225,50 @@ const Products = () => {
                     </p>
                   )}
                 </div>
-                <Button
-                  variant={tier.featured ? "gold" : "hero-outline"}
-                  size="sm"
-                  className="w-full hover-sink"
-                  asChild
-                >
-                  <Link to={tier.href}>
-                    {tier.cta} <ArrowRight className="ml-1" />
-                  </Link>
-                </Button>
+                <div className="flex flex-col gap-2">
+                  {tier.available && tier.purchaseHref ? (
+                    <Button
+                      variant={tier.featured ? "gold" : "hero-outline"}
+                      size="sm"
+                      className="w-full hover-sink"
+                      asChild
+                    >
+                      <Link to={tier.purchaseHref}>
+                        Purchase {tier.price === "Free" ? "" : "Item"} <ArrowRight className="ml-1" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant={tier.featured ? "gold" : "hero-outline"}
+                      size="sm"
+                      className="w-full hover-sink"
+                      onClick={() => setInterestOpen(true)}
+                    >
+                      Register Interest <ArrowRight className="ml-1" />
+                    </Button>
+                  )}
+                  {tier.sampleHref ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`w-full ${tier.featured ? "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" : "text-muted-foreground hover:text-foreground"}`}
+                      asChild
+                    >
+                      <Link to={tier.sampleHref}>
+                        <Download className="w-3.5 h-3.5 mr-1" /> Browse Free Sample
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`w-full ${tier.featured ? "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" : "text-muted-foreground hover:text-foreground"}`}
+                      onClick={() => setInterestOpen(true)}
+                    >
+                      <Download className="w-3.5 h-3.5 mr-1" /> Request Sample
+                    </Button>
+                  )}
+                </div>
               </motion.div>
             ))}
           </div>
@@ -199,9 +300,14 @@ const Products = () => {
                 <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-pill mb-3">{report.type}</span>
                 <h3 className="font-display font-bold text-foreground mb-2">{report.title}</h3>
                 <p className="font-display font-bold text-xl text-primary mb-4">{report.price}</p>
-                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
-                  <Link to="/contact">Inquire <ArrowRight className="ml-1" /></Link>
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button variant="hero-outline" size="sm" className="w-full hover-sink" onClick={() => setInterestOpen(true)}>
+                    Register Interest <ArrowRight className="ml-1" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setInterestOpen(true)}>
+                    <Download className="w-3.5 h-3.5 mr-1" /> Request Sample
+                  </Button>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -233,9 +339,14 @@ const Products = () => {
                 <span className="inline-block text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-pill mb-3">{brief.topic}</span>
                 <h3 className="font-display font-bold text-foreground mb-2 text-sm">{brief.title}</h3>
                 <p className="font-display font-bold text-xl text-primary mb-4">{brief.price}</p>
-                <Button variant="hero-outline" size="sm" className="w-full hover-sink" asChild>
-                  <Link to="/contact">Get Brief <ArrowRight className="ml-1" /></Link>
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button variant="hero-outline" size="sm" className="w-full hover-sink" onClick={() => setInterestOpen(true)}>
+                    Register Interest <ArrowRight className="ml-1" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => setInterestOpen(true)}>
+                    <Download className="w-3.5 h-3.5 mr-1" /> Request Sample
+                  </Button>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -256,6 +367,8 @@ const Products = () => {
           </Button>
         </div>
       </section>
+
+      <InterestModal open={interestOpen} onOpenChange={setInterestOpen} />
     </Layout>
   );
 };

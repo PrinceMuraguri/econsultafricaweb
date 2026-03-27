@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import LaunchCountdown from "@/components/LaunchCountdown";
+
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ const insights = articles
 const team = [
 { name: "Prince Muraguri", role: "Founder & CEO", initials: "PM", img: princeMuraguriImg, bio: "Founder and Chief Economist of Econsult Africa. Career spans research, policy, and data analysis at CEGA (UC Berkeley), J-PAL Africa, and the Pharo Foundation. Specializes in translating complex macroeconomic trends into decision-focused intelligence." },
 { name: "Moses Macharia", role: "Senior Analyst", initials: "MM", img: mosesImg, bio: "Rigorous analytical capability specializing in fiscal policy, trade dynamics, and sector-level economic modelling across East African markets." },
-{ name: "Noel Lutwama", role: "Strategy Consultant", initials: "NL", img: null, bio: "Cross-border strategy advisor with experience across 12 African economies. Translates macroeconomic intelligence into actionable business frameworks." }];
+];
 
 const advisors = [
 { name: "Paolo Avitabile", role: "Advisory Board", img: paoloImg, bio: "Senior Business Controller at Nestlé Italy. Expertise in corporate finance, strategy, and multinational operations across European markets." },
@@ -70,7 +70,7 @@ const advisors = [
 const Index = () => {
   return (
     <Layout>
-      <LaunchCountdown />
+      
       <StickyCTA />
       <ForecastWidget />
 

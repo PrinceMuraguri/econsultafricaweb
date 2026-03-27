@@ -81,14 +81,14 @@ const ForecastArena = () => {
 
             <motion.p variants={fadeUp} custom={2}
               className="text-lg md:text-xl text-background/70 leading-relaxed mb-4 max-w-2xl">
-              100 live economic questions across 6 African economies. Submit your forecast and shape the consensus.
+              Move beyond just observing the economy. Now, you can commit capital to the outcomes you believe in — turning insight into conviction.
             </motion.p>
 
             <motion.p variants={fadeUp} custom={3}
               className="text-base text-background/50 leading-relaxed mb-8 max-w-2xl">
-              Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
+              100 live economic questions across 6 African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
               <span className="block mt-2 text-accent/80 font-medium">
-                🚀 Forecast participation with allocation is now live — back your predictions.
+                🚀 NEW FEATURE: Capital commitment is live — back your forecast positions with real conviction.
               </span>
             </motion.p>
 

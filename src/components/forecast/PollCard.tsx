@@ -272,10 +272,10 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         <div className="mb-3 pt-3 border-t border-border">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded animate-pulse">
-              New
+              Live
             </span>
             <p className="text-xs font-bold text-foreground">
-              Back your forecast with a participation amount
+              Commit capital to your forecast position
             </p>
           </div>
           <div className="flex gap-2">
@@ -298,7 +298,7 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
                       : "border-primary hover:bg-primary/10 text-primary"
                   }`}
                 >
-                  {isYesNo ? (isYes ? "Allocate Yes" : "Allocate No") : `Allocate ${option.label}`} — ${price.toFixed(2)}
+                  {isYesNo ? (isYes ? "Yes" : "No") : option.label} — ${price.toFixed(2)}
                 </Button>
               );
             })}
@@ -309,12 +309,12 @@ const PollCard = ({ poll, compact = false }: PollCardProps) => {
         </div>
       )}
 
-      {/* Coming soon for non-voted users */}
+      {/* Vote first prompt */}
       {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
         <div className="mb-3 pt-2 border-t border-border">
           <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
             <Rocket className="w-3 h-3 text-accent" />
-            Vote first to unlock forecast allocation
+            Vote first to commit capital to your position
           </p>
         </div>
       )}

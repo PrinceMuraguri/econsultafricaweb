@@ -10,10 +10,9 @@ import { Button } from "@/components/ui/button";
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.2, 0, 0, 1] as const },
-  }),
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.2, 0, 0, 1] as const }
+  })
 };
 
 const COUNTRIES = ["All", "Kenya", "Nigeria", "South Africa", "Uganda", "Tanzania", "Rwanda", "Pan-African"];
@@ -25,32 +24,32 @@ const ForecastArena = () => {
 
   const categories = useMemo(() => {
     if (!polls) return ["All"];
-    const cats = [...new Set(polls.map((p) => p.category))];
+    const cats = [...new Set(polls.map(p => p.category))];
     return ["All", ...cats.sort()];
   }, [polls]);
 
   const filteredPolls = useMemo(() => {
     if (!polls) return [];
-    let result = polls.filter((p) => {
+    let result = polls.filter(p => {
       if (selectedCountry !== "All") {
         const countryMap: Record<string, string[]> = {
-          Kenya: ["Kenya", "CBK", "KES", "NSE", "KNBS", "KPC"],
-          Nigeria: ["Nigeria", "CBN", "Naira", "NGX", "NBS"],
+          "Kenya": ["Kenya", "CBK", "KES", "NSE", "KNBS", "KPC"],
+          "Nigeria": ["Nigeria", "CBN", "Naira", "NGX", "NBS"],
           "South Africa": ["South Africa", "SARB", "ZAR", "JSE", "Eskom"],
-          Uganda: ["Uganda", "BoU", "UGX", "USE", "EACOP", "Bobi Wine", "Museveni"],
-          Tanzania: ["Tanzania", "BoT", "TZS", "DSE", "Samia"],
-          Rwanda: ["Rwanda", "NBR", "RWF", "RSE", "M23", "DRC"],
+          "Uganda": ["Uganda", "BoU", "UGX", "USE", "EACOP", "Bobi Wine", "Museveni"],
+          "Tanzania": ["Tanzania", "BoT", "TZS", "DSE", "Samia"],
+          "Rwanda": ["Rwanda", "NBR", "RWF", "RSE", "M23", "DRC"],
           "Pan-African": ["Pan-African", "Africa", "AfCFTA", "Sub-Saharan", "Brent crude", "IMF"],
         };
         const keywords = countryMap[selectedCountry] || [];
         const text = `${p.title} ${p.context || ""} ${p.description || ""}`;
-        if (!keywords.some((k) => text.includes(k))) return false;
+        if (!keywords.some(k => text.includes(k))) return false;
       }
       if (selectedCategory !== "All" && p.category !== selectedCategory) return false;
       return true;
     });
     // Featured poll: oil shortage question always first
-    const featuredIdx = result.findIndex((p) => p.title.toLowerCase().includes("oil shortage"));
+    const featuredIdx = result.findIndex(p => p.title.toLowerCase().includes("oil shortage"));
     if (featuredIdx > 0) {
       const [featured] = result.splice(featuredIdx, 1);
       result.unshift(featured);
@@ -63,52 +62,61 @@ const ForecastArena = () => {
       {/* Hero — compact */}
       <section className="py-10 md:py-14 bg-foreground overflow-hidden relative">
         <div className="absolute inset-0 opacity-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--accent)) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-            }}
-          />
+          <div className="absolute inset-0" style={{
+            backgroundImage: "linear-gradient(hsl(var(--accent)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--accent)) 1px, transparent 1px)",
+            backgroundSize: "60px 60px"
+          }} />
         </div>
 
         <div className="container-page relative z-10">
-          <motion.div initial="hidden" animate="visible" className="max-w-3xl">
-            <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-accent" />
-              </div>
-              <span className="font-mono text-xs text-accent uppercase tracking-widest">Forecast Arena</span>
-            </motion.div>
-
-            <motion.h1
-              variants={fadeUp}
-              custom={1}
-              className="text-3xl md:text-4xl lg:text-5xl font-bold text-background leading-[1.1] mb-3"
-            >
-              Your Voice. <span className="text-accent">Africa's Future.</span>
-            </motion.h1>
-
-            <motion.div
-              variants={fadeUp}
-              custom={2}
-              className="text-base md:text-lg text-background/70 leading-relaxed mb-3 max-w-2xl"
-            >
-              <p>Take a position on where Africa's economy is headed.</p>
-            </motion.div>
-
-            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-6">
-              {[
-                { icon: Shield, label: "Secure platform" },
-                { icon: Zap, label: "Real-time consensus" },
-                { icon: Globe, label: "100% Africa-focused" },
-              ].map((item) => (
-                <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">
-                  <item.icon className="w-4 h-4 text-accent" />
-                  {item.label}
+          <motion.div initial="hidden" animate="visible" className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            {/* Left side — branding */}
+            <div className="max-w-md">
+              <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-accent" />
+                </div>
+                <span className="font-mono text-xs text-accent uppercase tracking-widest">
+                  Forecast Arena
                 </span>
-              ))}
+              </motion.div>
+
+              <motion.h1 variants={fadeUp} custom={1}
+                className="text-3xl md:text-4xl lg:text-5xl font-bold text-background leading-[1.1] mb-3">
+                Your Voice.{" "}
+                <span className="text-accent">Africa's Future.</span>
+              </motion.h1>
+
+              <motion.div variants={fadeUp} custom={2} className="flex flex-wrap gap-6">
+                {[
+                  { icon: Shield, label: "Secure platform" },
+                  { icon: Zap, label: "Real-time consensus" },
+                  { icon: Globe, label: "100% Africa-focused" },
+                ].map((item) => (
+                  <span key={item.label} className="flex items-center gap-2 text-sm text-background/40">
+                    <item.icon className="w-4 h-4 text-accent" />
+                    {item.label}
+                  </span>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* Right side — detail copy */}
+            <motion.div variants={fadeUp} custom={2} className="max-w-md text-background/60 text-sm leading-relaxed space-y-3">
+              <p className="text-background/90 font-semibold text-base">
+                Move beyond just observing the economy.{" "}
+                <span className="text-accent">Take a position on where it's headed.</span>
+              </p>
+              <p>
+                This is a platform built on what people across Africa actually believe — not just headlines, not just reports.
+              </p>
+              <p className="text-background/80 font-medium">How well can you read the economy?</p>
+              <p>
+                100 live economic questions across 6 African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
+              </p>
+              <p className="text-accent/90 text-xs font-medium">
+                🚀 New: You can now commit capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.
+              </p>
             </motion.div>
           </motion.div>
         </div>
@@ -116,10 +124,10 @@ const ForecastArena = () => {
 
       {/* Disclaimer */}
       <div className="bg-muted/50 border-b border-border">
-        <div className="w-full px-4 py-3">
+        <div className="container-page py-3">
           <p className="text-xs text-muted-foreground text-center">
             Forecast Arena aggregates participant expectations on economic outcomes for research and insight purposes.
-            It is not a trading, betting, or investment platform.
+            It is not a trading, betting, or investment platform. Platform fees: 3.5%.
           </p>
         </div>
       </div>
@@ -188,14 +196,7 @@ const ForecastArena = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPolls.map((poll, i) => (
-                <motion.div
-                  key={poll.id}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeUp}
-                  custom={i % 6}
-                >
+                <motion.div key={poll.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i % 6}>
                   <PollCard poll={poll} />
                 </motion.div>
               ))}
@@ -213,44 +214,22 @@ const ForecastArena = () => {
       {/* CTA — Reports */}
       <section className="section-padding bg-primary">
         <div className="container-page text-center">
-          <motion.h2
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={0}
-            className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4"
-          >
+          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
             Want Deeper Economic Intelligence?
           </motion.h2>
-          <motion.p
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={1}
-            className="text-primary-foreground/70 mb-8 max-w-xl mx-auto"
-          >
+          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            className="text-primary-foreground/70 mb-8 max-w-xl mx-auto">
             Go beyond forecasts. Get the full analysis behind Africa's economic trajectory.
           </motion.p>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={2}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link
-              to="/kenya-2026"
-              className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-display font-semibold shadow-md hover:bg-accent/90 transition-colors"
-            >
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
+            className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/kenya-2026"
+              className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-display font-semibold shadow-md hover:bg-accent/90 transition-colors">
               Get Kenya Report
             </Link>
-            <Link
-              to="/products"
-              className="inline-flex items-center justify-center rounded-md border-2 border-primary-foreground/30 text-primary-foreground px-6 py-3 font-display font-semibold hover:bg-primary-foreground/10 transition-colors"
-            >
+            <Link to="/products"
+              className="inline-flex items-center justify-center rounded-md border-2 border-primary-foreground/30 text-primary-foreground px-6 py-3 font-display font-semibold hover:bg-primary-foreground/10 transition-colors">
               View All Products
             </Link>
           </motion.div>

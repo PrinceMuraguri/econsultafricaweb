@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MailCheck } from "lucide-react";
+import { MailCheck, ExternalLink } from "lucide-react";
 
 interface OTPVerificationModalProps {
   open: boolean;
@@ -15,36 +14,37 @@ interface OTPVerificationModalProps {
 
 const OTPVerificationModal = ({ open, onOpenChange, email, onVerified }: OTPVerificationModalProps) => {
   const { toast } = useToast();
-  const [code, setCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
+  const [checking, setChecking] = useState(false);
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (code.length < 6) {
-      toast({ title: "Enter the 6-digit code", variant: "destructive" });
-      return;
-    }
+  // Poll for session to detect when user clicks the verification link
+  useEffect(() => {
+    if (!open) return;
 
-    setVerifying(true);
+    const interval = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email_confirmed_at) {
+        clearInterval(interval);
+        toast({ title: "Email verified!", description: "Your account is now active." });
+        onVerified();
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [open, onVerified, toast]);
+
+  const handleCheckNow = async () => {
+    setChecking(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: code.trim(),
-        type: "signup",
-      });
-
-      if (error) throw error;
-      toast({ title: "Email verified!", description: "Your account is now active." });
-      onVerified();
-    } catch (err: any) {
-      toast({
-        title: "Verification failed",
-        description: err.message || "Invalid or expired code. Please try again.",
-        variant: "destructive",
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email_confirmed_at) {
+        toast({ title: "Email verified!", description: "Your account is now active." });
+        onVerified();
+      } else {
+        toast({ title: "Not verified yet", description: "Please click the verification link in your email first.", variant: "destructive" });
+      }
     } finally {
-      setVerifying(false);
+      setChecking(false);
     }
   };
 
@@ -56,7 +56,7 @@ const OTPVerificationModal = ({ open, onOpenChange, email, onVerified }: OTPVeri
         email,
       });
       if (error) throw error;
-      toast({ title: "Code resent!", description: "Check your email for a new verification code." });
+      toast({ title: "Email resent!", description: "Check your inbox for a new verification link." });
     } catch (err: any) {
       toast({ title: "Could not resend", description: err.message, variant: "destructive" });
     } finally {
@@ -73,36 +73,31 @@ const OTPVerificationModal = ({ open, onOpenChange, email, onVerified }: OTPVeri
             Verify Your Email
           </DialogTitle>
           <DialogDescription>
-            Enter the 6-digit code sent to <span className="font-semibold text-foreground">{email}</span>
+            We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleVerify} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="000000"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className="text-center text-2xl font-mono tracking-[0.5em] h-14"
-              autoFocus
-            />
+        <div className="space-y-4 pt-2">
+          <div className="bg-muted/50 rounded-lg p-4 text-center space-y-2">
+            <ExternalLink className="w-8 h-8 text-primary mx-auto" />
+            <p className="text-sm font-medium">Click the link in your email to verify your account</p>
+            <p className="text-xs text-muted-foreground">
+              Check your inbox (and spam folder) for an email from Forecast Arena
+            </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={verifying || code.length < 6} size="lg">
-            {verifying ? "Verifying..." : "Verify Email"}
+          <Button onClick={handleCheckNow} className="w-full" disabled={checking} size="lg">
+            {checking ? "Checking..." : "I've Verified — Continue"}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            Didn't receive the code?{" "}
+            Didn't receive the email?{" "}
             <button type="button" onClick={handleResend} disabled={resending}
               className="text-primary underline hover:text-accent disabled:opacity-50">
-              {resending ? "Sending..." : "Resend code"}
+              {resending ? "Sending..." : "Resend email"}
             </button>
           </p>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

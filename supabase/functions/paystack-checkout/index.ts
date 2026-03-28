@@ -3,6 +3,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const FALLBACK_USD_KES_RATE = 129;
+
+async function getUsdToKesRate(): Promise<number> {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.KES;
+      if (rate && rate > 50 && rate < 300) return rate;
+    }
+  } catch (e) {
+    console.log('FX fallback:', e.message);
+  }
+  return FALLBACK_USD_KES_RATE;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -27,8 +43,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Use provided amount or default to $495 for report purchases
-    const chargeAmount = amount || 495 * 100;
+    // amount is in USD (e.g. 495 for $495, or 5 for $5 wallet deposit)
+    const amountUsd = amount || 495;
+    
+    // Convert USD to KES for Paystack
+    const usdToKesRate = await getUsdToKesRate();
+    const amountKes = Math.round(amountUsd * usdToKesRate * 100) / 100;
+    const chargeAmount = Math.round(amountKes * 100); // kobo/cents for Paystack
+    
+    console.log(`Checkout: $${amountUsd} USD → KES ${amountKes} (rate: ${usdToKesRate}), kobo: ${chargeAmount}`);
+    
     const chargeMetadata = metadata || {
       product: 'Kenya 2026 Economic Outlook',
       type: 'report_purchase',

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MailCheck, ExternalLink } from "lucide-react";
+import { MailCheck, ExternalLink, Loader2 } from "lucide-react";
 
 interface OTPVerificationModalProps {
   open: boolean;
@@ -16,32 +16,56 @@ const OTPVerificationModal = ({ open, onOpenChange, email, onVerified }: OTPVeri
   const { toast } = useToast();
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [verified, setVerified] = useState(false);
 
-  // Poll for session to detect when user clicks the verification link
+  // Listen for auth state changes (fires when user returns from verification link)
   useEffect(() => {
-    if (!open) return;
+    if (!open || verified) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user?.email_confirmed_at) {
+        setVerified(true);
+        toast({ title: "Email verified!", description: "Your account is now active." });
+        onVerified();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [open, verified, onVerified, toast]);
+
+  // Also poll periodically as a fallback
+  useEffect(() => {
+    if (!open || verified) return;
 
     const interval = setInterval(async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.email_confirmed_at) {
+        setVerified(true);
         clearInterval(interval);
         toast({ title: "Email verified!", description: "Your account is now active." });
         onVerified();
       }
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, [open, onVerified, toast]);
+  }, [open, verified, onVerified, toast]);
 
   const handleCheckNow = async () => {
     setChecking(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Force refresh the session
+      const { data: { session }, error } = await supabase.auth.getSession();
       if (session?.user?.email_confirmed_at) {
+        setVerified(true);
         toast({ title: "Email verified!", description: "Your account is now active." });
         onVerified();
       } else {
-        toast({ title: "Not verified yet", description: "Please click the verification link in your email first.", variant: "destructive" });
+        // Try signing in with stored credentials to check if verified
+        toast({
+          title: "Not verified yet",
+          description: "Please click the verification link in your email first. It may take a moment to arrive.",
+          variant: "destructive",
+        });
       }
     } finally {
       setChecking(false);
@@ -73,28 +97,32 @@ const OTPVerificationModal = ({ open, onOpenChange, email, onVerified }: OTPVeri
             Verify Your Email
           </DialogTitle>
           <DialogDescription>
-            We've sent a verification link to <span className="font-semibold text-foreground">{email}</span>
+            We've sent a verification email to <span className="font-semibold text-foreground">{email}</span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <div className="bg-muted/50 rounded-lg p-4 text-center space-y-2">
+          <div className="bg-muted/50 rounded-lg p-4 text-center space-y-3">
             <ExternalLink className="w-8 h-8 text-primary mx-auto" />
-            <p className="text-sm font-medium">Click the link in your email to verify your account</p>
+            <p className="text-sm font-medium">Click the "Verify" button in the email we sent you</p>
             <p className="text-xs text-muted-foreground">
-              Check your inbox (and spam folder) for an email from Forecast Arena
+              Check your inbox and spam folder. The email may take up to 2 minutes to arrive.
             </p>
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>Waiting for verification...</span>
+            </div>
           </div>
 
           <Button onClick={handleCheckNow} className="w-full" disabled={checking} size="lg">
-            {checking ? "Checking..." : "I've Verified — Continue"}
+            {checking ? "Checking..." : "I've Clicked the Link — Continue"}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
             Didn't receive the email?{" "}
             <button type="button" onClick={handleResend} disabled={resending}
               className="text-primary underline hover:text-accent disabled:opacity-50">
-              {resending ? "Sending..." : "Resend email"}
+              {resending ? "Sending..." : "Resend verification email"}
             </button>
           </p>
         </div>

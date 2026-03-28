@@ -179,7 +179,7 @@ const ForecastArena = () => {
               </p>
               <p className="text-background/80 font-medium">How well can you read the economy?</p>
               <p>
-                100+ live economic questions across 6 African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
+                100+ live economic questions across 10+ African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.
               </p>
               <p className="text-accent/90 text-xs font-medium">
                 🚀 New: You can now commit capital to your forecast positions — adding weight to your conviction, and helping shape a clearer picture of where Africa is going.

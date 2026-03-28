@@ -386,11 +386,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
               <Users className="w-3 h-3" />{totalVotes} forecasts
             </span>
-            {!compact && (
-              <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
-                Full details →
-              </Link>
-            )}
+            <div className="flex items-center gap-2">
+              <button onClick={() => setHowItWorksOpen(true)} className="text-[10px] font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-0.5">
+                <HelpCircle className="w-3 h-3" /> How it works
+              </button>
+              {!compact && (
+                <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
+                  Full details →
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

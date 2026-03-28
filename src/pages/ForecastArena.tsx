@@ -218,16 +218,13 @@ const ForecastArena = () => {
             <div className="flex items-center gap-2 mb-2">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Country</span>
-              {showFilterHint && (
-                <motion.span
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: [0.5, 1, 0.5], x: 0 }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-[10px] text-accent font-medium ml-1"
-                >
-                  ← Tap to explore other economies
-                </motion.span>
-              )}
+              <motion.span
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.8, repeat: Infinity }}
+                className="text-[10px] font-semibold text-accent ml-2 bg-accent/10 px-2 py-0.5 rounded-full"
+              >
+                Select Country ↓
+              </motion.span>
             </div>
             <div className="flex flex-wrap gap-2">
               {COUNTRIES.map((country) => (
@@ -249,16 +246,13 @@ const ForecastArena = () => {
             <div className="flex items-center gap-2 mb-2">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
-              {showFilterHint && (
-                <motion.span
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: [0.5, 1, 0.5], x: 0 }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  className="text-[10px] text-accent font-medium ml-1"
-                >
-                  ← Filter by topic
-                </motion.span>
-              )}
+              <motion.span
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
+                className="text-[10px] font-semibold text-accent ml-2 bg-accent/10 px-2 py-0.5 rounded-full"
+              >
+                Select Category ↓
+              </motion.span>
             </div>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (

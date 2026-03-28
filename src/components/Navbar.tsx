@@ -1,8 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { Menu, X, User } from "lucide-react";
+import { useState } from "react";
+import { Menu, X, User, LogIn, LogOut, Wallet } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import RegistrationModal from "@/components/auth/RegistrationModal";
+import LoginModal from "@/components/auth/LoginModal";
 import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
@@ -16,105 +19,138 @@ const navLinks = [
 
 const Navbar = () => {
   const location = useLocation();
+  const { user, profile, wallet, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isParticipant, setIsParticipant] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
 
-  useEffect(() => {
-    setIsParticipant(!!localStorage.getItem("forecast_participant"));
-  }, [location.pathname]);
+  const isLoggedIn = !!user;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-      {/* Mobile top nav strip */}
-      <div className="lg:hidden overflow-x-auto border-b border-border/50 bg-background/60">
-        <div className="flex items-center gap-1 px-3 py-1.5 min-w-max">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
-                location.pathname === link.href
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          {isParticipant && (
-            <Link
-              to="/my-dashboard"
-              className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
-                location.pathname === "/my-dashboard"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              Dashboard
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <nav className="container-page flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
-        </Link>
-
-        <div className="hidden lg:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={`text-sm font-medium transition-colors duration-200 ${
-                location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          {isParticipant && (
-            <Link to="/my-dashboard" className={`text-sm font-medium transition-colors ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"}`}>
-              <User className="w-4 h-4 inline mr-1" />Dashboard
-            </Link>
-          )}
-          <Button variant="hero" size="sm" className="hover-sink" asChild>
-            <Link to="/kenya-2026">Buy Report</Link>
-          </Button>
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+        {/* Mobile top nav strip */}
+        <div className="lg:hidden overflow-x-auto border-b border-border/50 bg-background/60">
+          <div className="flex items-center gap-1 px-3 py-1.5 min-w-max">
+            {navLinks.map((link) => (
+              <Link key={link.href} to={link.href}
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
+                  location.pathname === link.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                }`}>
+                {link.label}
+              </Link>
+            ))}
+            {isLoggedIn && (
+              <Link to="/my-dashboard"
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
+                  location.pathname === "/my-dashboard" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                }`}>
+                Dashboard
+              </Link>
+            )}
+          </div>
         </div>
 
-        <button className="lg:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </nav>
+        <nav className="container-page flex items-center justify-between h-16">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
+          </Link>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-background border-b border-border overflow-hidden"
-          >
-            <div className="container-page py-4 flex flex-col gap-3">
-              {navLinks.map((link) => (
-                <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
-                  className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"}`}>
-                  {link.label}
+          <div className="hidden lg:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link key={link.href} to={link.href}
+                className={`text-sm font-medium transition-colors duration-200 ${
+                  location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
+                }`}>
+                {link.label}
+              </Link>
+            ))}
+
+            {isLoggedIn ? (
+              <>
+                {wallet && (
+                  <span className="flex items-center gap-1 text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">
+                    <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}
+                  </span>
+                )}
+                <Link to="/my-dashboard"
+                  className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                    location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"
+                  }`}>
+                  <User className="w-4 h-4" />
+                  {profile?.username || "Dashboard"}
                 </Link>
-              ))}
-              {isParticipant && (
-                <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
-                  className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
-                  <User className="w-4 h-4" /> Dashboard
-                </Link>
-              )}
-              <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>
-                <Link to="/kenya-2026" onClick={() => setMobileOpen(false)}>Buy Report</Link>
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+                <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-destructive gap-1">
+                  <LogOut className="w-3.5 h-3.5" /> Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setLoginOpen(true)} className="gap-1">
+                  <LogIn className="w-3.5 h-3.5" /> Sign In
+                </Button>
+                <Button size="sm" onClick={() => setRegisterOpen(true)}>
+                  Join Now
+                </Button>
+              </>
+            )}
+
+            <Button variant="hero" size="sm" className="hover-sink" asChild>
+              <Link to="/kenya-2026">Buy Report</Link>
+            </Button>
+          </div>
+
+          <button className="lg:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </nav>
+
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="lg:hidden bg-background border-b border-border overflow-hidden">
+              <div className="container-page py-4 flex flex-col gap-3">
+                {navLinks.map((link) => (
+                  <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
+                    className={`text-sm font-medium py-2 ${location.pathname === link.href ? "text-primary" : "text-muted-foreground"}`}>
+                    {link.label}
+                  </Link>
+                ))}
+                {isLoggedIn ? (
+                  <>
+                    <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
+                      className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
+                      <User className="w-4 h-4" /> Dashboard
+                      {wallet && <span className="text-xs font-mono text-primary ml-auto">${wallet.balance_usd.toFixed(2)}</span>}
+                    </Link>
+                    <Button variant="ghost" size="sm" onClick={() => { signOut(); setMobileOpen(false); }} className="justify-start text-muted-foreground hover:text-destructive gap-1">
+                      <LogOut className="w-3.5 h-3.5" /> Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <div className="flex gap-2 mt-2">
+                    <Button variant="outline" size="sm" onClick={() => { setLoginOpen(true); setMobileOpen(false); }} className="flex-1 gap-1">
+                      <LogIn className="w-3.5 h-3.5" /> Sign In
+                    </Button>
+                    <Button size="sm" onClick={() => { setRegisterOpen(true); setMobileOpen(false); }} className="flex-1">
+                      Join Now
+                    </Button>
+                  </div>
+                )}
+                <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>
+                  <Link to="/kenya-2026" onClick={() => setMobileOpen(false)}>Buy Report</Link>
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      <RegistrationModal open={registerOpen} onOpenChange={setRegisterOpen}
+        onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen}
+        onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />
+    </>
   );
 };
 

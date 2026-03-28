@@ -45,8 +45,9 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         email,
         amount: chargeAmount,
-        currency: 'USD',
+        currency: 'KES',
         callback_url: callback_url || undefined,
+        channels: ['card', 'mobile_money'],
         metadata: chargeMetadata,
       }),
     });

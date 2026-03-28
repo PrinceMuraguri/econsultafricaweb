@@ -318,6 +318,7 @@ const ForecastArena = () => {
           </motion.div>
         </div>
       </section>
+      <WalletTopUpPrompt />
     </Layout>
   );
 };

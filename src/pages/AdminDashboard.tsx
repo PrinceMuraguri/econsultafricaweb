@@ -1002,7 +1002,64 @@ const AdminDashboard = () => {
                 </table>
                 {(!inquiries || inquiries.length === 0) && (
                   <p className="text-center text-muted-foreground py-8">No inquiries yet.</p>
-                )}
+          )}
+
+          {/* Tab: Archive Data */}
+          {activeTab === "archive" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-display text-xl font-bold text-foreground mb-2">🗄️ Archive / Clear Test Data</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Use this to clear tables for a fresh start during testing. <strong className="text-destructive">This action is irreversible.</strong>
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { table: "user_profiles", label: "User Profiles", desc: "All registered user profiles" },
+                  { table: "voter_profiles", label: "Voter Profiles (Legacy)", desc: "Legacy fingerprint-based profiles" },
+                  { table: "votes", label: "All Votes", desc: "Every vote/prediction cast" },
+                  { table: "transactions", label: "All Transactions", desc: "Payment transactions" },
+                  { table: "wallets", label: "Wallets", desc: "User wallet balances" },
+                  { table: "wallet_transactions", label: "Wallet Transactions", desc: "Wallet activity log" },
+                  { table: "payouts", label: "Payouts", desc: "Settlement payouts" },
+                  { table: "payout_transfers", label: "Payout Transfers", desc: "Transfer records" },
+                  { table: "inquiries", label: "Inquiries", desc: "All user inquiries" },
+                  { table: "sample_downloads", label: "Sample Downloads", desc: "Download tracking" },
+                  { table: "trading_waitlist", label: "Trading Waitlist", desc: "Waitlist signups" },
+                ].map((item) => (
+                  <div key={item.table} className="bg-card border border-border rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={archiving === item.table}
+                      onClick={async () => {
+                        if (!confirm(`Are you sure you want to DELETE ALL data in "${item.label}"? This cannot be undone.`)) return;
+                        setArchiving(item.table);
+                        try {
+                          const { data, error } = await supabase.functions.invoke("admin-polls", {
+                            body: { admin_key: adminKey, action: "archive_table", table_name: item.table },
+                          });
+                          if (error) throw error;
+                          if (data?.error) throw new Error(data.error);
+                          toast({ title: "✅ Archived", description: data.message || `${item.label} data cleared.` });
+                          queryClient.invalidateQueries();
+                        } catch (err: any) {
+                          toast({ title: "Archive Failed", description: err.message, variant: "destructive" });
+                        } finally {
+                          setArchiving(null);
+                        }
+                      }}
+                    >
+                      {archiving === item.table ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <AlertTriangle className="w-3 h-3 mr-1" />}
+                      Clear
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           )}

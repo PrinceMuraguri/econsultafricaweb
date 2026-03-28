@@ -29,7 +29,7 @@ const OCCUPATIONS = [
   "Other",
 ];
 
-const AGE_BRACKETS = ["<18", "18–24", "25–34", "35–44", "45–54", "55+"];
+const AGE_BRACKETS = ["18–24", "25–34", "35–44", "45–54", "55+"];
 
 
 const INTEREST_OPTIONS = [

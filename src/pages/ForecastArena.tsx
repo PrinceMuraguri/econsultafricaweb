@@ -116,23 +116,25 @@ const ForecastArena = () => {
           <motion.div initial="hidden" animate="visible" className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
             {/* Left side — branding */}
             <div className="max-w-md">
-              <motion.div variants={fadeUp} custom={0} className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                  <BarChart3 className="w-4 h-4 text-accent" />
-                </div>
-                 <span className="font-mono text-xs text-accent uppercase tracking-widest">
-                  Forecast Arena — Economic Sentiment
-                </span>
+              <motion.div variants={fadeUp} custom={0} className="mb-2">
+                <span className="font-mono text-[10px] text-accent/70 uppercase tracking-[0.3em] font-medium">Introducing</span>
               </motion.div>
 
-              <motion.h1 variants={fadeUp} custom={1}
-                className="text-3xl md:text-4xl lg:text-5xl font-bold text-background leading-[1.1] mb-3">
-                Your Voice.{" "}
-                <span className="text-accent">Africa's Future.</span>
+              <motion.h1 variants={fadeUp} custom={0.5}
+                className="text-4xl md:text-5xl lg:text-6xl font-black text-background leading-[1] mb-1 tracking-tight uppercase">
+                Forecast Arena
               </motion.h1>
 
+              <motion.p variants={fadeUp} custom={1}
+                className="text-base md:text-lg text-accent font-semibold tracking-wide mb-4">
+                Africa's Economic Sentiment Aggregator
+              </motion.p>
+
               <motion.div variants={fadeUp} custom={1.5} className="mb-3">
-                <p className="text-background/70 text-sm">A real-time view of economic sentiment across Africa.</p>
+                <p className="text-2xl md:text-3xl font-bold text-background/90 leading-tight mb-1">
+                  Your Voice. <span className="text-accent">Africa's Future.</span>
+                </p>
+                <p className="text-background/60 text-sm mt-2">A real-time view of economic sentiment across Africa.</p>
                 <p className="text-accent text-xs mt-1 font-medium">See what people are signaling. Add your voice.</p>
               </motion.div>
 

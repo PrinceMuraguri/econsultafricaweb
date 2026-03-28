@@ -483,6 +483,7 @@ export type Database = {
           id: string
           interests: Json | null
           occupation: string | null
+          organization: string | null
           phone: string | null
           sex: string | null
           updated_at: string | null
@@ -498,6 +499,7 @@ export type Database = {
           id?: string
           interests?: Json | null
           occupation?: string | null
+          organization?: string | null
           phone?: string | null
           sex?: string | null
           updated_at?: string | null
@@ -513,6 +515,7 @@ export type Database = {
           id?: string
           interests?: Json | null
           occupation?: string | null
+          organization?: string | null
           phone?: string | null
           sex?: string | null
           updated_at?: string | null

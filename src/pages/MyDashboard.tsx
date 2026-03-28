@@ -171,7 +171,7 @@ const MyDashboard = () => {
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {
         body: {
           email: user.email,
-          amount: amount * 100, // cents
+          amount: amount, // USD amount — edge function converts to KES
           callback_url: callbackUrl,
           metadata: { type: "wallet_deposit", user_id: user.id },
         },

@@ -328,16 +328,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
                   <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
                   Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleAllocate(votedOption)}
-                    className="flex-1 text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
-                    Commit capital (${price.toFixed(2)})
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
-                    className="text-xs font-medium gap-1 shrink-0">
-                    <HelpCircle className="w-3 h-3" /> How it works
-                  </Button>
-                </div>
+                <Button size="sm" onClick={() => handleAllocate(votedOption)}
+                  className="w-full text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
+                  Commit capital (${price.toFixed(2)})
+                </Button>
               </div>
             );
           })()}
@@ -386,11 +380,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
               <Users className="w-3 h-3" />{totalVotes} forecasts
             </span>
-            {!compact && (
-              <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
-                Full details →
-              </Link>
-            )}
+            <div className="flex items-center gap-2">
+              <button onClick={() => setHowItWorksOpen(true)} className="text-[10px] font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-0.5">
+                <HelpCircle className="w-3 h-3" /> How it works
+              </button>
+              {!compact && (
+                <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
+                  Full details →
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

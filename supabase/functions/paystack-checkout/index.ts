@@ -37,10 +37,10 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         email,
-        amount: 495 * 100,
+        amount: amount || 495 * 100,
         currency: 'USD',
         callback_url: callback_url || undefined,
-        metadata: {
+        metadata: metadata || {
           product: 'Kenya 2026 Economic Outlook',
           type: 'report_purchase',
         },

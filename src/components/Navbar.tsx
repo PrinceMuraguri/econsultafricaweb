@@ -95,9 +95,6 @@ const Navbar = () => {
               </>
             )}
 
-            <Button variant="hero" size="sm" className="hover-sink" asChild>
-              <Link to="/kenya-2026">Buy Report</Link>
-            </Button>
           </div>
 
           <button className="lg:hidden p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
@@ -137,9 +134,6 @@ const Navbar = () => {
                     </Button>
                   </div>
                 )}
-                <Button variant="hero" size="sm" className="hover-sink mt-2" asChild>
-                  <Link to="/kenya-2026" onClick={() => setMobileOpen(false)}>Buy Report</Link>
-                </Button>
               </div>
             </motion.div>
           )}

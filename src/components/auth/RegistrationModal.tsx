@@ -124,7 +124,7 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
         // Email confirmation required — show OTP entry
         setRegisteredEmail(email.trim());
         setStep("otp");
-        toast({ title: "Check your email!", description: "We've sent a 6-digit verification code to your email." });
+        toast({ title: "Check your email!", description: "We've sent a verification link to your email. Click it to activate your account." });
       } else if (signUpData.user && signUpData.session) {
         // Auto-confirmed (shouldn't happen with our config)
         await createProfile(signUpData.user.id, fp);

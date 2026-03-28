@@ -11,6 +11,7 @@ import { ALL_COUNTRIES } from "@/data/countries";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import OTPVerificationModal from "./OTPVerificationModal";
+import OrganizationAutocomplete from "./OrganizationAutocomplete";
 
 interface RegistrationModalProps {
   open: boolean;
@@ -56,6 +57,7 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
   const [countryCode, setCountryCode] = useState("+254");
   const [country, setCountry] = useState("Kenya");
   const [occupation, setOccupation] = useState("");
+  const [organization, setOrganization] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -108,6 +110,7 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
             sex,
             age_bracket: ageBracket,
             occupation,
+            organization: organization || null,
             interests,
             voter_fingerprint: fp,
           },
@@ -144,6 +147,7 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
       phone: `${countryCode}${phone.trim()}`,
       country,
       occupation: occupation || null,
+      organization: organization || null,
       interests: interests,
       voter_fingerprint: fp,
     });
@@ -315,7 +319,15 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
             </Select>
           </div>
 
-          {/* Interests */}
+          {/* Organization */}
+          <div className="space-y-1">
+            <Label className="text-xs font-medium">Organization / Institution</Label>
+            <OrganizationAutocomplete
+              value={organization}
+              onChange={setOrganization}
+              placeholder="e.g. World Bank, Safaricom..."
+            />
+          </div>
           <div className="space-y-1">
             <Label className="text-xs font-medium">What interests you?</Label>
             <div className="flex flex-wrap gap-2">

@@ -200,7 +200,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           >
             {loading
               ? "Redirecting to payment..."
-              : `Commit $${totalCost.toFixed(2)} — Pay via M-PESA or Card`}
+              : `Commit $${totalCost.toFixed(2)} — Pay with Mobile Money or Card`}
           </Button>
 
           {/* Trust + How it works */}

@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
-import { getFingerprint } from "@/lib/fingerprint";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   BarChart3, TrendingUp, Clock, CheckCircle, XCircle,
-  DollarSign, Activity, ArrowRight, User
+  DollarSign, Activity, ArrowRight, User, Wallet, Plus
 } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Position {
   id: string;
@@ -30,26 +31,28 @@ interface Position {
   outcome: "pending" | "won" | "lost";
 }
 
-const MyDashboard = () => {
-  const [fp, setFp] = useState<string | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+const DEPOSIT_AMOUNTS = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
 
-  useEffect(() => {
-    (async () => {
-      const fingerprint = await getFingerprint();
-      setFp(fingerprint);
-      const stored = localStorage.getItem("forecast_participant");
-      if (stored) setProfile(JSON.parse(stored));
-    })();
-  }, []);
+const MyDashboard = () => {
+  const { user, profile, wallet, refreshWallet } = useAuth();
+  const { toast } = useToast();
+  const [depositLoading, setDepositLoading] = useState(false);
 
   // Fetch user's votes with poll data
   const { data: positions, isLoading } = useQuery({
-    queryKey: ["my-positions", fp],
+    queryKey: ["my-positions", user?.id],
     queryFn: async () => {
+      if (!user) return [];
+      // Get fingerprint from profile or generate
+      const { data: userProfile } = await supabase
+        .from("user_profiles")
+        .select("voter_fingerprint")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const fp = userProfile?.voter_fingerprint;
       if (!fp) return [];
-      
-      // Get votes
+
       const { data: votes, error: votesErr } = await supabase
         .from("votes")
         .select("*")
@@ -58,7 +61,6 @@ const MyDashboard = () => {
       if (votesErr) throw votesErr;
       if (!votes?.length) return [];
 
-      // Get related polls and options
       const pollIds = [...new Set(votes.map(v => v.poll_id))];
       const { data: polls } = await supabase
         .from("polls")
@@ -74,7 +76,7 @@ const MyDashboard = () => {
         const totalVotes = options.reduce((s: number, o: any) => s + o.total_votes_count, 0);
         const optionVotes = option?.total_votes_count || 0;
         const entryPrice = totalVotes > 0 ? Math.max(0.05, Math.min(0.95, Math.round((optionVotes / totalVotes) * 100) / 100)) : 0.50;
-        
+
         let outcome: "pending" | "won" | "lost" = "pending";
         if (poll?.settled_at) {
           outcome = poll.winning_option_id === vote.option_id ? "won" : "lost";
@@ -84,33 +86,32 @@ const MyDashboard = () => {
         const potentialPayout = vote.is_staked ? shares * 1.0 : 0;
 
         return {
-          id: vote.id,
-          poll_id: vote.poll_id,
-          option_id: vote.option_id,
-          created_at: vote.created_at,
-          is_staked: vote.is_staked,
-          stake_amount: vote.stake_amount,
-          poll_title: poll?.title || "Unknown",
-          poll_status: poll?.status || "unknown",
-          poll_slug: poll?.slug || "",
+          id: vote.id, poll_id: vote.poll_id, option_id: vote.option_id,
+          created_at: vote.created_at, is_staked: vote.is_staked,
+          stake_amount: vote.stake_amount, poll_title: poll?.title || "Unknown",
+          poll_status: poll?.status || "unknown", poll_slug: poll?.slug || "",
           option_label: option?.label || "Unknown",
           winning_option_id: poll?.winning_option_id,
-          close_at: poll?.close_at || "",
-          total_votes: totalVotes,
-          option_votes: optionVotes,
-          entry_price: entryPrice,
-          potential_payout: potentialPayout,
-          outcome,
+          close_at: poll?.close_at || "", total_votes: totalVotes,
+          option_votes: optionVotes, entry_price: entryPrice,
+          potential_payout: potentialPayout, outcome,
         } as Position;
       });
     },
-    enabled: !!fp,
+    enabled: !!user,
   });
 
   // Fetch user's transactions
   const { data: transactions } = useQuery({
-    queryKey: ["my-transactions", fp],
+    queryKey: ["my-transactions", user?.id],
     queryFn: async () => {
+      if (!user) return [];
+      const { data: userProfile } = await supabase
+        .from("user_profiles")
+        .select("voter_fingerprint")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const fp = userProfile?.voter_fingerprint;
       if (!fp) return [];
       const { data, error } = await supabase
         .from("transactions")
@@ -120,13 +121,36 @@ const MyDashboard = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!fp,
+    enabled: !!user,
+  });
+
+  // Fetch wallet transactions
+  const { data: walletTxns } = useQuery({
+    queryKey: ["my-wallet-transactions", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("wallet_transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
   });
 
   // Fetch payouts
   const { data: payouts } = useQuery({
-    queryKey: ["my-payouts", fp],
+    queryKey: ["my-payouts", user?.id],
     queryFn: async () => {
+      if (!user) return [];
+      const { data: userProfile } = await supabase
+        .from("user_profiles")
+        .select("voter_fingerprint")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const fp = userProfile?.voter_fingerprint;
       if (!fp) return [];
       const { data, error } = await supabase
         .from("payouts")
@@ -136,10 +160,31 @@ const MyDashboard = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!fp,
+    enabled: !!user,
   });
 
-  if (!profile) {
+  const handleDeposit = async (amount: number) => {
+    if (!user) return;
+    setDepositLoading(true);
+    try {
+      const callbackUrl = `${window.location.origin}/my-dashboard?deposit=success`;
+      const { data, error } = await supabase.functions.invoke("paystack-checkout", {
+        body: {
+          email: user.email,
+          amount: amount * 100, // cents
+          callback_url: callbackUrl,
+          metadata: { type: "wallet_deposit", user_id: user.id },
+        },
+      });
+      if (error || !data?.authorization_url) throw new Error(data?.error || "Failed to start deposit");
+      window.location.href = data.authorization_url;
+    } catch (err: any) {
+      toast({ title: "Deposit Error", description: err.message, variant: "destructive" });
+      setDepositLoading(false);
+    }
+  };
+
+  if (!user) {
     return (
       <Layout>
         <section className="section-padding">
@@ -147,7 +192,7 @@ const MyDashboard = () => {
             <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h1 className="font-display text-2xl font-bold text-foreground mb-2">My Dashboard</h1>
             <p className="text-sm text-muted-foreground mb-6">
-              You need to participate in the Forecast Arena first to view your dashboard.
+              Sign in or create an account to view your dashboard.
             </p>
             <Link to="/">
               <Button>Go to Forecast Arena</Button>
@@ -172,13 +217,29 @@ const MyDashboard = () => {
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold text-foreground">My Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Welcome back, {profile.fullName}. Track your forecast positions and activity.
+              Welcome back, {profile?.full_name || user.email}. Track your forecast positions and activity.
             </p>
           </div>
 
+          {/* Profile Card */}
+          {profile && (
+            <div className="bg-card border border-border rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">{profile.full_name}</p>
+                  <p className="text-xs text-muted-foreground">@{profile.username} · {profile.country} · {profile.occupation || "—"}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {[
+              { icon: Wallet, label: "Wallet Balance", value: `$${(wallet?.balance_usd || 0).toFixed(2)}` },
               { icon: Activity, label: "Active Positions", value: activePositions.length },
               { icon: DollarSign, label: "Capital Committed", value: `$${totalCommitted.toFixed(2)}` },
               { icon: TrendingUp, label: "Total Earnings", value: `$${totalEarnings.toFixed(2)}` },
@@ -192,6 +253,23 @@ const MyDashboard = () => {
             ))}
           </div>
 
+          {/* Wallet Deposit */}
+          <div className="mb-8">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-primary" />
+              Add Funds
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {DEPOSIT_AMOUNTS.map(amount => (
+                <Button key={amount} variant="outline" size="sm"
+                  onClick={() => handleDeposit(amount)} disabled={depositLoading}
+                  className="font-mono">
+                  <Plus className="w-3 h-3 mr-1" />${amount}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Active Positions */}
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -203,11 +281,7 @@ const MyDashboard = () => {
             ) : activePositions.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">
                 <p className="text-sm text-muted-foreground mb-3">No active positions yet.</p>
-                <Link to="/">
-                  <Button variant="outline" size="sm">
-                    Browse Forecast Questions <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Button>
-                </Link>
+                <Link to="/"><Button variant="outline" size="sm">Browse Forecast Questions <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></Link>
               </div>
             ) : (
               <div className="space-y-3">
@@ -271,6 +345,39 @@ const MyDashboard = () => {
             </div>
           )}
 
+          {/* Wallet Transactions */}
+          {walletTxns && walletTxns.length > 0 && (
+            <div className="mb-8">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4">Wallet Activity</h2>
+              <div className="bg-card border border-border rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Date</th>
+                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Type</th>
+                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Amount</th>
+                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {walletTxns.map((tx: any) => (
+                        <tr key={tx.id} className="border-t border-border">
+                          <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-2 capitalize text-muted-foreground">{tx.type}</td>
+                          <td className={`px-4 py-2 font-mono font-semibold ${tx.amount > 0 ? "text-green-600" : "text-red-500"}`}>
+                            {tx.amount > 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2 text-muted-foreground">{tx.description || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Recent Transactions */}
           {transactions && transactions.length > 0 && (
             <div className="mb-8">
@@ -288,7 +395,7 @@ const MyDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map(tx => (
+                      {transactions.map((tx: any) => (
                         <tr key={tx.id} className="border-t border-border">
                           <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
                           <td className="px-4 py-2 font-mono font-semibold text-foreground">${tx.amount.toFixed(2)}</td>
@@ -326,7 +433,7 @@ const MyDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {payouts.map(p => (
+                      {payouts.map((p: any) => (
                         <tr key={p.id} className="border-t border-border">
                           <td className="px-4 py-2 text-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
                           <td className="px-4 py-2 font-mono font-semibold text-green-600">${p.amount.toFixed(2)}</td>

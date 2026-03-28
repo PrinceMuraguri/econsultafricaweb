@@ -7,6 +7,7 @@ import { usePolls } from "@/hooks/use-polls";
 import { BarChart3, Zap, Globe, Shield, Filter, Radio, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -317,6 +318,7 @@ const ForecastArena = () => {
           </motion.div>
         </div>
       </section>
+      <WalletTopUpPrompt />
     </Layout>
   );
 };

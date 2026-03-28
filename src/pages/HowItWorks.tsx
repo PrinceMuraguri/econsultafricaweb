@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { ArrowLeft, BarChart3, TrendingUp, Shield, AlertTriangle, Target, Users } from "lucide-react";
+import { ArrowLeft, BarChart3, TrendingUp, Shield, AlertTriangle, Target, Users, FileText, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ShareCalculator from "@/components/forecast/ShareCalculator";
 
 const fadeUp = {
@@ -15,7 +16,7 @@ const fadeUp = {
 const steps = [
   { num: "01", title: "Choose a question", desc: "Browse active forecasts on real economic events — interest rates, inflation, exchange rates, and more." },
   { num: "02", title: "Submit your forecast", desc: "Take a position: Yes or No. Your choice reflects your view about what will happen." },
-  { num: "03", title: "Contribute an allocation (coming soon)", desc: "Each unit represents your conviction. 1 unit = $1 distribution if your forecast is correct. Contribute as much as you're comfortable with." },
+  { num: "03", title: "Commit capital (NEW FEATURE)", desc: "Each unit represents your conviction. 1 unit = $1 distribution if your forecast is correct. Contribute as much as you're comfortable with." },
   { num: "04", title: "Watch consensus shift in real time", desc: "As more people submit forecasts, the consensus probability adjusts. Prices reflect collective intelligence." },
   { num: "05", title: "Accuracy-based distribution", desc: "When the event resolves, each correct forecast unit receives a $1 distribution. Your reward is the difference between what you contributed and what you receive." },
 ];
@@ -81,6 +82,43 @@ const HowItWorks = () => {
                 </div>
               </motion.div>
             ))}
+          </div>
+
+          {/* Downloadable Guides */}
+          <div className="mt-12 bg-card border border-border rounded-lg p-6">
+            <p className="font-mono text-xs text-accent uppercase tracking-widest mb-4">Downloadable Guides</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <a
+                href="/documents/how-it-works-quick-summary.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">Quick Summary</h4>
+                  <p className="text-xs text-muted-foreground">5-slide overview of how it works</p>
+                </div>
+                <Download className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </a>
+              <a
+                href="/documents/how-it-works-detailed.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground text-sm group-hover:text-accent transition-colors">Detailed Guide</h4>
+                  <p className="text-xs text-muted-foreground">Comprehensive breakdown of the platform</p>
+                </div>
+                <Download className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
+              </a>
+            </div>
           </div>
         </div>
       </section>

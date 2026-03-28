@@ -474,6 +474,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          age_bracket: string | null
+          country: string | null
+          created_at: string | null
+          full_name: string
+          id: string
+          interests: Json | null
+          occupation: string | null
+          phone: string | null
+          sex: string | null
+          updated_at: string | null
+          user_id: string
+          username: string
+          voter_fingerprint: string | null
+        }
+        Insert: {
+          age_bracket?: string | null
+          country?: string | null
+          created_at?: string | null
+          full_name: string
+          id?: string
+          interests?: Json | null
+          occupation?: string | null
+          phone?: string | null
+          sex?: string | null
+          updated_at?: string | null
+          user_id: string
+          username: string
+          voter_fingerprint?: string | null
+        }
+        Update: {
+          age_bracket?: string | null
+          country?: string | null
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          interests?: Json | null
+          occupation?: string | null
+          phone?: string | null
+          sex?: string | null
+          updated_at?: string | null
+          user_id?: string
+          username?: string
+          voter_fingerprint?: string | null
+        }
+        Relationships: []
+      }
       voter_profiles: {
         Row: {
           country_code: string
@@ -557,6 +605,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reference: string | null
+          related_vote_id: string | null
+          status: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference?: string | null
+          related_vote_id?: string | null
+          status?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference?: string | null
+          related_vote_id?: string | null
+          status?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance_usd: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance_usd?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance_usd?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

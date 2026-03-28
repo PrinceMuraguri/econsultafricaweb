@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, callback_url } = await req.json();
+    const { email, amount, callback_url, metadata } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -27,7 +27,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Initializing Paystack transaction for:', email);
+    // Use provided amount or default to $495 for report purchases
+    const chargeAmount = amount || 495 * 100;
+    const chargeMetadata = metadata || {
+      product: 'Kenya 2026 Economic Outlook',
+      type: 'report_purchase',
+    };
+
+    console.log('Initializing Paystack transaction for:', email, 'amount:', chargeAmount);
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -37,13 +44,10 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         email,
-        amount: amount || 495 * 100,
+        amount: chargeAmount,
         currency: 'USD',
         callback_url: callback_url || undefined,
-        metadata: metadata || {
-          product: 'Kenya 2026 Economic Outlook',
-          type: 'report_purchase',
-        },
+        metadata: chargeMetadata,
       }),
     });
 

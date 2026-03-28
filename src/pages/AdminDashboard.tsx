@@ -406,6 +406,7 @@ const AdminDashboard = () => {
               { key: "inquiries", label: "📬 Inquiries" },
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
+              { key: "archive", label: "🗄️ Archive Data" },
             ] as const).map((tab) => (
               <button
                 key={tab.key}

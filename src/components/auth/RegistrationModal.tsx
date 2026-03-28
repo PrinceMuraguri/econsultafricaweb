@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
+import { ALL_COUNTRIES } from "@/data/countries";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import OTPVerificationModal from "./OTPVerificationModal";
@@ -29,11 +30,6 @@ const OCCUPATIONS = [
 
 const AGE_BRACKETS = ["<18", "18–24", "25–34", "35–44", "45–54", "55+"];
 
-const COUNTRIES = [
-  "Kenya", "Nigeria", "South Africa", "Uganda", "Tanzania", "Rwanda",
-  "Ghana", "Ethiopia", "Egypt", "Morocco", "Senegal", "Botswana",
-  "Zambia", "Zimbabwe", "Mozambique", "Other",
-];
 
 const INTEREST_OPTIONS = [
   { value: "forecast", label: "Forecast Arena" },
@@ -298,8 +294,12 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
             <Label className="text-xs font-medium">Country</Label>
             <Select value={country} onValueChange={setCountry}>
               <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
-              <SelectContent>
-                {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              <SelectContent className="max-h-60">
+                {ALL_COUNTRIES.map(c => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.flag ? `${c.flag} ${c.name}` : c.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

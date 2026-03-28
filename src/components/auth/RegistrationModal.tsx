@@ -119,15 +119,15 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
 
       if (signUpError) throw signUpError;
 
-      if (signUpData.user && !signUpData.session) {
-        // Email confirmation required — show OTP entry
+      if (signUpData.user && signUpData.session) {
+        // Auto-confirmed — create profile and proceed
+        await createProfile(signUpData.user.id, fp);
+        handleSuccess();
+      } else if (signUpData.user && !signUpData.session) {
+        // Email confirmation required — show verification step
         setRegisteredEmail(email.trim());
         setStep("otp");
         toast({ title: "Check your email!", description: "We've sent a verification link to your email. Click it to activate your account." });
-      } else if (signUpData.user && signUpData.session) {
-        // Auto-confirmed (shouldn't happen with our config)
-        await createProfile(signUpData.user.id, fp);
-        handleSuccess();
       }
     } catch (err: any) {
       const msg = err.message || "Registration failed. Please try again.";

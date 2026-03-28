@@ -138,6 +138,30 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true, poll_id: newPoll.id });
     }
 
+    if (action === 'archive_table') {
+      const { table_name } = body;
+      const allowed = ['votes', 'transactions', 'voter_profiles', 'user_profiles', 'wallets', 'wallet_transactions', 'payouts', 'payout_transfers', 'inquiries', 'sample_downloads', 'trading_waitlist'];
+      if (!table_name || !allowed.includes(table_name as string)) {
+        return jsonResponse({ error: `Invalid table. Allowed: ${allowed.join(', ')}` }, 400);
+      }
+
+      const { error, count } = await supabase
+        .from(table_name as string)
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all rows
+
+      if (error) throw error;
+
+      await supabase.from('admin_audit_log').insert({
+        action: 'archive_table',
+        entity_type: table_name as string,
+        details: { rows_deleted: count || 'all' },
+        performed_by: 'super_admin',
+      });
+
+      return jsonResponse({ success: true, table: table_name, message: `All data in ${table_name} has been archived (deleted).` });
+    }
+
     return jsonResponse({ error: 'Unknown action' }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown server error';

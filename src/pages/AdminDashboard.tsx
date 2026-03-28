@@ -1002,6 +1002,9 @@ const AdminDashboard = () => {
                 </table>
                 {(!inquiries || inquiries.length === 0) && (
                   <p className="text-center text-muted-foreground py-8">No inquiries yet.</p>
+                )}
+              </div>
+            </div>
           )}
 
           {/* Tab: Archive Data */}

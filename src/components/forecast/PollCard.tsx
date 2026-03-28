@@ -310,7 +310,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
           {!hasVoted && !isClosed && (
             <p className="text-[9px] text-muted-foreground text-center mt-1.5">
               By participating, you agree to the{" "}
-              <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
+              <Link to="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</Link>.
             </p>
           )}
 
@@ -396,6 +396,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       </div>
 
+      {/* Social Share prompt after voting */}
+      {hasVoted && !isClosed && (
+        <div className="flex items-center justify-center gap-2 mt-1 pt-1 border-t border-border">
+          <span className="text-[9px] text-muted-foreground">Share your forecast:</span>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just took a position on "${poll.title}" on Forecast Arena! What's your view?`)}&url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
+            target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">𝕏</a>
+          <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
+            target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">LinkedIn</a>
+        </div>
+      )}
 
       {isClosed && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -403,7 +413,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       )}
 
-      <ParticipantLoginModal open={loginOpen} onOpenChange={setLoginOpen} onSuccess={handleLoginSuccess} />
+      <RegistrationModal open={registerOpen} onOpenChange={setRegisterOpen} onSuccess={handleAuthSuccess}
+        onSwitchToLogin={() => { setRegisterOpen(false); setLoginModalOpen(true); }} />
+      <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} onSuccess={handleAuthSuccess}
+        onSwitchToRegister={() => { setLoginModalOpen(false); setRegisterOpen(true); }} />
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={poll} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />

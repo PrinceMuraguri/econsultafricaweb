@@ -1,22 +1,23 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download, HelpCircle } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download, HelpCircle, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
-import ParticipantLoginModal from "./ParticipantLoginModal";
+import RegistrationModal from "@/components/auth/RegistrationModal";
+import LoginModal from "@/components/auth/LoginModal";
 import HowItWorksPdfModal from "./HowItWorksPdfModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;
 const CONTEXT_PREVIEW_LENGTH = 120;
 
-// The first question (pump price) gets free PDF unlock
 const FREE_INSIGHT_PDF = "/reports/kenya-oil-shortage-assessment-march-2026.pdf";
 
 function getTimeRemaining(closeAt: string) {
@@ -29,10 +30,6 @@ function getTimeRemaining(closeAt: string) {
   return `${hours}h ${mins}m left`;
 }
 
-function isParticipantLoggedIn(): boolean {
-  return !!localStorage.getItem("forecast_participant");
-}
-
 interface PollCardProps {
   poll: Poll;
   compact?: boolean;
@@ -41,6 +38,7 @@ interface PollCardProps {
 
 const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) => {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
@@ -49,10 +47,13 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [stakeOpen, setStakeOpen] = useState(false);
   const [stakeOption, setStakeOption] = useState<PollOption | null>(null);
-  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+
+  const isLoggedIn = !!user;
 
   useEffect(() => { setLocalOptions(poll.poll_options); }, [poll.poll_options]);
 
@@ -74,7 +75,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-    if (!isParticipantLoggedIn()) { setPendingVoteOptionId(optionId); setLoginOpen(true); return; }
+    if (!isLoggedIn) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -95,10 +96,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
     } finally { setVoting(false); }
   };
 
-  const handleLoginSuccess = () => { if (pendingVoteOptionId) { handleVote(pendingVoteOptionId); setPendingVoteOptionId(null); } };
+  const handleAuthSuccess = () => { if (pendingVoteOptionId) { handleVote(pendingVoteOptionId); setPendingVoteOptionId(null); } };
 
   const handleAllocate = (option: PollOption) => {
-    if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
+    if (!isLoggedIn) { setRegisterOpen(true); return; }
     setStakeOption(option);
     setStakeOpen(true);
   };
@@ -113,10 +114,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       return;
     }
 
-    if (!isParticipantLoggedIn()) { setLoginOpen(true); return; }
-    const storedProfile = (() => { try { const raw = localStorage.getItem("forecast_participant"); return raw ? JSON.parse(raw) : null; } catch { return null; } })();
-    const email = storedProfile?.email || "";
-    if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setLoginOpen(true); return; }
+    if (!isLoggedIn) { setRegisterOpen(true); return; }
+    const email = user?.email || "";
+    const storedProfile = profile;
+    if (!email) { toast({ title: "Login required", description: "Please sign in first.", variant: "destructive" }); setRegisterOpen(true); return; }
 
     if (poll.expert_insight) {
       toast({ title: "🔓 Expert Insight", description: poll.expert_insight, duration: 15000 });
@@ -128,7 +129,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         await supabase.from("inquiries").insert({
           inquiry_type: "expert_insight",
           source: "forecast_arena",
-          name: storedProfile?.fullName || null,
+          name: storedProfile?.full_name || null,
           email,
           phone: storedProfile?.phone || null,
           poll_id: poll.id,
@@ -309,7 +310,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
           {!hasVoted && !isClosed && (
             <p className="text-[9px] text-muted-foreground text-center mt-1.5">
               By participating, you agree to the{" "}
-              <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
+              <Link to="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</Link>.
             </p>
           )}
 
@@ -395,6 +396,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       </div>
 
+      {/* Social Share prompt after voting */}
+      {hasVoted && !isClosed && (
+        <div className="flex items-center justify-center gap-2 mt-1 pt-1 border-t border-border">
+          <span className="text-[9px] text-muted-foreground">Share your forecast:</span>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just took a position on "${poll.title}" on Forecast Arena! What's your view?`)}&url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
+            target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">𝕏</a>
+          <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
+            target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">LinkedIn</a>
+        </div>
+      )}
 
       {isClosed && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
@@ -402,7 +413,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       )}
 
-      <ParticipantLoginModal open={loginOpen} onOpenChange={setLoginOpen} onSuccess={handleLoginSuccess} />
+      <RegistrationModal open={registerOpen} onOpenChange={setRegisterOpen} onSuccess={handleAuthSuccess}
+        onSwitchToLogin={() => { setRegisterOpen(false); setLoginModalOpen(true); }} />
+      <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} onSuccess={handleAuthSuccess}
+        onSwitchToRegister={() => { setLoginModalOpen(false); setRegisterOpen(true); }} />
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={poll} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />

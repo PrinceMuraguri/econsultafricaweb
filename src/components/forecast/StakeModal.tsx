@@ -213,7 +213,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
           <p className="text-[10px] text-muted-foreground text-center leading-tight">
             By participating, you agree to the{" "}
-            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>.
+            <a href="/terms-of-use" target="_blank" className="text-primary underline hover:text-accent">Terms of Use</a>.
             Forecasting involves uncertainty. Only participate with what you are comfortable allocating. Platform fees of 3.5% applies.
           </p>
         </div>

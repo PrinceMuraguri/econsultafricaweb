@@ -55,6 +55,14 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
   const isLoggedIn = !!user;
 
+  // Auto-close auth modals when user becomes logged in (fixes blur overlay stuck issue)
+  useEffect(() => {
+    if (isLoggedIn) {
+      setRegisterOpen(false);
+      setLoginModalOpen(false);
+    }
+  }, [isLoggedIn]);
+
   useEffect(() => { setLocalOptions(poll.poll_options); }, [poll.poll_options]);
 
   useEffect(() => {

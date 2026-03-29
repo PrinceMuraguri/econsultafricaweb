@@ -8,24 +8,25 @@ import { useNavigate } from "react-router-dom";
 const WALLET_PROMPT_KEY = "wallet_topup_prompted";
 
 const WalletTopUpPrompt = () => {
-  const { user, wallet } = useAuth();
+  const { user, wallet, profile } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+
+  const displayName = profile?.full_name?.split(" ")[0] || "there";
 
   useEffect(() => {
     if (!user) return;
     
-    // Show prompt only once per session after login
     const alreadyPrompted = sessionStorage.getItem(WALLET_PROMPT_KEY);
     if (alreadyPrompted) return;
 
-    // Wait a moment after login for smooth UX
+    // Wait 45 seconds after login for smooth UX
     const timer = setTimeout(() => {
       if (wallet === null || (wallet && wallet.balance_usd === 0)) {
         setOpen(true);
         sessionStorage.setItem(WALLET_PROMPT_KEY, "true");
       }
-    }, 2000);
+    }, 45000);
 
     return () => clearTimeout(timer);
   }, [user, wallet]);
@@ -45,10 +46,10 @@ const WalletTopUpPrompt = () => {
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <Wallet className="w-5 h-5 text-primary" />
-            Fund Your Wallet
+            Welcome back, {displayName}!
           </DialogTitle>
           <DialogDescription>
-            Back your forecasts with capital commitment and earn rewards when you're right.
+            Fund your wallet to back your forecasts with capital commitment and earn rewards when you're right.
           </DialogDescription>
         </DialogHeader>
 

@@ -24,6 +24,7 @@ import HowItWorksDetailed from "./pages/HowItWorksDetailed.tsx";
 import TermsOfUse from "./pages/TermsOfUse.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import MyDashboard from "./pages/MyDashboard.tsx";
+import SectorBriefPreview from "./pages/SectorBriefPreview.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/terms-of-use" element={<TermsOfUse />} />
             <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
             <Route path="/my-dashboard" element={<MyDashboard />} />
             {/* Redirects */}
             <Route path="/forecast-arena" element={<Navigate to="/" replace />} />

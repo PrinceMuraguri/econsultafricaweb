@@ -83,7 +83,9 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-    if (!isLoggedIn) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
+    // Allow 3 free votes before requiring registration
+    const freeVoteCount = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
+    if (!isLoggedIn && freeVoteCount >= 3) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -98,6 +100,11 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       setHasVoted(true);
       setVotedOptionId(optionId);
       setLocalOptions(prev => prev.map(o => o.id === optionId ? { ...o, total_votes_count: o.total_votes_count + 1 } : o));
+      // Track free votes for non-logged-in users
+      if (!isLoggedIn) {
+        const count = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
+        localStorage.setItem("free_vote_count", String(count + 1));
+      }
       toast({ title: "🎯 Forecast submitted!", description: "Your view has been recorded." });
     } catch {
       toast({ title: "Error", description: "Could not record forecast. Try again.", variant: "destructive" });
@@ -207,32 +214,14 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </span>
       </div>
 
-      {/* Question title + Expert Insight */}
-      <div className="flex items-start justify-between gap-2 mb-1">
+      {/* Question title */}
+      <div className="mb-1">
         <h3 className="font-display font-bold text-foreground leading-snug text-sm">{poll.title}</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="shrink-0 text-[10px] font-semibold gap-1 px-2 py-1 h-auto text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-500/10"
-          onClick={handleUnlockInsight}
-        >
-          {isPumpPriceQuestion ? (
-            <>
-              <Download className="w-3 h-3 text-amber-500" />
-              Unlock Insight
-            </>
-          ) : (
-            <>
-              <Lightbulb className="w-3 h-3 text-amber-500" />
-              Unlock Insight
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Context preview — show inline, expand if long */}
       {poll.context && (
-        <div className="mb-2">
+        <div className="mb-1">
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             {detailsExpanded ? poll.context : contextPreview}
           </p>
@@ -245,21 +234,41 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       )}
 
+      {/* Unlock Insight — below description (or after "view details" for long context) */}
+      {(!contextIsLong || detailsExpanded || !poll.context) && (
+        <div className="mb-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-[10px] font-semibold gap-1 px-2 py-1 h-auto text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-500/10"
+            onClick={handleUnlockInsight}
+          >
+            {isPumpPriceQuestion ? (
+              <><Download className="w-3 h-3 text-amber-500" /> Unlock Insight</>
+            ) : (
+              <><Lightbulb className="w-3 h-3 text-amber-500" /> Unlock Insight</>
+            )}
+          </Button>
+        </div>
+      )}
+
       {/* Two-column layout: Left = Vote, Right = Sentiment */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
         {/* LEFT: Make Your Prediction */}
         <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Take Your Position</p>
-          <p className="text-[9px] text-muted-foreground mb-1.5 flex items-center gap-1 flex-wrap">
-            <motion.span
-              animate={{ opacity: [1, 0.4, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded"
-            >
-              New Feature
-            </motion.span>
-            Commit to your view and earn rewards if you are correct.
-          </p>
+          {isTrending && (
+            <p className="text-[9px] text-muted-foreground mb-1.5 flex items-center gap-1 flex-wrap">
+              <motion.span
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded"
+              >
+                New Feature
+              </motion.span>
+              Commit to your view and earn rewards if you are correct.
+            </p>
+          )}
 
           <AnimatePresence>
             {justVoted && (
@@ -272,14 +281,15 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
           </AnimatePresence>
 
           <div className="space-y-1.5 flex-1 relative">
-            {/* Subtle hover pointer hint for non-voted users */}
+            {/* Downward arrow hint for trending question */}
             {!hasVoted && !isClosed && isTrending && (
               <motion.div
-                className="absolute -right-1 top-2 z-10 pointer-events-none"
-                animate={{ x: [0, -4, 0], y: [0, 3, 0], opacity: [0.4, 0.8, 0.4] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                className="flex flex-col items-center mb-1 pointer-events-none"
+                animate={{ y: [0, 6, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               >
-                <MousePointer2 className="w-5 h-5 text-accent drop-shadow-md" />
+                <span className="text-[9px] font-bold text-accent uppercase tracking-wider">Take Position</span>
+                <ChevronDown className="w-5 h-5 text-accent" />
               </motion.div>
             )}
             {sortedOptions.map((option) => {

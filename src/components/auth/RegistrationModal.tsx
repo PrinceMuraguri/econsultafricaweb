@@ -320,15 +320,6 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
             </Select>
           </div>
 
-          {/* Organization */}
-          <div className="space-y-1">
-            <Label className="text-xs font-medium">Organization / Institution</Label>
-            <OrganizationAutocomplete
-              value={organization}
-              onChange={setOrganization}
-              placeholder="e.g. World Bank, Safaricom..."
-            />
-          </div>
           <div className="space-y-1">
             <Label className="text-xs font-medium">What interests you?</Label>
             <div className="flex flex-wrap gap-2">

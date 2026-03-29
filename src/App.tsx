@@ -56,6 +56,7 @@ const App = () => (
             <Route path="/terms-of-use" element={<TermsOfUse />} />
             <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
             <Route path="/my-dashboard" element={<MyDashboard />} />
             {/* Redirects */}
             <Route path="/forecast-arena" element={<Navigate to="/" replace />} />

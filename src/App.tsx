@@ -24,6 +24,7 @@ import HowItWorksDetailed from "./pages/HowItWorksDetailed.tsx";
 import TermsOfUse from "./pages/TermsOfUse.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import MyDashboard from "./pages/MyDashboard.tsx";
+import SectorBriefPreview from "./pages/SectorBriefPreview.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();

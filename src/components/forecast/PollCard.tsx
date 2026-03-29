@@ -83,7 +83,9 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-    if (!isLoggedIn) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
+    // Allow 3 free votes before requiring registration
+    const freeVoteCount = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
+    if (!isLoggedIn && freeVoteCount >= 3) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -98,6 +100,11 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       setHasVoted(true);
       setVotedOptionId(optionId);
       setLocalOptions(prev => prev.map(o => o.id === optionId ? { ...o, total_votes_count: o.total_votes_count + 1 } : o));
+      // Track free votes for non-logged-in users
+      if (!isLoggedIn) {
+        const count = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
+        localStorage.setItem("free_vote_count", String(count + 1));
+      }
       toast({ title: "🎯 Forecast submitted!", description: "Your view has been recorded." });
     } catch {
       toast({ title: "Error", description: "Could not record forecast. Try again.", variant: "destructive" });
@@ -207,27 +214,9 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </span>
       </div>
 
-      {/* Question title + Expert Insight */}
-      <div className="flex items-start justify-between gap-2 mb-1">
+      {/* Question title */}
+      <div className="mb-1">
         <h3 className="font-display font-bold text-foreground leading-snug text-sm">{poll.title}</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="shrink-0 text-[10px] font-semibold gap-1 px-2 py-1 h-auto text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-500/10"
-          onClick={handleUnlockInsight}
-        >
-          {isPumpPriceQuestion ? (
-            <>
-              <Download className="w-3 h-3 text-amber-500" />
-              Unlock Insight
-            </>
-          ) : (
-            <>
-              <Lightbulb className="w-3 h-3 text-amber-500" />
-              Unlock Insight
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Context preview — show inline, expand if long */}

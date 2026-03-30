@@ -14,14 +14,14 @@ const fadeUp = {
 const COUNTRY_FILTERS = ["Kenya", "South Africa", "Nigeria", "Rwanda", "Ethiopia"];
 
 const SECTOR_BRIEFS = [
-  { title: "Banking & Financial Services", file: "Kenya_2026_Banking_Financial_Services_Brief.pdf", country: "Kenya" },
-  { title: "Agriculture & Food Security", file: "Kenya_2026_Agriculture_Food_Security_Brief.pdf", country: "Kenya" },
-  { title: "Energy & Infrastructure", file: "Kenya_2026_Energy_Infrastructure_Brief.pdf", country: "Kenya" },
-  { title: "Manufacturing & Industry", file: "Kenya_2026_Manufacturing_Industry_Brief.pdf", country: "Kenya" },
-  { title: "Digital Economy", file: "Kenya_2026_Technology_Digital_Economy_Brief.pdf", country: "Kenya" },
-  { title: "Tourism & Hospitality", file: "Kenya_2026_Tourism_Hospitality_Brief.pdf", country: "Kenya" },
-  { title: "Real Estate & Construction", file: "Kenya_2026_Real_Estate_Construction_Brief.pdf", country: "Kenya" },
-  { title: "Retail & Consumer", file: "Kenya_2026_Retail_Consumer_Brief.pdf", country: "Kenya" },
+  { title: "Banking & Financial Services", file: "Kenya_2026_Banking_Financial_Services_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Banking_Financial_Services_Brief-01.jpg" },
+  { title: "Agriculture & Food Security", file: "Kenya_2026_Agriculture_Food_Security_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Agriculture_Food_Security_Brief-01.jpg" },
+  { title: "Energy & Infrastructure", file: "Kenya_2026_Energy_Infrastructure_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Energy_Infrastructure_Brief-01.jpg" },
+  { title: "Manufacturing & Industry", file: "Kenya_2026_Manufacturing_Industry_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Manufacturing_Industry_Brief-01.jpg" },
+  { title: "Digital Economy", file: "Kenya_2026_Technology_Digital_Economy_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Technology_Digital_Economy_Brief-01.jpg" },
+  { title: "Tourism & Hospitality", file: "Kenya_2026_Tourism_Hospitality_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Tourism_Hospitality_Brief-01.jpg" },
+  { title: "Real Estate & Construction", file: "Kenya_2026_Real_Estate_Construction_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Real_Estate_Construction_Brief-01.jpg" },
+  { title: "Retail & Consumer", file: "Kenya_2026_Retail_Consumer_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Retail_Consumer_Brief-01.jpg" },
 ];
 
 const AUDIENCE_NOTES = [
@@ -32,11 +32,11 @@ const AUDIENCE_NOTES = [
 ];
 
 const COUNTRY_REPORTS = [
-  { country: "Kenya", title: "Kenya 2026 Economic Outlook", price: "$495", available: true, flag: "🇰🇪" },
-  { country: "South Africa", title: "South Africa 2026 Economic Outlook", price: "$495", available: false, flag: "🇿🇦" },
-  { country: "Nigeria", title: "Nigeria 2026 Economic Outlook", price: "$495", available: false, flag: "🇳🇬" },
-  { country: "Rwanda", title: "Rwanda 2026 Economic Outlook", price: "$495", available: false, flag: "🇷🇼" },
-  { country: "Ethiopia", title: "Ethiopia 2026 Economic Outlook", price: "$495", available: false, flag: "🇪🇹" },
+  { country: "Kenya", title: "Kenya 2026 Economic Outlook", price: "$495", available: true, flag: "🇰🇪", cover: "/reports/covers/Kenya_2026_Sample-01.jpg" },
+  { country: "South Africa", title: "South Africa 2026 Economic Outlook", price: "$495", available: false, flag: "🇿🇦", cover: null },
+  { country: "Nigeria", title: "Nigeria 2026 Economic Outlook", price: "$495", available: false, flag: "🇳🇬", cover: null },
+  { country: "Rwanda", title: "Rwanda 2026 Economic Outlook", price: "$495", available: false, flag: "🇷🇼", cover: null },
+  { country: "Ethiopia", title: "Ethiopia 2026 Economic Outlook", price: "$495", available: false, flag: "🇪🇹", cover: null },
 ];
 
 const IntelligenceMarketplace = () => {
@@ -75,7 +75,7 @@ const IntelligenceMarketplace = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="pt-8 pb-4 md:pt-12 md:pb-6 px-4 md:px-8">
+      <section className="pt-12 pb-4 md:pt-16 md:pb-6 px-4 md:px-8">
         <div className="container-page">
           <div className="max-w-3xl mb-6 md:mb-8">
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0}
@@ -112,12 +112,19 @@ const IntelligenceMarketplace = () => {
             {COUNTRY_REPORTS.map((report, i) => (
               <motion.div key={report.country} initial="hidden" whileInView="visible" viewport={{ once: true }}
                 variants={fadeUp} custom={i} whileHover={{ y: -4 }}
-                className={`rounded-lg border p-6 flex flex-col card-shadow ${
+                className={`rounded-lg border overflow-hidden flex flex-col card-shadow ${
                   report.available
                     ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/20"
                     : "bg-background border-border"
                 }`}>
-                <span className="text-3xl mb-3">{report.flag}</span>
+                {report.cover ? (
+                  <img src={report.cover} alt={`${report.title} cover`} className="w-full h-40 object-cover object-top" />
+                ) : (
+                  <div className="w-full h-40 bg-muted/50 flex items-center justify-center">
+                    <span className="text-5xl">{report.flag}</span>
+                  </div>
+                )}
+                <div className="p-6 flex flex-col flex-1">
                 {!report.available && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded-full mb-2 w-fit">
                     <Lock className="w-3 h-3" /> Coming Soon

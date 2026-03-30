@@ -27,12 +27,15 @@ Deno.serve(async (req) => {
   try {
     const { email, amount, callback_url, metadata } = await req.json();
 
-    if (!email) {
+    if (!email && !metadata?.type) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    // Use a placeholder if no email provided (Paystack will collect)
+    const customerEmail = email || 'customer@placeholder.com';
 
     const paystackSecretKey = (Deno.env.get('PAYSTACK_SECRET_KEY') ?? Deno.env.get('Paystack_KEY') ?? '').trim();
     if (!paystackSecretKey) {
@@ -58,7 +61,7 @@ Deno.serve(async (req) => {
       type: 'report_purchase',
     };
 
-    console.log('Initializing Paystack transaction for:', email, 'amount:', chargeAmount);
+    console.log('Initializing Paystack transaction for:', customerEmail, 'amount:', chargeAmount);
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -67,7 +70,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email,
+        email: customerEmail,
         amount: chargeAmount,
         currency: 'KES',
         callback_url: callback_url || undefined,

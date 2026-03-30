@@ -43,7 +43,30 @@ const IntelligenceMarketplace = () => {
   const [interestModal, setInterestModal] = useState<{ open: boolean; title: string }>({ open: false, title: "" });
   const [sectorCountry, setSectorCountry] = useState("Kenya");
   const [audienceCountry, setAudienceCountry] = useState("Kenya");
+  const [purchaseLoading, setPurchaseLoading] = useState<string | null>(null);
   const openInterest = (title: string) => setInterestModal({ open: true, title });
+
+  const handlePurchaseBrief = async (brief: typeof SECTOR_BRIEFS[0]) => {
+    setPurchaseLoading(brief.file);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(brief.title)}&type=sector_brief`;
+      const { data, error } = await supabase.functions.invoke("paystack-checkout", {
+        body: {
+          email: "", // Paystack will collect email
+          amount: 95,
+          callback_url: callbackUrl,
+          metadata: { type: "sector_brief", product: `${brief.country} ${brief.title}`, file: brief.file },
+        },
+      });
+      if (error || !data?.authorization_url) throw new Error(data?.error || "Failed to start payment");
+      window.location.href = data.authorization_url;
+    } catch (err: any) {
+      const { useToast } = await import("@/hooks/use-toast");
+      alert(err.message || "Payment error. Please try again.");
+      setPurchaseLoading(null);
+    }
+  };
 
   const filteredBriefs = SECTOR_BRIEFS.filter(b => b.country === sectorCountry);
   const hasSectorContent = sectorCountry === "Kenya";
@@ -52,18 +75,18 @@ const IntelligenceMarketplace = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="section-padding">
+      <section className="pt-8 pb-4 md:pt-12 md:pb-6 px-4 md:px-8">
         <div className="container-page">
-          <div className="max-w-3xl mb-16">
+          <div className="max-w-3xl mb-6 md:mb-8">
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0}
-              className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Intelligence Marketplace</motion.p>
+              className="font-mono text-xs text-gold uppercase tracking-widest mb-2">Intelligence Marketplace</motion.p>
             <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1}
-              className="text-4xl md:text-5xl font-bold text-foreground leading-[1.1] mb-6">
+              className="text-2xl md:text-4xl font-bold text-foreground leading-[1.1] mb-3">
               Economic Intelligence. On Demand.
             </motion.h1>
             <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}
-              className="text-lg text-muted-foreground leading-relaxed">
-              Intelligence products calibrated for organizations navigating African economies. Every product answers one question: <span className="text-foreground font-medium">"What does this mean for us?"</span>
+              className="text-sm md:text-base text-muted-foreground leading-relaxed">
+              Intelligence products calibrated for organizations navigating African economies.
             </motion.p>
           </div>
         </div>
@@ -169,8 +192,10 @@ const IntelligenceMarketplace = () => {
                   </p>
                   <p className="font-display font-bold text-2xl text-primary mb-4">$95</p>
                   <div className="space-y-2">
-                    <Button variant="hero" size="sm" className="w-full hover-sink" onClick={() => openInterest(`${brief.country} ${brief.title} Sector Brief`)}>
-                      Purchase Brief <ArrowRight className="ml-1 w-3 h-3" />
+                    <Button variant="hero" size="sm" className="w-full hover-sink" 
+                      onClick={() => handlePurchaseBrief(brief)}
+                      disabled={purchaseLoading === brief.file}>
+                      {purchaseLoading === brief.file ? "Processing..." : "Purchase Brief"} <ArrowRight className="ml-1 w-3 h-3" />
                     </Button>
                     <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-foreground" asChild>
                       <Link to={`/sector-brief-preview/${encodeURIComponent(brief.file)}`}>

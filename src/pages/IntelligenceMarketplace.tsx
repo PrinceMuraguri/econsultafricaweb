@@ -149,6 +149,7 @@ const IntelligenceMarketplace = () => {
                     </Button>
                   )}
                 </div>
+                </div>
               </motion.div>
             ))}
           </div>

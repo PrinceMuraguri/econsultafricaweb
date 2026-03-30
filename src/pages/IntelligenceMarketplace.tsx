@@ -192,8 +192,10 @@ const IntelligenceMarketplace = () => {
               {filteredBriefs.map((brief, i) => (
                 <motion.div key={brief.title} initial="hidden" whileInView="visible" viewport={{ once: true }}
                   variants={fadeUp} custom={i} whileHover={{ y: -4 }}
-                  className="bg-background rounded-lg border border-border p-6 card-shadow flex flex-col">
-                  <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-full mb-3">{brief.country}</span>
+                  className="bg-background rounded-lg border border-border overflow-hidden card-shadow flex flex-col">
+                  <img src={brief.cover} alt={`${brief.title} cover`} className="w-full h-44 object-cover object-top" />
+                  <div className="p-5 flex flex-col flex-1">
+                  <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-full mb-3 w-fit">{brief.country}</span>
                   <h3 className="font-display font-bold text-foreground mb-2">{brief.title}</h3>
                   <p className="text-xs text-muted-foreground mb-4 flex-1">
                     In-depth analysis of {brief.title.toLowerCase()} in {brief.country} — trends, risks, opportunities, and strategic recommendations for decision-makers.

@@ -12,7 +12,7 @@ const WalletTopUpPrompt = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const displayName = profile?.full_name?.split(" ")[0] || "there";
+  const displayName = profile?.full_name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || "there";
 
   useEffect(() => {
     if (!user) return;

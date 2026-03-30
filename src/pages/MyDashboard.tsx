@@ -34,9 +34,30 @@ interface Position {
 const DEPOSIT_AMOUNTS = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
 
 const MyDashboard = () => {
-  const { user, profile, wallet, refreshWallet } = useAuth();
+  const { user, profile, wallet, refreshWallet, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [depositLoading, setDepositLoading] = useState(false);
+
+  // Auto-refresh wallet & profile on mount and after deposit return
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    const isDepositReturn = params.get("deposit") === "success";
+    
+    // Always refresh on mount
+    refreshWallet();
+    refreshProfile();
+    
+    if (isDepositReturn) {
+      toast({ title: "💰 Deposit processing", description: "Your wallet balance will update shortly." });
+      // Poll for balance update
+      const interval = setInterval(() => refreshWallet(), 3000);
+      setTimeout(() => clearInterval(interval), 30000);
+      // Clean URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [user]);
+
 
   // Fetch user's votes with poll data
   const { data: positions, isLoading } = useQuery({

@@ -366,8 +366,8 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
           {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
-                <Rocket className="w-3 h-3 text-accent" />
-                Vote first to commit capital
+              <Rocket className="w-3 h-3 text-accent" />
+                Take your position above to commit capital
               </p>
             </div>
           )}

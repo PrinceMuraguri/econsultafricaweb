@@ -210,6 +210,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       {/* Header row */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{poll.category}</span>
+        <div className="flex items-center gap-1 ml-auto">
+          <BookmarkToggle pollId={poll.id} onRequireAuth={() => setRegisterOpen(true)} />
+          <SharePopover url={`/forecast-arena/${poll.slug}`} title={poll.title} />
+        </div>
         
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />{getTimeRemaining(poll.close_at)}

@@ -7,6 +7,7 @@ import ProductInterestModal from "@/components/ProductInterestModal";
 import { useCart } from "@/contexts/CartContext";
 import { COUNTRY_REPORTS, SECTOR_BRIEFS, AUDIENCE_NOTES, MarketplaceProduct } from "@/data/marketplace-products";
 import { ArrowRight, Filter, Lock, ShoppingCart, BookOpen, Eye, Briefcase, Users, Zap } from "lucide-react";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },

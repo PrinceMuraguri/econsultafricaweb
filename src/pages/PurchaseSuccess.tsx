@@ -9,7 +9,9 @@ import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const PurchaseSuccess = () => {
   const [searchParams] = useSearchParams();
-  const reference = searchParams.get("reference");
+  const reference = searchParams.get("reference") || searchParams.get("trxref");
+  const pTitle = searchParams.get("product") || "Report";
+  const pType = searchParams.get("type") || "report";
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

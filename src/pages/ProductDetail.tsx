@@ -16,6 +16,12 @@ const ProductDetail = () => {
   const { addItem } = useCart();
   const [purchaseLoading, setPurchaseLoading] = useState(false);
 
+  useEffect(() => {
+    if (product) {
+      trackFunnelEvent("product_click", { productId: product.id, productTitle: product.title, productType: product.type });
+    }
+  }, [product?.id]);
+
   if (!product) {
     return (
       <Layout>

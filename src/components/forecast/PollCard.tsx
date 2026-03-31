@@ -214,9 +214,9 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </span>
       </div>
 
-      {/* Question title */}
+      {/* Question title — use full width */}
       <div className="mb-1">
-        <h3 className="font-display font-bold text-foreground leading-snug text-sm">{poll.title}</h3>
+        <h3 className="font-display font-bold text-foreground leading-snug text-sm pr-0">{poll.title}</h3>
       </div>
 
       {/* Context preview — show inline, expand if long */}

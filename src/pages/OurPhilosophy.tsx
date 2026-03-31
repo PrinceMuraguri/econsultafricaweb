@@ -620,7 +620,7 @@ const OurPhilosophy = () => {
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
             className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="gold" size="lg" className="hover-sink" asChild>
-              <Link to="/kenya-2026">Buy Kenya Report <ArrowRight className="ml-1" /></Link>
+              <Link to="/intelligence-marketplace">Take Me to the Intelligence Marketplace <ArrowRight className="ml-1" /></Link>
             </Button>
             <Button size="lg" className="hover-sink bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-display font-semibold" asChild>
               <Link to="/contact">Book a Consultation</Link>

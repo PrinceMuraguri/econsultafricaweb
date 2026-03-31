@@ -67,7 +67,7 @@ function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNot
                 </Link>
               </Button>
             )}
-            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country })}>
+            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country }); trackFunnelEvent("add_to_cart", { productId: product.id, productTitle: product.title, productType: product.type }); }}>
               <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
             </Button>
           </div>

@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "econsultafricaweb"
+const SITE_NAME = "Econsult Africa"
 const SENDER_DOMAIN = "notify.econsult.africa"
 const ROOT_DOMAIN = "econsult.africa"
 const FROM_DOMAIN = "econsult.africa" // Domain shown in From address (may be root or sender subdomain)

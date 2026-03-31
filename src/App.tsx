@@ -20,6 +20,8 @@ import SampleReport from "./pages/SampleReport.tsx";
 import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
 import StakeResult from "./pages/StakeResult.tsx";
+import Leaderboard from "./pages/Leaderboard.tsx";
+import UserProfile from "./pages/UserProfile.tsx";
 import HowItWorks from "./pages/HowItWorks.tsx";
 import HowItWorksQuick from "./pages/HowItWorksQuick.tsx";
 import HowItWorksDetailed from "./pages/HowItWorksDetailed.tsx";

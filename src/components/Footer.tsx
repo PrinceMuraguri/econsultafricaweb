@@ -72,7 +72,7 @@ const Footer = () => {
           <p className="text-[10px] text-muted-foreground text-center leading-relaxed mb-6">
             Forecast Arena aggregates users' expectations on economic outcomes for research and insight purposes.
             It is not a trading, betting, or investment platform.{" "}
-            <a href="/documents/terms-of-use.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-accent">Terms of Use</a>
+            <a href="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</a>
           </p>
         </div>
 

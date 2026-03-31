@@ -345,9 +345,8 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             const potentialGain = (1 - price).toFixed(2);
             return (
               <div className="mt-2 pt-2 border-t border-border">
-                <p className="text-[9px] text-muted-foreground mb-1.5 text-center flex items-center justify-center gap-1 flex-wrap">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
-                  Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
+                 <p className="text-[9px] text-muted-foreground mb-1.5 text-center flex items-center justify-center gap-1 flex-wrap">
+                   Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => handleAllocate(votedOption)}

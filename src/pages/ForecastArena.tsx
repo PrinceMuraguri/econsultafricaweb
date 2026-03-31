@@ -220,9 +220,8 @@ const ForecastArena = () => {
         <div className="container-page text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">Want Deeper Economic Intelligence?</h2>
           <p className="text-primary-foreground/70 mb-6 max-w-xl mx-auto text-sm">Go beyond forecasts. Get the full analysis behind Africa's economic trajectory.</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/kenya-2026" className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-5 py-2.5 font-semibold shadow hover:bg-accent/90 transition-colors text-sm">Get Kenya Report</Link>
-            <Link to="/intelligence-marketplace" className="inline-flex items-center justify-center rounded-md border-2 border-primary-foreground/30 text-primary-foreground px-5 py-2.5 font-semibold hover:bg-primary-foreground/10 transition-colors text-sm">Browse Intelligence Products</Link>
+          <div className="flex justify-center">
+            <Link to="/intelligence-marketplace" className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-semibold shadow hover:bg-accent/90 transition-colors text-sm">Take Me to the Intelligence Marketplace <ArrowRight className="ml-2 w-4 h-4" /></Link>
           </div>
         </div>
       </section>

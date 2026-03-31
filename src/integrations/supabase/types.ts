@@ -318,6 +318,42 @@ export type Database = {
           },
         ]
       }
+      sales_funnel_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          product_title: string | null
+          product_type: string | null
+          user_email: string | null
+          user_fingerprint: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          product_title?: string | null
+          product_type?: string | null
+          user_email?: string | null
+          user_fingerprint?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          product_title?: string | null
+          product_type?: string | null
+          user_email?: string | null
+          user_fingerprint?: string | null
+        }
+        Relationships: []
+      }
       sample_downloads: {
         Row: {
           downloaded_at: string

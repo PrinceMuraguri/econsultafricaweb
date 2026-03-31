@@ -29,6 +29,8 @@ import MyDashboard from "./pages/MyDashboard.tsx";
 import SectorBriefPreview from "./pages/SectorBriefPreview.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import ThankYou from "./pages/ThankYou.tsx";
+import Unsubscribe from "./pages/Unsubscribe.tsx";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,8 @@ const App = () => (
               <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
               <Route path="/my-dashboard" element={<MyDashboard />} />
+              <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* Redirects */}
               <Route path="/forecast-arena" element={<Navigate to="/" replace />} />
               <Route path="/forecast-arena/stake-result" element={<Navigate to="/stake-result" replace />} />

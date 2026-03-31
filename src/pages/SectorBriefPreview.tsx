@@ -79,7 +79,10 @@ const SectorBriefPreview = () => {
         setLoading(false);
       }
     };
-    if (decodedFilename) loadPdf();
+    if (decodedFilename) {
+      loadPdf();
+      trackFunnelEvent("sample_view", { productTitle: briefTitle, productType });
+    }
   }, [decodedFilename]);
 
   const handlePurchase = async () => {

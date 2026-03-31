@@ -1008,6 +1008,9 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {/* Tab: Sales Funnel */}
+          {activeTab === "sales-funnel" && <SalesFunnelTab />}
+
           {/* Tab: Archive Data */}
           {activeTab === "archive" && (
             <div className="space-y-6">

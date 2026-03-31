@@ -58,11 +58,11 @@ const Navbar = () => {
             <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-5">
             {navLinks.map((link) => (
               <Link key={link.href} to={link.href}
                 className={`text-sm font-medium transition-colors duration-200 ${
-                  location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
+                  location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}>
                 {link.label}
               </Link>
@@ -78,13 +78,13 @@ const Navbar = () => {
                 <NotificationBell />
                 <Link to="/watchlist"
                   className={`text-sm font-medium transition-colors flex items-center gap-1 ${
-                    location.pathname === "/watchlist" ? "text-primary" : "text-muted-foreground hover:text-accent"
+                    location.pathname === "/watchlist" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}>
                   <Bookmark className="w-4 h-4" />
                 </Link>
                 <Link to="/my-dashboard"
                   className={`text-sm font-medium transition-colors flex items-center gap-1 ${
-                    location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"
+                    location.pathname === "/my-dashboard" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}>
                   <User className="w-4 h-4" />
                   {profile?.username || "Dashboard"}

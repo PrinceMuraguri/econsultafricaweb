@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Lock, ArrowRight, ShoppingCart } from "lucid
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 import * as pdfjsLib from "pdfjs-dist";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
@@ -26,6 +27,7 @@ const BRIEF_NAMES: Record<string, string> = {
   "Kenya_2026_Startup_SME_Scan.pdf": "Startup & SME Environment Scan",
   "Kenya_2026_Exporter_Importer_Trade_Brief.pdf": "Exporter/Importer Trade Brief",
   "kenya-oil-shortage-assessment-march-2026.pdf": "Kenya 2026 Economic Outlook",
+  "Kenya_2026_Economic_Outlook.pdf": "Kenya 2026 Economic Outlook",
 };
 
 const SectorBriefPreview = () => {
@@ -34,7 +36,7 @@ const SectorBriefPreview = () => {
   const briefTitle = BRIEF_NAMES[decodedFilename] || decodedFilename.replace(/_/g, " ").replace(".pdf", "");
 
   // Use 50 pages for the Kenya country report, 8 for everything else
-  const isCountryReport = decodedFilename.includes("kenya-oil-shortage") || decodedFilename.includes("Kenya_2026_Sample");
+  const isCountryReport = decodedFilename.includes("kenya-oil-shortage") || decodedFilename.includes("Kenya_2026_Sample") || decodedFilename.includes("Kenya_2026_Economic_Outlook");
   const maxPages = isCountryReport ? 50 : MAX_PREVIEW_PAGES;
   const price = isCountryReport ? 495 : 95;
   const productType = isCountryReport ? "country_report" : "sector_brief";
@@ -48,10 +50,12 @@ const SectorBriefPreview = () => {
   useEffect(() => {
     const loadPdf = async () => {
       try {
-        // Try sector-briefs folder first, fall back to reports folder for country reports
+        // For country reports, use the new Kenya_2026_Economic_Outlook.pdf
+        const actualFilename = decodedFilename === "kenya-oil-shortage-assessment-march-2026.pdf"
+          ? "Kenya_2026_Economic_Outlook.pdf" : decodedFilename;
         const pdfPath = isCountryReport
-          ? `/reports/${decodedFilename}`
-          : `/reports/sector-briefs/${decodedFilename}`;
+          ? `/reports/${actualFilename}`
+          : `/reports/sector-briefs/${actualFilename}`;
         const doc = await pdfjsLib.getDocument(pdfPath).promise;
         setPdfDoc(doc);
         const pagesToRender = Math.min(doc.numPages, maxPages);
@@ -75,7 +79,10 @@ const SectorBriefPreview = () => {
         setLoading(false);
       }
     };
-    if (decodedFilename) loadPdf();
+    if (decodedFilename) {
+      loadPdf();
+      trackFunnelEvent("sample_view", { productTitle: briefTitle, productType });
+    }
   }, [decodedFilename]);
 
   const handlePurchase = async () => {

@@ -105,7 +105,7 @@ const IntelligenceMarketplace = () => {
           <div className="max-w-3xl">
             <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Intelligence Marketplace</p>
             <h1 className="text-2xl md:text-4xl font-bold text-foreground leading-[1.1] mb-2">Economic Intelligence. On Demand.</h1>
-            <p className="text-sm text-muted-foreground">Intelligence products calibrated for organizations navigating African economies.</p>
+            <p className="text-sm text-muted-foreground">We don't rely on instinct—we rely on evidence. Explore our intelligence marketplace for insights crafted for you, whether you're an individual, a founder, a business, an investor, or a decision-maker shaping what comes next.</p>
           </div>
           {items.length > 0 && (
             <Button variant="outline" className="relative" onClick={() => setIsOpen(true)}>

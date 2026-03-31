@@ -58,7 +58,7 @@ const PollDiscussionTabs = ({ poll }: Props) => {
     queryFn: async () => {
       let q = supabase
         .from("poll_comments")
-        .select("*, user_profiles!poll_comments_user_id_fkey(username, full_name)")
+        .select("*")
         .eq("poll_id", poll.id)
         .order("created_at", { ascending: false });
 
@@ -66,7 +66,19 @@ const PollDiscussionTabs = ({ poll }: Props) => {
 
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []) as unknown as Comment[];
+      const rows = data || [];
+      
+      // Fetch usernames for comment authors
+      const userIds = [...new Set(rows.map((r: any) => r.user_id))];
+      if (userIds.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("user_id, username, full_name")
+        .in("user_id", userIds);
+      const profileMap: Record<string, { username: string; full_name: string }> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = { username: p.username, full_name: p.full_name }; });
+      
+      return rows.map((r: any) => ({ ...r, user_profiles: profileMap[r.user_id] || null })) as Comment[];
     },
   });
 

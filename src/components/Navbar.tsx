@@ -75,6 +75,13 @@ const Navbar = () => {
                     <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}
                   </span>
                 )}
+                <NotificationBell />
+                <Link to="/watchlist"
+                  className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                    location.pathname === "/watchlist" ? "text-primary" : "text-muted-foreground hover:text-accent"
+                  }`}>
+                  <Bookmark className="w-4 h-4" />
+                </Link>
                 <Link to="/my-dashboard"
                   className={`text-sm font-medium transition-colors flex items-center gap-1 ${
                     location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"

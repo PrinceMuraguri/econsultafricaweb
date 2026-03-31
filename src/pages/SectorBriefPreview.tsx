@@ -49,10 +49,12 @@ const SectorBriefPreview = () => {
   useEffect(() => {
     const loadPdf = async () => {
       try {
-        // Try sector-briefs folder first, fall back to reports folder for country reports
+        // For country reports, use the new Kenya_2026_Economic_Outlook.pdf
+        const actualFilename = decodedFilename === "kenya-oil-shortage-assessment-march-2026.pdf"
+          ? "Kenya_2026_Economic_Outlook.pdf" : decodedFilename;
         const pdfPath = isCountryReport
-          ? `/reports/${decodedFilename}`
-          : `/reports/sector-briefs/${decodedFilename}`;
+          ? `/reports/${actualFilename}`
+          : `/reports/sector-briefs/${actualFilename}`;
         const doc = await pdfjsLib.getDocument(pdfPath).promise;
         setPdfDoc(doc);
         const pagesToRender = Math.min(doc.numPages, maxPages);

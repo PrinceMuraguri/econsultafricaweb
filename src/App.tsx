@@ -22,6 +22,7 @@ import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
 import StakeResult from "./pages/StakeResult.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import UserProfile from "./pages/UserProfile.tsx";
+import Watchlist from "./pages/Watchlist.tsx";
 import HowItWorks from "./pages/HowItWorks.tsx";
 import HowItWorksQuick from "./pages/HowItWorksQuick.tsx";
 import HowItWorksDetailed from "./pages/HowItWorksDetailed.tsx";

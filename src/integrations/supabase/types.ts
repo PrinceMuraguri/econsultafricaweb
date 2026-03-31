@@ -293,6 +293,54 @@ export type Database = {
           },
         ]
       }
+      poll_comments: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          is_holder: boolean | null
+          parent_id: string | null
+          poll_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          is_holder?: boolean | null
+          parent_id?: string | null
+          poll_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          is_holder?: boolean | null
+          parent_id?: string | null
+          poll_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "poll_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_comments_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_options: {
         Row: {
           created_at: string
@@ -321,6 +369,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_snapshots: {
+        Row: {
+          id: string
+          option_id: string
+          poll_id: string
+          probability: number
+          snapshot_at: string | null
+          vote_count: number
+        }
+        Insert: {
+          id?: string
+          option_id: string
+          poll_id: string
+          probability?: number
+          snapshot_at?: string | null
+          vote_count?: number
+        }
+        Update: {
+          id?: string
+          option_id?: string
+          poll_id?: string
+          probability?: number
+          snapshot_at?: string | null
+          vote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_snapshots_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_snapshots_poll_id_fkey"
             columns: ["poll_id"]
             isOneToOne: false
             referencedRelation: "polls"
@@ -818,6 +908,27 @@ export type Database = {
       }
     }
     Views: {
+      leaderboard_view: {
+        Row: {
+          active_positions: number | null
+          country: string | null
+          full_name: string | null
+          losses: number | null
+          member_since: string | null
+          occupation: string | null
+          pnl: number | null
+          rank: number | null
+          resolved_positions: number | null
+          total_earnings: number | null
+          total_positions: number | null
+          total_staked: number | null
+          user_id: string | null
+          username: string | null
+          win_rate: number | null
+          wins: number | null
+        }
+        Relationships: []
+      }
       payout_winners: {
         Row: {
           country_code: string | null

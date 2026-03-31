@@ -88,6 +88,10 @@ const IntelligenceMarketplace = () => {
   const { items, setIsOpen } = useCart();
   const openInterest = (title: string) => setInterestModal({ open: true, title });
 
+  useEffect(() => {
+    trackFunnelEvent("marketplace_view");
+  }, []);
+
   const filteredBriefs = SECTOR_BRIEFS.filter(b => b.country === sectorCountry);
   const filteredAudience = AUDIENCE_NOTES.filter(b => b.country === audienceCountry);
   const hasSectorContent = sectorCountry === "Kenya";

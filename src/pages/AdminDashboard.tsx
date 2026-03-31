@@ -10,6 +10,7 @@ import {
   AlertTriangle, Loader2, BarChart3, Users, TrendingUp
 } from "lucide-react";
 import PollManager from "@/components/admin/PollManager";
+import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 

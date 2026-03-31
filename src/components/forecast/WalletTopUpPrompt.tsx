@@ -17,6 +17,8 @@ const WalletTopUpPrompt = () => {
 
   useEffect(() => {
     if (!user) return;
+    // Only show on forecast arena pages
+    if (!location.pathname.startsWith("/forecast-arena")) return;
     
     const alreadyPrompted = sessionStorage.getItem(WALLET_PROMPT_KEY);
     if (alreadyPrompted) return;
@@ -30,7 +32,7 @@ const WalletTopUpPrompt = () => {
     }, 45000);
 
     return () => clearTimeout(timer);
-  }, [user, wallet]);
+  }, [user, wallet, location.pathname]);
 
   const handleTopUp = () => {
     setOpen(false);

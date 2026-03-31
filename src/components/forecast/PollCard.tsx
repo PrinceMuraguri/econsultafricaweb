@@ -252,8 +252,8 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       )}
 
-      {/* Two-column layout: Left = Vote, Right = Sentiment */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+      {/* Two-column layout: Left = Vote, Right = Sentiment — side by side on all screens */}
+      <div className="grid grid-cols-2 gap-3 mb-2">
         {/* LEFT: Make Your Prediction */}
         <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Take Your Position</p>

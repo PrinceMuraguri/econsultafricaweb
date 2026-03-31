@@ -124,6 +124,10 @@ const Navbar = () => {
                 ))}
                 {isLoggedIn ? (
                   <>
+                    <Link to="/watchlist" onClick={() => setMobileOpen(false)}
+                      className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/watchlist" ? "text-primary" : "text-muted-foreground"}`}>
+                      <Bookmark className="w-4 h-4" /> Watchlist
+                    </Link>
                     <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
                       className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
                       <User className="w-4 h-4" /> Dashboard

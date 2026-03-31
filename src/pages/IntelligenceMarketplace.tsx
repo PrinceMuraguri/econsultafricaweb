@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -7,6 +7,7 @@ import ProductInterestModal from "@/components/ProductInterestModal";
 import { useCart } from "@/contexts/CartContext";
 import { COUNTRY_REPORTS, SECTOR_BRIEFS, AUDIENCE_NOTES, MarketplaceProduct } from "@/data/marketplace-products";
 import { ArrowRight, Filter, Lock, ShoppingCart, BookOpen, Eye, Briefcase, Users, Zap } from "lucide-react";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -66,7 +67,7 @@ function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNot
                 </Link>
               </Button>
             )}
-            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country })}>
+            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country }); trackFunnelEvent("add_to_cart", { productId: product.id, productTitle: product.title, productType: product.type }); }}>
               <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
             </Button>
           </div>
@@ -86,6 +87,10 @@ const IntelligenceMarketplace = () => {
   const [audienceCountry, setAudienceCountry] = useState("Kenya");
   const { items, setIsOpen } = useCart();
   const openInterest = (title: string) => setInterestModal({ open: true, title });
+
+  useEffect(() => {
+    trackFunnelEvent("marketplace_view");
+  }, []);
 
   const filteredBriefs = SECTOR_BRIEFS.filter(b => b.country === sectorCountry);
   const filteredAudience = AUDIENCE_NOTES.filter(b => b.country === audienceCountry);

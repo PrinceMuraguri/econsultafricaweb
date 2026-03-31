@@ -448,12 +448,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
       {/* Social Share prompt after voting */}
       {hasVoted && !isClosed && (
-        <div className="flex items-center justify-center gap-2 mt-1 pt-1 border-t border-border">
+        <div className="flex items-center justify-center gap-3 mt-1 pt-1 border-t border-border">
           <span className="text-[9px] text-muted-foreground">Share your forecast:</span>
           <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just took a position on "${poll.title}" on Forecast Arena! What's your view?`)}&url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
             target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">𝕏</a>
           <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
             target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">LinkedIn</a>
+          <a href={`https://wa.me/?text=${encodeURIComponent(`I just took a position on "${poll.title}" — What's your view? ${window.location.origin}/forecast-arena/${poll.slug}`)}`}
+            target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">WhatsApp</a>
+          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/forecast-arena/${poll.slug}`); toast({ title: "Link copied!" }); }}
+            className="text-[10px] text-primary hover:text-accent font-medium flex items-center gap-0.5"><Copy className="w-2.5 h-2.5" /> Copy</button>
         </div>
       )}
 

@@ -36,7 +36,7 @@ const PurchaseSuccess = () => {
 
           // Send purchase confirmation email
           const customerEmail = data.customer_email;
-          if (customerEmail) {
+          if (customerEmail && customerEmail !== "customer@placeholder.com") {
             supabase.functions.invoke("send-transactional-email", {
               body: {
                 templateName: "purchase-confirmation",
@@ -48,6 +48,14 @@ const PurchaseSuccess = () => {
                   reference,
                 },
               },
+            }).then(({ error: emailError }) => {
+              if (emailError) throw emailError;
+              trackFunnelEvent("email_sent", {
+                productTitle: data.product_title || pTitle,
+                productType: pType,
+                userEmail: customerEmail,
+                metadata: { reference },
+              });
             }).catch((err) => console.error("Failed to send confirmation email:", err));
           }
 
@@ -66,7 +74,7 @@ const PurchaseSuccess = () => {
     };
 
     verifyAndGetLink();
-  }, [reference]);
+  }, [navigate, pTitle, pType, reference]);
 
   return (
     <Layout>
@@ -97,7 +105,12 @@ const PurchaseSuccess = () => {
                 <p className="text-muted-foreground">Redirecting you to your thank you page…</p>
                 {downloadUrl && (
                   <Button variant="hero" size="lg" className="hover-sink" asChild>
-                    <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackFunnelEvent("download_report", { productTitle: pTitle, productType: pType, metadata: { reference } })}
+                    >
                       <Download className="mr-2 w-4 h-4" /> Download Report Now
                     </a>
                   </Button>

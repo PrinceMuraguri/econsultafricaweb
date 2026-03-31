@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     }
 
     // Log purchase for funnel tracking
-    const customerEmail = verifyData.data?.customer?.email;
+    const customerEmail = metadata?.customer_email || verifyData.data?.customer?.email;
     const productTitle = metadata?.product || storagePath;
     console.log('Purchase complete:', customerEmail, productTitle);
 

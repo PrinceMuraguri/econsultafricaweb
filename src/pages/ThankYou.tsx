@@ -1,13 +1,18 @@
 import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Heart, TrendingUp, Globe, Lightbulb } from "lucide-react";
+import { ArrowRight, Download, Heart, TrendingUp, Globe, Lightbulb } from "lucide-react";
 import confetti from "canvas-confetti";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const ThankYou = () => {
+  const [searchParams] = useSearchParams();
   const fired = useRef(false);
+  const downloadUrl = searchParams.get("download");
+  const productTitle = searchParams.get("product") || "your report";
+  const reference = searchParams.get("reference") || undefined;
 
   useEffect(() => {
     if (fired.current) return;
@@ -107,6 +112,21 @@ const ThankYou = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="space-y-5 mb-10"
             >
+              {downloadUrl && (
+                <div className="bg-card border border-border rounded-xl p-5 text-center">
+                  <p className="text-sm text-muted-foreground mb-3">Your purchase is verified and <span className="text-foreground font-semibold">{productTitle}</span> is ready.</p>
+                  <Button variant="hero" size="lg" asChild>
+                    <a
+                      href={downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackFunnelEvent("download_report", { productTitle, metadata: { reference } })}
+                    >
+                      <Download className="mr-2 w-4 h-4" /> Download Your Report
+                    </a>
+                  </Button>
+                </div>
+              )}
               <p className="text-lg text-muted-foreground leading-relaxed text-center">
                 We truly appreciate it. Not just because you made a purchase, but because you
                 believe — like we do — that <strong className="text-foreground">good decisions start with good information</strong>.

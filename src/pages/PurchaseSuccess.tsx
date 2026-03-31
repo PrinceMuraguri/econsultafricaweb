@@ -29,6 +29,7 @@ const PurchaseSuccess = () => {
         if (fnError) throw fnError;
         if (data?.download_url) {
           setDownloadUrl(data.download_url);
+          trackFunnelEvent("purchase_complete", { productTitle, productType, metadata: { reference } });
         } else {
           throw new Error("Could not generate download link.");
         }

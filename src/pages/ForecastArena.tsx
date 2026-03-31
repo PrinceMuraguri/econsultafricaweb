@@ -1,14 +1,16 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
+import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -25,12 +27,51 @@ const PRIORITY_ORDER = [
   "new tax measure in the fy2026", "public debt exceed 72%", "ziidi trader", "list a second state asset",
 ];
 
+function useDebounce(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
 const ForecastArena = () => {
   const { data: polls, isLoading } = usePolls("active");
   const [selectedCountry, setSelectedCountry] = useState("Kenya");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [onlineUsers, setOnlineUsers] = useState(0);
   const [heroExpanded, setHeroExpanded] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  // Trending polls
+  const { data: trendingPolls = [] } = useQuery({
+    queryKey: ["trending-polls"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_trending_polls", { limit_count: 6 });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    staleTime: 60000,
+  });
+
+  // Search results
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
+    queryKey: ["poll-search", debouncedSearch],
+    queryFn: async () => {
+      if (!debouncedSearch.trim()) return null;
+      const terms = debouncedSearch.trim().split(/\s+/).join(" & ");
+      const { data, error } = await supabase
+        .from("polls")
+        .select("*, poll_options!poll_options_poll_id_fkey(*)")
+        .textSearch("fts", terms)
+        .eq("status", "active");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!debouncedSearch.trim(),
+  });
 
   useEffect(() => {
     const channel = supabase.channel('online-users', {
@@ -82,6 +123,11 @@ const ForecastArena = () => {
     }
     return [...prioritized, ...remaining];
   }, [polls, selectedCountry, selectedCategory]);
+
+  const isSearching = !!debouncedSearch.trim();
+  const displayPolls = isSearching ? (searchResults || []) : filteredPolls;
+
+  const showTrending = trendingPolls.filter((t: any) => Number(t.trending_score) > 0).length >= 2;
 
   return (
     <Layout>
@@ -163,53 +209,112 @@ const ForecastArena = () => {
         </div>
       </div>
 
+      {/* Trending Section */}
+      {showTrending && (
+        <section className="py-4 border-b border-border bg-card/50">
+          <div className="container-page">
+            <div className="flex items-center gap-2 mb-3">
+              <Flame className="w-4 h-4 text-accent" />
+              <h2 className="text-sm font-bold text-foreground">Trending Now</h2>
+              <span className="text-[10px] text-muted-foreground">Most active markets in the last 24 hours</span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1">
+              {trendingPolls.filter((t: any) => Number(t.trending_score) > 0).map((t: any) => (
+                <Link
+                  key={t.poll_id}
+                  to={`/forecast-arena/${t.slug}`}
+                  className="snap-start shrink-0 w-[200px] p-3 rounded-lg border border-border bg-card hover:border-accent/40 transition-colors"
+                >
+                  <p className="text-xs font-semibold text-foreground line-clamp-2 mb-2">🔥 {t.title}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-mono font-bold text-primary">{t.total_votes}</span>
+                    <span className="text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded-full font-medium">
+                      {Number(t.recent_votes)} votes today
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Filters + Polls */}
       <section className="py-4 md:py-6">
         <div className="container-page">
-          {/* Compact inline filters */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">Country:</span>
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                <SelectTrigger className="h-7 text-xs w-auto min-w-[110px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">Category:</span>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-7 text-xs w-auto min-w-[110px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <span className="text-xs text-muted-foreground ml-auto">{filteredPolls.length} questions</span>
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search markets... e.g. 'inflation', 'CBK', 'oil'"
+              className="pl-9 pr-8 h-9 text-sm"
+            />
+            {searchInput && (
+              <button
+                onClick={() => setSearchInput("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {isLoading ? (
+          {/* Compact inline filters (hidden during search) */}
+          {!isSearching && (
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground">Country:</span>
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger className="h-7 text-xs w-auto min-w-[110px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground">Category:</span>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="h-7 text-xs w-auto min-w-[110px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <span className="text-xs text-muted-foreground ml-auto">{filteredPolls.length} questions</span>
+            </div>
+          )}
+
+          {isSearching && (
+            <p className="text-xs text-muted-foreground mb-3">
+              {searchLoading ? "Searching..." : `${(searchResults || []).length} results for "${debouncedSearch}"`}
+            </p>
+          )}
+
+          {isLoading || searchLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1,2,3,4,5,6].map(i => <div key={i} className="bg-card rounded-lg border border-border p-6 animate-pulse h-56" />)}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPolls.map((poll, i) => (
+              {displayPolls.map((poll: any, i: number) => (
                 <motion.div key={poll.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i % 6}>
-                  <PollCard poll={poll} isTrending={i === 0} />
+                  <PollCard poll={poll} isTrending={!isSearching && i === 0} />
                 </motion.div>
               ))}
             </div>
           )}
 
-          {filteredPolls.length === 0 && !isLoading && (
+          {displayPolls.length === 0 && !isLoading && !searchLoading && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No forecasts match your filters.</p>
+              <p className="text-muted-foreground">
+                {isSearching ? `No markets found for "${debouncedSearch}".` : "No forecasts match your filters."}
+              </p>
             </div>
           )}
         </div>

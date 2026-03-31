@@ -161,6 +161,29 @@ Deno.serve(async (req) => {
       performed_by: 'super_admin',
     });
 
+    // Notify all voters about market resolution
+    const allFps = [...new Set(votes.map((v: any) => v.voter_fingerprint))];
+    const { data: voterUsers } = await supabase
+      .from('user_profiles')
+      .select('user_id, voter_fingerprint')
+      .in('voter_fingerprint', allFps);
+
+    if (voterUsers?.length) {
+      const notifs = voterUsers.map((vu: any) => {
+        const isWinner = winners.some((w: any) => w.voter_fingerprint === vu.voter_fingerprint);
+        return {
+          user_id: vu.user_id,
+          type: isWinner ? 'position_won' : 'position_lost',
+          title: isWinner
+            ? `Correct! "${poll.title}" → ${winningOption.label}`
+            : `Resolved: "${poll.title}" → ${winningOption.label}`,
+          body: isWinner ? 'Check your dashboard for payout details.' : 'Keep forecasting to improve your accuracy.',
+          poll_id, link: '/forecast-arena/' + poll.slug
+        };
+      });
+      await supabase.from('notifications').insert(notifs);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       summary: {

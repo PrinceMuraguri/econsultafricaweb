@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, User, LogIn, LogOut, Wallet } from "lucide-react";
+import { Menu, X, User, LogIn, LogOut, Wallet, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
+import NotificationBell from "@/components/NotificationBell";
 import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
@@ -74,6 +75,13 @@ const Navbar = () => {
                     <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}
                   </span>
                 )}
+                <NotificationBell />
+                <Link to="/watchlist"
+                  className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                    location.pathname === "/watchlist" ? "text-primary" : "text-muted-foreground hover:text-accent"
+                  }`}>
+                  <Bookmark className="w-4 h-4" />
+                </Link>
                 <Link to="/my-dashboard"
                   className={`text-sm font-medium transition-colors flex items-center gap-1 ${
                     location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground hover:text-accent"
@@ -116,6 +124,10 @@ const Navbar = () => {
                 ))}
                 {isLoggedIn ? (
                   <>
+                    <Link to="/watchlist" onClick={() => setMobileOpen(false)}
+                      className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/watchlist" ? "text-primary" : "text-muted-foreground"}`}>
+                      <Bookmark className="w-4 h-4" /> Watchlist
+                    </Link>
                     <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
                       className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
                       <User className="w-4 h-4" /> Dashboard

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download, HelpCircle, Share2 } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download, HelpCircle, Share2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,8 @@ import StakeModal from "./StakeModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import HowItWorksPdfModal from "./HowItWorksPdfModal";
+import BookmarkToggle from "./BookmarkToggle";
+import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;
@@ -208,6 +210,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       {/* Header row */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{poll.category}</span>
+        <div className="flex items-center gap-1 ml-auto">
+          <BookmarkToggle pollId={poll.id} onRequireAuth={() => setRegisterOpen(true)} />
+          <SharePopover url={`/forecast-arena/${poll.slug}`} title={poll.title} />
+        </div>
         
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />{getTimeRemaining(poll.close_at)}
@@ -442,12 +448,16 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
       {/* Social Share prompt after voting */}
       {hasVoted && !isClosed && (
-        <div className="flex items-center justify-center gap-2 mt-1 pt-1 border-t border-border">
+        <div className="flex items-center justify-center gap-3 mt-1 pt-1 border-t border-border">
           <span className="text-[9px] text-muted-foreground">Share your forecast:</span>
           <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just took a position on "${poll.title}" on Forecast Arena! What's your view?`)}&url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
             target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">𝕏</a>
           <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + "/forecast-arena/" + poll.slug)}`}
             target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">LinkedIn</a>
+          <a href={`https://wa.me/?text=${encodeURIComponent(`I just took a position on "${poll.title}" — What's your view? ${window.location.origin}/forecast-arena/${poll.slug}`)}`}
+            target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:text-accent font-medium">WhatsApp</a>
+          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/forecast-arena/${poll.slug}`); toast({ title: "Link copied!" }); }}
+            className="text-[10px] text-primary hover:text-accent font-medium flex items-center gap-0.5"><Copy className="w-2.5 h-2.5" /> Copy</button>
         </div>
       )}
 

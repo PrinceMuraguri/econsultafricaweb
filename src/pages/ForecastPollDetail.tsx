@@ -8,6 +8,8 @@ import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import { usePoll } from "@/hooks/use-polls";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Clock, BarChart3, Scale, MessageSquare } from "lucide-react";
+import BookmarkToggle from "@/components/forecast/BookmarkToggle";
+import SharePopover from "@/components/forecast/SharePopover";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -83,6 +85,10 @@ const ForecastPollDetail = () => {
                 <Clock className="w-3 h-3" />
                 Closes {new Date(poll.close_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </span>
+              <div className="flex items-center gap-1 ml-auto">
+                <BookmarkToggle pollId={poll.id} size="md" />
+                <SharePopover url={`/forecast-arena/${poll.slug}`} title={poll.title} size="md" />
+              </div>
             </div>
 
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">

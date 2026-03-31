@@ -184,6 +184,50 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          link: string | null
+          poll_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          poll_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          poll_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_transfers: {
         Row: {
           amount: number
@@ -427,6 +471,7 @@ export type Database = {
           created_at: string
           description: string | null
           expert_insight: string | null
+          fts: unknown
           id: string
           index_number: number | null
           outcome: string | null
@@ -449,6 +494,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expert_insight?: string | null
+          fts?: unknown
           id?: string
           index_number?: number | null
           outcome?: string | null
@@ -471,6 +517,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           expert_insight?: string | null
+          fts?: unknown
           id?: string
           index_number?: number | null
           outcome?: string | null
@@ -762,6 +809,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_watchlist: {
+        Row: {
+          created_at: string | null
+          id: string
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_watchlist_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voter_profiles: {
         Row: {
           country_code: string
@@ -957,6 +1033,18 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      get_trending_polls: {
+        Args: { limit_count?: number }
+        Returns: {
+          category: string
+          poll_id: string
+          recent_votes: number
+          slug: string
+          title: string
+          total_votes: number
+          trending_score: number
+        }[]
       }
       increment_stake_amount: {
         Args: { p_amount: number; p_option_id: string }

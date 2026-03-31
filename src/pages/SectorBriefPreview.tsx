@@ -140,15 +140,17 @@ const SectorBriefPreview = () => {
                           You've seen the highlights. Now get the full picture.
                         </h2>
                         <p className="text-muted-foreground max-w-lg mb-2">
-                          The remaining pages contain the complete sector analysis — opportunity mapping, risk assessment, competitive landscape, and strategic recommendations that drive real decisions.
+                          {isCountryReport
+                            ? "The remaining chapters contain the real insights — the Opportunity Map, Risks & Mitigation table, policy recommendations, and the investor strategy framework. These sections include the practical \"So what\" about everything."
+                            : "The remaining pages contain the complete sector analysis — opportunity mapping, risk assessment, competitive landscape, and strategic recommendations that drive real decisions."}
                         </p>
                         <p className="text-lg font-bold text-primary mb-6">
-                          Unlock the full <span className="text-foreground">{briefTitle}</span> brief for just <span className="text-accent">$95</span>.
+                          Unlock the full <span className="text-foreground">{briefTitle}</span> {isCountryReport ? "report" : "brief"} for just <span className="text-accent">${price}</span>.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3">
                           <Button size="lg" className="hover-sink" onClick={handlePurchase} disabled={purchaseLoading}>
                             <ShoppingCart className="w-4 h-4 mr-2" />
-                            {purchaseLoading ? "Processing..." : "Purchase Full Brief — $95"}
+                            {purchaseLoading ? "Processing..." : `Purchase Full ${isCountryReport ? "Report" : "Brief"} — $${price}`}
                           </Button>
                           <Button variant="outline" size="lg" asChild>
                             <Link to="/intelligence-marketplace">Browse Other Briefs</Link>

@@ -36,6 +36,7 @@ const ProductDetail = () => {
   const handleBuyNow = async () => {
     if (!product.available) return;
     setPurchaseLoading(true);
+    trackFunnelEvent("checkout_start", { productId: product.id, productTitle: product.title, productType: product.type });
     try {
       const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(product.title)}&type=${product.type}`;
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {

@@ -13,15 +13,20 @@ export default function CartDrawer() {
     if (items.length === 0) return;
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const customerEmail = user?.email ?? "";
       const productNames = items.map(i => i.title).join(", ");
-      const files = items.filter(i => i.file).map(i => i.file);
       const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(productNames)}&type=bundle`;
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {
         body: {
-          email: "",
+          email: customerEmail,
           amount: total,
           callback_url: callbackUrl,
-          metadata: { type: "cart_bundle", products: items.map(i => ({ title: i.title, price: i.price, file: i.file })) },
+          metadata: {
+            type: "cart_bundle",
+            customer_email: customerEmail || undefined,
+            products: items.map(i => ({ title: i.title, price: i.price, file: i.file })),
+          },
         },
       });
       if (error || !data?.authorization_url) throw new Error(data?.error || "Checkout failed");

@@ -36,15 +36,29 @@ const ProductDetail = () => {
   const handleBuyNow = async () => {
     if (!product.available) return;
     setPurchaseLoading(true);
-    trackFunnelEvent("checkout_start", { productId: product.id, productTitle: product.title, productType: product.type });
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const customerEmail = user?.email ?? "";
+
+      trackFunnelEvent("checkout_start", {
+        productId: product.id,
+        productTitle: product.title,
+        productType: product.type,
+        userEmail: customerEmail || undefined,
+      });
+
       const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(product.title)}&type=${product.type}`;
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {
         body: {
-          email: "",
+          email: customerEmail,
           amount: product.price,
           callback_url: callbackUrl,
-          metadata: { type: product.type, product: `${product.country} ${product.title}`, file: product.file },
+          metadata: {
+            type: product.type,
+            product: `${product.country} ${product.title}`,
+            file: product.file,
+            customer_email: customerEmail || undefined,
+          },
         },
       });
       if (error || !data?.authorization_url) throw new Error(data?.error || "Payment failed");

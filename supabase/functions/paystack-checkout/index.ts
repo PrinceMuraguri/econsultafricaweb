@@ -56,9 +56,13 @@ Deno.serve(async (req) => {
     
     console.log(`Checkout: $${amountUsd} USD → KES ${amountKes} (rate: ${usdToKesRate}), kobo: ${chargeAmount}`);
     
-    const chargeMetadata = metadata || {
+    const baseMetadata = metadata || {
       product: 'Kenya 2026 Economic Outlook',
       type: 'report_purchase',
+    };
+    const chargeMetadata = {
+      ...baseMetadata,
+      ...(email ? { customer_email: email } : {}),
     };
 
     console.log('Initializing Paystack transaction for:', customerEmail, 'amount:', chargeAmount);

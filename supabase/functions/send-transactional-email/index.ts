@@ -349,6 +349,18 @@ Deno.serve(async (req) => {
 
   console.log('Transactional email enqueued', { templateName, effectiveRecipient })
 
+  await supabase.from('sales_funnel_events').insert({
+    event_type: 'email_sent',
+    product_title: typeof templateData.productTitle === 'string' ? templateData.productTitle : null,
+    product_type: typeof templateData.productType === 'string' ? templateData.productType : null,
+    user_email: effectiveRecipient,
+    metadata: {
+      template_name: templateName,
+      reference: typeof templateData.reference === 'string' ? templateData.reference : null,
+      queued: true,
+    },
+  })
+
   return new Response(
     JSON.stringify({ success: true, queued: true }),
     {

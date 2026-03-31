@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { getProductBySlug } from "@/data/marketplace-products";
@@ -7,6 +8,7 @@ import { ShoppingCart, Eye, ArrowRight, Lock, ArrowLeft, BookOpen, CheckCircle }
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();

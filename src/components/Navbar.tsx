@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, User, LogIn, LogOut, Wallet } from "lucide-react";
+import { Menu, X, User, LogIn, LogOut, Wallet, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
+import NotificationBell from "@/components/NotificationBell";
 import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [

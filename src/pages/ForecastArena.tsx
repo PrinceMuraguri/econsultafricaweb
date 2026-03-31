@@ -158,7 +158,7 @@ const ForecastArena = () => {
         <div className="container-page py-2">
           <p className="text-[10px] text-muted-foreground text-center">
             Forecast Arena aggregates users' expectations on economic outcomes for research and insight purposes.
-            Not a trading or investment platform. <a href="/terms-of-use" className="text-primary underline">Terms</a>.
+            Not a trading or investment platform. <a href="/terms-of-use" className="text-primary underline">Terms of Use</a>.
           </p>
         </div>
       </div>

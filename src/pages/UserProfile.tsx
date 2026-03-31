@@ -74,12 +74,18 @@ const UserProfile = () => {
       if (!profileData?.user_id) return [];
       const { data, error } = await supabase
         .from("poll_comments")
-        .select("*, polls!poll_comments_poll_id_fkey(title, slug)")
+        .select("id, body, created_at, poll_id")
         .eq("user_id", profileData.user_id)
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return data || [];
+      // Fetch poll titles
+      const pollIds = [...new Set((data || []).map((c: any) => c.poll_id))];
+      if (pollIds.length === 0) return [];
+      const { data: polls } = await supabase.from("polls").select("id, title, slug").in("id", pollIds);
+      const pollMap: Record<string, { title: string; slug: string }> = {};
+      (polls || []).forEach((p: any) => { pollMap[p.id] = { title: p.title, slug: p.slug }; });
+      return (data || []).map((c: any) => ({ ...c, polls: pollMap[c.poll_id] || null }));
     },
     enabled: !!profileData?.user_id,
   });

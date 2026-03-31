@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { CheckCircle, Download, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const PurchaseSuccess = () => {
   const [searchParams] = useSearchParams();

@@ -373,10 +373,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
           )}
         </div>
 
-        {/* RIGHT: What Others Are Saying */}
+        {/* RIGHT: What Others Think */}
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Others Are Saying</p>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Others Think (Current Sentiment)</p>
             <span className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</span>
           </div>
 

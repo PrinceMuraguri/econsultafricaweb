@@ -210,29 +210,27 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       {/* Header row */}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{poll.category}</span>
-        <div className="flex items-center gap-1 ml-auto">
-          <BookmarkToggle pollId={poll.id} onRequireAuth={() => setRegisterOpen(true)} />
-          <SharePopover url={`/forecast-arena/${poll.slug}`} title={poll.title} />
-        </div>
-        
-        <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto">
+        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
           <Clock className="w-3 h-3" />{getTimeRemaining(poll.close_at)}
         </span>
 
-        {/* Probability badge */}
-        {totalVotes > 0 && (() => {
-          const leading = sortedOptions.reduce((best, o) => o.total_votes_count > best.total_votes_count ? o : best, sortedOptions[0]);
-          const pct = Math.round((leading.total_votes_count / totalVotes) * 100);
-          const isYes = leading.label.toLowerCase() === "yes";
-          const isNo = leading.label.toLowerCase() === "no";
-          const color = pct >= 60 ? (isNo ? "text-red-500" : "text-green-600") : "text-amber-500";
-          return (
-            <div className="text-right ml-1">
-              <p className={`font-mono text-base font-bold leading-none ${color}`}>{pct}% {leading.label}</p>
-              <p className="text-[8px] text-muted-foreground">consensus</p>
-            </div>
-          );
-        })()}
+        <div className="flex items-center gap-1 ml-auto">
+          {/* Probability badge */}
+          {totalVotes > 0 && (() => {
+            const leading = sortedOptions.reduce((best, o) => o.total_votes_count > best.total_votes_count ? o : best, sortedOptions[0]);
+            const pct = Math.round((leading.total_votes_count / totalVotes) * 100);
+            const isNo = leading.label.toLowerCase() === "no";
+            const color = pct >= 60 ? (isNo ? "text-red-500" : "text-green-600") : "text-amber-500";
+            return (
+              <div className="text-right mr-1">
+                <p className={`font-mono text-lg font-bold leading-none ${color}`}>{pct}% {leading.label}</p>
+                <p className="text-[8px] text-muted-foreground">consensus</p>
+              </div>
+            );
+          })()}
+          <BookmarkToggle pollId={poll.id} onRequireAuth={() => setRegisterOpen(true)} />
+          <SharePopover url={`/forecast-arena/${poll.slug}`} title={poll.title} />
+        </div>
       </div>
 
       {/* Question title — use full width */}

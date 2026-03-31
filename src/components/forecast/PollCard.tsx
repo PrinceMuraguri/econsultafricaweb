@@ -258,16 +258,18 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Take Your Position</p>
           {isTrending && (
-            <p className="text-[9px] text-muted-foreground mb-1.5 flex items-center gap-1 flex-wrap">
+            <div className="mb-1.5">
               <motion.span
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
-                className="text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded"
+                className="inline-block text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded mb-0.5"
               >
                 New Feature
               </motion.span>
-              Commit to your view and earn rewards if you are correct.
-            </p>
+              <p className="text-[9px] text-muted-foreground flex items-center gap-1 flex-wrap">
+                Commit capital to your position and earn rewards if you are correct.
+              </p>
+            </div>
           )}
 
           <AnimatePresence>

@@ -160,6 +160,7 @@ const MyDashboard = () => {
       return data || [];
     },
     enabled: !!user,
+    refetchInterval: 15000,
   });
 
   // Fetch payouts

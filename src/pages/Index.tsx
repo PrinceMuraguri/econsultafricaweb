@@ -255,7 +255,11 @@ const Index = () => {
             </motion.p>
             <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}
             className="text-xl text-primary font-display font-bold mt-4">
-              "So what does this mean for your organization?"
+              "What does this mean for me?"
+            </motion.p>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5}
+            className="text-muted-foreground leading-relaxed mt-4 max-w-2xl mx-auto">
+              We work tirelessly to give you insights that help you make better decisions, whether you're an individual, a business, a citizen, a leader, a founder, a startup, an investor, a policymaker, a researcher, a development partner, or a growing organization trying to make sense of a changing world. Our work is about turning complex economic and data insights into clear, practical meaning for you.
             </motion.p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

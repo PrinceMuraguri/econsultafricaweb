@@ -46,9 +46,13 @@ const SectorBriefPreview = () => {
   useEffect(() => {
     const loadPdf = async () => {
       try {
-        const doc = await pdfjsLib.getDocument(`/reports/sector-briefs/${decodedFilename}`).promise;
+        // Try sector-briefs folder first, fall back to reports folder for country reports
+        const pdfPath = isCountryReport
+          ? `/reports/${decodedFilename}`
+          : `/reports/sector-briefs/${decodedFilename}`;
+        const doc = await pdfjsLib.getDocument(pdfPath).promise;
         setPdfDoc(doc);
-        const pagesToRender = Math.min(doc.numPages, MAX_PREVIEW_PAGES);
+        const pagesToRender = Math.min(doc.numPages, maxPages);
         const images: string[] = [];
 
         for (let i = 1; i <= pagesToRender; i++) {

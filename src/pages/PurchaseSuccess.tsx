@@ -33,24 +33,7 @@ const PurchaseSuccess = () => {
         if (data?.download_url) {
           setDownloadUrl(data.download_url);
 
-          // Send purchase confirmation email
-          const customerEmail = data.customer_email;
-          if (customerEmail && customerEmail !== "customer@placeholder.com") {
-            supabase.functions.invoke("send-transactional-email", {
-              body: {
-                templateName: "purchase-confirmation",
-                recipientEmail: customerEmail,
-                idempotencyKey: `purchase-confirm-${reference}`,
-                templateData: {
-                  productTitle: data.product_title || pTitle,
-                  downloadUrl: data.download_url,
-                  reference,
-                },
-              },
-            }).then(({ error: emailError }) => {
-              if (emailError) throw emailError;
-            }).catch((err) => console.error("Failed to send confirmation email:", err));
-          }
+          // Email is now sent server-side by report-download edge function
 
           // Redirect to thank you page after a brief moment
           setTimeout(() => {

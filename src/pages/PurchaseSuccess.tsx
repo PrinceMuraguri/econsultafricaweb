@@ -32,7 +32,6 @@ const PurchaseSuccess = () => {
         if (fnError) throw fnError;
         if (data?.download_url) {
           setDownloadUrl(data.download_url);
-          trackFunnelEvent("purchase_complete", { productTitle: pTitle, productType: pType, metadata: { reference } });
 
           // Send purchase confirmation email
           const customerEmail = data.customer_email;
@@ -50,12 +49,6 @@ const PurchaseSuccess = () => {
               },
             }).then(({ error: emailError }) => {
               if (emailError) throw emailError;
-              trackFunnelEvent("email_sent", {
-                productTitle: data.product_title || pTitle,
-                productType: pType,
-                userEmail: customerEmail,
-                metadata: { reference },
-              });
             }).catch((err) => console.error("Failed to send confirmation email:", err));
           }
 

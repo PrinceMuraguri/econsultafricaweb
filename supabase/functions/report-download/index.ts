@@ -96,10 +96,28 @@ Deno.serve(async (req) => {
     const productTitle = metadata?.product || storagePath;
     console.log('Purchase complete:', customerEmail, productTitle);
 
+    const productType = metadata?.type || 'report_purchase';
+
+    const { error: funnelError } = await supabase.from('sales_funnel_events').insert({
+      event_type: 'purchase_complete',
+      product_title: productTitle,
+      product_type: productType,
+      user_email: customerEmail || null,
+      metadata: {
+        reference,
+        file: requestedFile || storagePath,
+      },
+    });
+
+    if (funnelError) {
+      console.error('Funnel tracking error:', funnelError.message);
+    }
+
     return new Response(JSON.stringify({ 
       download_url: data.signedUrl,
       customer_email: customerEmail,
       product_title: productTitle,
+      product_type: productType,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

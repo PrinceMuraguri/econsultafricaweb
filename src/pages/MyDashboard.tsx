@@ -44,27 +44,24 @@ const MyDashboard = () => {
     const params = new URLSearchParams(window.location.search);
     const isDepositReturn = params.get("deposit") === "success";
     
-    // Always refresh on mount
     refreshWallet();
     refreshProfile();
     
     if (isDepositReturn) {
       toast({ title: "💰 Deposit processing", description: "Your wallet balance will update shortly." });
-      // Poll for balance update
       const interval = setInterval(() => refreshWallet(), 3000);
       setTimeout(() => clearInterval(interval), 30000);
-      // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [user]);
 
-
-  // Fetch user's votes with poll data
+  // Fetch user's votes — match by BOTH voter_fingerprint AND email to capture all historical positions
   const { data: positions, isLoading, refetch: refetchPositions } = useQuery({
     queryKey: ["my-positions", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      // Get fingerprint from profile or generate
+
+      // Get fingerprint from user_profiles
       const { data: userProfile } = await supabase
         .from("user_profiles")
         .select("voter_fingerprint")
@@ -72,12 +69,29 @@ const MyDashboard = () => {
         .maybeSingle();
 
       const fp = userProfile?.voter_fingerprint;
-      if (!fp) return [];
 
+      // Also check voter_profiles for any fingerprints linked to the user's email
+      const { data: voterProfiles } = await supabase
+        .from("voter_profiles")
+        .select("voter_fingerprint")
+        .eq("email", user.email || "");
+
+      // Collect all known fingerprints for this user
+      const allFingerprints = new Set<string>();
+      if (fp) allFingerprints.add(fp);
+      voterProfiles?.forEach((vp: any) => {
+        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
+      });
+
+      if (allFingerprints.size === 0) return [];
+
+      const fpArray = Array.from(allFingerprints);
+
+      // Fetch all votes across all known fingerprints
       const { data: votes, error: votesErr } = await supabase
         .from("votes")
         .select("*")
-        .eq("voter_fingerprint", fp)
+        .in("voter_fingerprint", fpArray)
         .order("created_at", { ascending: false });
       if (votesErr) throw votesErr;
       if (!votes?.length) return [];
@@ -90,7 +104,15 @@ const MyDashboard = () => {
 
       const pollMap = new Map(polls?.map(p => [p.id, p]) || []);
 
-      return votes.map(vote => {
+      // Deduplicate by poll_id (keep latest vote per poll)
+      const seenPolls = new Set<string>();
+      const deduped = votes.filter(v => {
+        if (seenPolls.has(v.poll_id)) return false;
+        seenPolls.add(v.poll_id);
+        return true;
+      });
+
+      return deduped.map(vote => {
         const poll = pollMap.get(vote.poll_id);
         const options = poll?.poll_options || [];
         const option = options.find((o: any) => o.id === vote.option_id);
@@ -120,10 +142,10 @@ const MyDashboard = () => {
       });
     },
     enabled: !!user,
-    refetchInterval: 15000, // Auto-refresh every 15s for real-time feel
+    refetchInterval: 15000,
   });
 
-  // Fetch user's transactions
+  // Fetch user's transactions — also across all fingerprints
   const { data: transactions } = useQuery({
     queryKey: ["my-transactions", user?.id],
     queryFn: async () => {
@@ -133,12 +155,24 @@ const MyDashboard = () => {
         .select("voter_fingerprint")
         .eq("user_id", user.id)
         .maybeSingle();
-      const fp = userProfile?.voter_fingerprint;
-      if (!fp) return [];
+
+      const { data: voterProfiles } = await supabase
+        .from("voter_profiles")
+        .select("voter_fingerprint")
+        .eq("email", user.email || "");
+
+      const allFingerprints = new Set<string>();
+      if (userProfile?.voter_fingerprint) allFingerprints.add(userProfile.voter_fingerprint);
+      voterProfiles?.forEach((vp: any) => {
+        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
+      });
+
+      if (allFingerprints.size === 0) return [];
+
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
-        .eq("voter_fingerprint", fp)
+        .in("voter_fingerprint", Array.from(allFingerprints))
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -163,7 +197,7 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch payouts
+  // Fetch payouts — also across all fingerprints
   const { data: payouts } = useQuery({
     queryKey: ["my-payouts", user?.id],
     queryFn: async () => {
@@ -173,12 +207,24 @@ const MyDashboard = () => {
         .select("voter_fingerprint")
         .eq("user_id", user.id)
         .maybeSingle();
-      const fp = userProfile?.voter_fingerprint;
-      if (!fp) return [];
+
+      const { data: voterProfiles } = await supabase
+        .from("voter_profiles")
+        .select("voter_fingerprint")
+        .eq("email", user.email || "");
+
+      const allFingerprints = new Set<string>();
+      if (userProfile?.voter_fingerprint) allFingerprints.add(userProfile.voter_fingerprint);
+      voterProfiles?.forEach((vp: any) => {
+        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
+      });
+
+      if (allFingerprints.size === 0) return [];
+
       const { data, error } = await supabase
         .from("payouts")
         .select("*")
-        .eq("voter_fingerprint", fp)
+        .in("voter_fingerprint", Array.from(allFingerprints))
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -194,7 +240,7 @@ const MyDashboard = () => {
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {
         body: {
           email: user.email,
-          amount: amount, // USD amount — edge function converts to KES
+          amount: amount,
           callback_url: callbackUrl,
           metadata: { type: "wallet_deposit", user_id: user.id },
         },
@@ -297,7 +343,7 @@ const MyDashboard = () => {
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
-              Active Positions
+              Active Positions ({activePositions.length})
             </h2>
             {isLoading ? (
               <p className="text-sm text-muted-foreground py-4">Loading...</p>
@@ -339,9 +385,15 @@ const MyDashboard = () => {
           </div>
 
           {/* Resolved Positions */}
-          {resolvedPositions.length > 0 && (
-            <div className="mb-8">
-              <h2 className="font-display text-xl font-bold text-foreground mb-4">Past Positions</h2>
+          <div className="mb-8">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4">
+              Past Positions ({resolvedPositions.length})
+            </h2>
+            {resolvedPositions.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <p className="text-sm text-muted-foreground">No resolved positions yet.</p>
+              </div>
+            ) : (
               <div className="space-y-3">
                 {resolvedPositions.map(pos => (
                   <div key={pos.id} className="bg-card border border-border rounded-lg p-4">
@@ -361,12 +413,13 @@ const MyDashboard = () => {
                       {pos.outcome === "won" && pos.is_staked && (
                         <span className="text-green-600 font-semibold">Earned: ${pos.potential_payout.toFixed(2)}</span>
                       )}
+                      <span className="text-muted-foreground/60 ml-auto">{new Date(pos.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Wallet Transactions */}
           {walletTxns && walletTxns.length > 0 && (

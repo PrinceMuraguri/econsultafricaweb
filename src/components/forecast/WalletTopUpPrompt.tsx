@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Wallet, ArrowRight, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const WALLET_PROMPT_KEY = "wallet_topup_prompted";
 
@@ -11,11 +11,14 @@ const WalletTopUpPrompt = () => {
   const { user, wallet, profile } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const displayName = profile?.full_name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || "there";
 
   useEffect(() => {
     if (!user) return;
+    // Only show on forecast arena pages
+    if (!location.pathname.startsWith("/forecast-arena")) return;
     
     const alreadyPrompted = sessionStorage.getItem(WALLET_PROMPT_KEY);
     if (alreadyPrompted) return;
@@ -29,7 +32,7 @@ const WalletTopUpPrompt = () => {
     }, 45000);
 
     return () => clearTimeout(timer);
-  }, [user, wallet]);
+  }, [user, wallet, location.pathname]);
 
   const handleTopUp = () => {
     setOpen(false);

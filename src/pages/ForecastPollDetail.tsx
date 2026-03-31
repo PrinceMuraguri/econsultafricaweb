@@ -1,18 +1,37 @@
 import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
+import PollProbabilityChart from "@/components/forecast/PollProbabilityChart";
+import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import { usePoll } from "@/hooks/use-polls";
-import { ArrowLeft, Clock, BarChart3 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Clock, BarChart3, Scale, MessageSquare } from "lucide-react";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: poll, isLoading, error } = usePoll(slug || "");
 
+  // Comment count
+  const { data: commentCount = 0 } = useQuery({
+    queryKey: ["poll-comment-count", poll?.id],
+    queryFn: async () => {
+      if (!poll?.id) return 0;
+      const { count, error } = await supabase
+        .from("poll_comments")
+        .select("id", { count: "exact", head: true })
+        .eq("poll_id", poll.id);
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!poll?.id,
+  });
+
   if (isLoading) {
     return (
       <Layout>
-        <section className="section-padding">
+        <section className="section-padding pt-24">
           <div className="container-page max-w-3xl">
             <div className="animate-pulse space-y-4">
               <div className="h-8 bg-muted rounded w-3/4" />
@@ -28,7 +47,7 @@ const ForecastPollDetail = () => {
   if (error || !poll) {
     return (
       <Layout>
-        <section className="section-padding">
+        <section className="section-padding pt-24">
           <div className="container-page max-w-3xl text-center">
             <h2 className="text-2xl font-bold text-foreground mb-4">Poll not found</h2>
             <Link to="/" className="text-primary hover:text-accent transition-colors">
@@ -41,10 +60,11 @@ const ForecastPollDetail = () => {
   }
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
+  const totalStaked = poll.poll_options.reduce((s, o) => s + o.total_stake_amount, 0);
 
   return (
     <Layout>
-      <section className="section-padding">
+      <section className="section-padding pt-24">
         <div className="container-page max-w-3xl">
           <Link
             to="/"
@@ -56,7 +76,7 @@ const ForecastPollDetail = () => {
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-pill">
+              <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                 {poll.category}
               </span>
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -77,7 +97,7 @@ const ForecastPollDetail = () => {
 
             {/* Economic Context */}
             {poll.context && (
-              <div className="bg-muted/50 border border-border rounded-lg p-6 mb-8">
+              <div className="bg-muted/50 border border-border rounded-lg p-6 mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <BarChart3 className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-foreground">Economic Context</span>
@@ -88,11 +108,27 @@ const ForecastPollDetail = () => {
               </div>
             )}
 
+            {/* Probability Chart */}
+            <div className="mb-6">
+              <PollProbabilityChart pollId={poll.id} options={poll.poll_options} />
+            </div>
+
             {/* Vote Card */}
             <PollCard poll={poll} />
 
+            {/* Resolution Criteria */}
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-6 mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Scale className="w-4 h-4 text-amber-600" />
+                <span className="text-sm font-semibold text-foreground">Resolution Criteria</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {(poll as any).resolution_criteria || "This market will be resolved by the Econsult Africa editorial team based on official data sources."}
+              </p>
+            </div>
+
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
               <div className="bg-card border border-border rounded-lg p-4 text-center">
                 <p className="font-mono text-2xl font-bold text-foreground">{totalVotes}</p>
                 <p className="text-xs text-muted-foreground">Total Forecasts</p>
@@ -104,11 +140,23 @@ const ForecastPollDetail = () => {
                 <p className="text-xs text-muted-foreground">Options</p>
               </div>
               <div className="bg-card border border-border rounded-lg p-4 text-center">
-                <p className="font-mono text-2xl font-bold text-primary capitalize">
-                  {poll.status}
+                <p className="font-mono text-2xl font-bold text-primary">
+                  ${totalStaked.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground">Status</p>
+                <p className="text-xs text-muted-foreground">Total Staked</p>
               </div>
+              <div className="bg-card border border-border rounded-lg p-4 text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                  <p className="font-mono text-2xl font-bold text-foreground">{commentCount}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">Comments</p>
+              </div>
+            </div>
+
+            {/* Discussion Tabs */}
+            <div className="mt-8">
+              <PollDiscussionTabs poll={poll} />
             </div>
 
             {/* CTA Bridge */}

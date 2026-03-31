@@ -68,6 +68,8 @@ const App = () => (
               <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
               <Route path="/my-dashboard" element={<MyDashboard />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/profile/:username" element={<UserProfile />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* Redirects */}

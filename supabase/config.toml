@@ -1,23 +1,25 @@
 project_id = "iysutjnviccsgygpiqfe"
 
-[functions]
-  [functions.admin-polls]
-    verify_jwt = false
-  [functions.auth-email-hook]
-    verify_jwt = false
-  [functions.paystack-checkout]
-    verify_jwt = false
-  [functions.paystack-webhook]
-    verify_jwt = false
-  [functions.process-email-queue]
-    verify_jwt = true
-  [functions.report-download]
-    verify_jwt = false
-  [functions.run-payouts]
-    verify_jwt = false
-  [functions.settle-market]
-    verify_jwt = false
-  [functions.stake-checkout]
-    verify_jwt = false
-  [functions.verify-stake]
-    verify_jwt = false
+[functions.paystack-checkout]
+verify_jwt = false
+
+[functions.report-download]
+verify_jwt = false
+
+[functions.stake-checkout]
+verify_jwt = false
+
+[functions.verify-stake]
+verify_jwt = false
+
+[functions.paystack-webhook]
+verify_jwt = false
+
+[functions.settle-market]
+verify_jwt = false
+
+[functions.run-payouts]
+verify_jwt = false
+
+[functions.admin-polls]
+verify_jwt = false

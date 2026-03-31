@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { getProductBySlug } from "@/data/marketplace-products";
@@ -8,19 +7,12 @@ import { ShoppingCart, Eye, ArrowRight, Lock, ArrowLeft, BookOpen, CheckCircle }
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const product = getProductBySlug(slug || "");
   const { addItem } = useCart();
   const [purchaseLoading, setPurchaseLoading] = useState(false);
-
-  useEffect(() => {
-    if (product) {
-      trackFunnelEvent("product_click", { productId: product.id, productTitle: product.title, productType: product.type });
-    }
-  }, [product?.id]);
 
   if (!product) {
     return (
@@ -36,7 +28,6 @@ const ProductDetail = () => {
   const handleBuyNow = async () => {
     if (!product.available) return;
     setPurchaseLoading(true);
-    trackFunnelEvent("checkout_start", { productId: product.id, productTitle: product.title, productType: product.type });
     try {
       const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(product.title)}&type=${product.type}`;
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {

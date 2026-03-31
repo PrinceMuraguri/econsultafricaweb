@@ -5,13 +5,10 @@ import { motion } from "framer-motion";
 import { CheckCircle, Download, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const PurchaseSuccess = () => {
   const [searchParams] = useSearchParams();
-  const reference = searchParams.get("reference") || searchParams.get("trxref");
-  const pTitle = searchParams.get("product") || "Report";
-  const pType = searchParams.get("type") || "report";
+  const reference = searchParams.get("reference");
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +28,6 @@ const PurchaseSuccess = () => {
         if (fnError) throw fnError;
         if (data?.download_url) {
           setDownloadUrl(data.download_url);
-          trackFunnelEvent("purchase_complete", { productTitle: pTitle, productType: pType, metadata: { reference } });
         } else {
           throw new Error("Could not generate download link.");
         }

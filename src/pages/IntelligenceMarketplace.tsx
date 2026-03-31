@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import ProductInterestModal from "@/components/ProductInterestModal";
-import { ArrowRight, FileText, BarChart3, Users, Briefcase, Zap, Globe, Eye, Lock, Filter } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { COUNTRY_REPORTS, SECTOR_BRIEFS, AUDIENCE_NOTES, MarketplaceProduct } from "@/data/marketplace-products";
+import { ArrowRight, Filter, Lock, ShoppingCart, BookOpen, Eye, Briefcase, Users, Zap } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -13,303 +15,194 @@ const fadeUp = {
 
 const COUNTRY_FILTERS = ["Kenya", "South Africa", "Nigeria", "Rwanda", "Ethiopia"];
 
-const SECTOR_BRIEFS = [
-  { title: "Banking & Financial Services", file: "Kenya_2026_Banking_Financial_Services_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Banking_Financial_Services_Brief-01.jpg" },
-  { title: "Agriculture & Food Security", file: "Kenya_2026_Agriculture_Food_Security_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Agriculture_Food_Security_Brief-01.jpg" },
-  { title: "Energy & Infrastructure", file: "Kenya_2026_Energy_Infrastructure_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Energy_Infrastructure_Brief-01.jpg" },
-  { title: "Manufacturing & Industry", file: "Kenya_2026_Manufacturing_Industry_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Manufacturing_Industry_Brief-01.jpg" },
-  { title: "Digital Economy", file: "Kenya_2026_Technology_Digital_Economy_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Technology_Digital_Economy_Brief-01.jpg" },
-  { title: "Tourism & Hospitality", file: "Kenya_2026_Tourism_Hospitality_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Tourism_Hospitality_Brief-01.jpg" },
-  { title: "Real Estate & Construction", file: "Kenya_2026_Real_Estate_Construction_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Real_Estate_Construction_Brief-01.jpg" },
-  { title: "Retail & Consumer", file: "Kenya_2026_Retail_Consumer_Brief.pdf", country: "Kenya", cover: "/reports/covers/Kenya_2026_Retail_Consumer_Brief-01.jpg" },
-];
+function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNotify: (t: string) => void }) {
+  const { addItem } = useCart();
 
-const AUDIENCE_NOTES = [
-  { title: "Development Partner Brief", description: "Macro-fiscal analysis calibrated for development finance institutions, donors, and multilateral partners operating in the region." },
-  { title: "Corporate Strategy Brief", description: "Economic context and outlook structured for C-suite teams, corporate planners, and strategy consultants." },
-  { title: "Exporter/Importer Trade Brief", description: "Currency, tariff, logistics, and demand-side intelligence for cross-border trade operators." },
-  { title: "Startup & SME Environment Scan", description: "Regulatory environment, consumer trends, and funding landscape analysis for founders and growth-stage businesses." },
-];
+  return (
+    <motion.div whileHover={{ y: -4 }} className="group bg-background rounded-xl border border-border overflow-hidden card-shadow flex flex-col">
+      <Link to={product.available ? `/product/${product.slug}` : "#"} onClick={e => { if (!product.available) e.preventDefault(); }}
+        className="block relative bg-muted/30 p-3 sm:p-4">
+        <div className="relative mx-auto" style={{ maxWidth: 180 }}>
+          {/* Book spine effect */}
+          <div className="absolute left-0 top-1 bottom-1 w-1.5 bg-foreground/10 rounded-l" />
+          <div className="relative shadow-lg rounded-sm overflow-hidden border border-border/50">
+            {product.cover ? (
+              <img src={product.cover} alt={product.title} className="w-full aspect-[3/4] object-contain bg-white" />
+            ) : (
+              <div className="w-full aspect-[3/4] bg-gradient-to-br from-primary/10 to-accent/10 flex flex-col items-center justify-center gap-2">
+                {product.flag ? <span className="text-4xl">{product.flag}</span> : <BookOpen className="w-10 h-10 text-muted-foreground/50" />}
+              </div>
+            )}
+          </div>
+          {/* Book shadow */}
+          <div className="absolute -bottom-1 left-1 right-1 h-2 bg-foreground/5 rounded-b blur-sm" />
+        </div>
+        {!product.available && (
+          <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded-full">
+            <Lock className="w-3 h-3" /> Coming Soon
+          </span>
+        )}
+      </Link>
 
-const COUNTRY_REPORTS = [
-  { country: "Kenya", title: "Kenya 2026 Economic Outlook", price: "$495", available: true, flag: "🇰🇪", cover: "/reports/covers/Kenya_2026_Sample-01.jpg" },
-  { country: "South Africa", title: "South Africa 2026 Economic Outlook", price: "$495", available: false, flag: "🇿🇦", cover: null },
-  { country: "Nigeria", title: "Nigeria 2026 Economic Outlook", price: "$495", available: false, flag: "🇳🇬", cover: null },
-  { country: "Rwanda", title: "Rwanda 2026 Economic Outlook", price: "$495", available: false, flag: "🇷🇼", cover: null },
-  { country: "Ethiopia", title: "Ethiopia 2026 Economic Outlook", price: "$495", available: false, flag: "🇪🇹", cover: null },
-];
+      <div className="p-4 flex flex-col flex-1">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1">
+          {product.type === "country_report" ? "Country Report" : product.type === "sector_brief" ? "Sector Brief" : "Audience Note"}
+        </span>
+        <Link to={product.available ? `/product/${product.slug}` : "#"} onClick={e => { if (!product.available) e.preventDefault(); }}>
+          <h3 className="font-display font-bold text-sm text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2">{product.title}</h3>
+        </Link>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3 flex-1">{product.description?.slice(0, 100)}...</p>
+        <p className="font-display font-bold text-xl text-primary mb-3">${product.price}</p>
+
+        {product.available ? (
+          <div className="space-y-1.5">
+            <Button size="sm" className="w-full text-xs h-8" asChild>
+              <Link to={`/product/${product.slug}`}>View Details <ArrowRight className="ml-1 w-3 h-3" /></Link>
+            </Button>
+            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country })}>
+              <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onNotify(product.title)}>
+            Notify Me <ArrowRight className="ml-1 w-3 h-3" />
+          </Button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
 
 const IntelligenceMarketplace = () => {
   const [interestModal, setInterestModal] = useState<{ open: boolean; title: string }>({ open: false, title: "" });
   const [sectorCountry, setSectorCountry] = useState("Kenya");
   const [audienceCountry, setAudienceCountry] = useState("Kenya");
-  const [purchaseLoading, setPurchaseLoading] = useState<string | null>(null);
+  const { items, setIsOpen } = useCart();
   const openInterest = (title: string) => setInterestModal({ open: true, title });
 
-  const handlePurchaseBrief = async (brief: typeof SECTOR_BRIEFS[0]) => {
-    setPurchaseLoading(brief.file);
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(brief.title)}&type=sector_brief`;
-      const { data, error } = await supabase.functions.invoke("paystack-checkout", {
-        body: {
-          email: "", // Paystack will collect email
-          amount: 95,
-          callback_url: callbackUrl,
-          metadata: { type: "sector_brief", product: `${brief.country} ${brief.title}`, file: brief.file },
-        },
-      });
-      if (error || !data?.authorization_url) throw new Error(data?.error || "Failed to start payment");
-      window.location.href = data.authorization_url;
-    } catch (err: any) {
-      const { useToast } = await import("@/hooks/use-toast");
-      alert(err.message || "Payment error. Please try again.");
-      setPurchaseLoading(null);
-    }
-  };
-
   const filteredBriefs = SECTOR_BRIEFS.filter(b => b.country === sectorCountry);
+  const filteredAudience = AUDIENCE_NOTES.filter(b => b.country === audienceCountry);
   const hasSectorContent = sectorCountry === "Kenya";
-  const hasAudienceContent = false; // All audience notes coming soon for now
+  const hasAudienceContent = audienceCountry === "Kenya";
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="pt-12 pb-4 md:pt-16 md:pb-6 px-4 md:px-8">
-        <div className="container-page">
-          <div className="max-w-3xl mb-6 md:mb-8">
-            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={0}
-              className="font-mono text-xs text-gold uppercase tracking-widest mb-2">Intelligence Marketplace</motion.p>
-            <motion.h1 initial="hidden" animate="visible" variants={fadeUp} custom={1}
-              className="text-2xl md:text-4xl font-bold text-foreground leading-[1.1] mb-3">
-              Economic Intelligence. On Demand.
-            </motion.h1>
-            <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}
-              className="text-sm md:text-base text-muted-foreground leading-relaxed">
-              Intelligence products calibrated for organizations navigating African economies.
-            </motion.p>
+      {/* Hero — compact */}
+      <section className="pt-10 pb-3 md:pt-14 md:pb-4 px-4 md:px-8">
+        <div className="container-page flex items-center justify-between">
+          <div className="max-w-3xl">
+            <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Intelligence Marketplace</p>
+            <h1 className="text-2xl md:text-4xl font-bold text-foreground leading-[1.1] mb-2">Economic Intelligence. On Demand.</h1>
+            <p className="text-sm text-muted-foreground">Intelligence products calibrated for organizations navigating African economies.</p>
           </div>
+          {items.length > 0 && (
+            <Button variant="outline" className="relative" onClick={() => setIsOpen(true)}>
+              <ShoppingCart className="w-4 h-4 mr-2" /> Cart
+              <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{items.length}</span>
+            </Button>
+          )}
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* SECTION 1: COUNTRY REPORTS */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="section-padding bg-muted/50">
+      {/* COUNTRY REPORTS */}
+      <section className="py-8 md:py-12 bg-muted/50">
         <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Country Reports</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Flagship Country Outlooks
-          </motion.h2>
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-            className="text-muted-foreground mb-12 max-w-2xl">
-            120+ page comprehensive economic analysis covering GDP, inflation, currency, fiscal policy, and sector deep-dives.
-          </motion.p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {COUNTRY_REPORTS.map((report, i) => (
-              <motion.div key={report.country} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i} whileHover={{ y: -4 }}
-                className={`rounded-lg border overflow-hidden flex flex-col card-shadow ${
-                  report.available
-                    ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/20"
-                    : "bg-background border-border"
-                }`}>
-                {report.cover ? (
-                  <img src={report.cover} alt={`${report.title} cover`} className="w-full h-40 object-cover object-top" />
-                ) : (
-                  <div className="w-full h-40 bg-muted/50 flex items-center justify-center">
-                    <span className="text-5xl">{report.flag}</span>
-                  </div>
-                )}
-                <div className="p-6 flex flex-col flex-1">
-                {!report.available && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded-full mb-2 w-fit">
-                    <Lock className="w-3 h-3" /> Coming Soon
-                  </span>
-                )}
-                <h3 className="font-display font-bold text-lg mb-2">{report.title}</h3>
-                <p className={`font-display font-bold text-2xl mb-1 ${report.available ? "" : "text-foreground"}`}>{report.price}</p>
-                <p className={`text-xs mb-4 ${report.available ? "opacity-60" : "text-muted-foreground"}`}>Single organization license</p>
-                <div className="mt-auto space-y-2">
-                  {report.available ? (
-                    <>
-                      <Button variant="gold" size="sm" className="w-full hover-sink" asChild>
-                        <Link to="/kenya-2026">Purchase Report <ArrowRight className="ml-1 w-3 h-3" /></Link>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="w-full text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                        <Link to="/sample-report"><Eye className="w-4 h-4 mr-1" /> Browse Sample</Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <Button variant="hero-outline" size="sm" className="w-full hover-sink" onClick={() => openInterest(report.title)}>
-                      Notify Me <ArrowRight className="ml-1 w-3 h-3" />
-                    </Button>
-                  )}
-                </div>
-                </div>
+          <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Country Reports</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Flagship Country Outlooks</h2>
+          <p className="text-muted-foreground text-sm mb-8 max-w-2xl">120+ page comprehensive economic analysis covering GDP, inflation, currency, fiscal policy, and sector deep-dives.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+            {COUNTRY_REPORTS.map((r, i) => (
+              <motion.div key={r.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
+                <ProductCard product={r} onNotify={openInterest} />
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* SECTION 2: SECTOR BRIEFS */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="section-padding">
+      {/* SECTOR BRIEFS */}
+      <section className="py-8 md:py-12">
         <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Sector Briefs</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Sector Intelligence Briefs
-          </motion.h2>
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-            className="text-muted-foreground mb-8 max-w-2xl">
-            Focused, decision-ready analysis for specific sectors. Each brief maps opportunities, risks, and strategic implications — so you act with clarity, not guesswork.
-          </motion.p>
+          <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Sector Briefs</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Sector Intelligence Briefs</h2>
+          <p className="text-muted-foreground text-sm mb-4 max-w-2xl">Focused, decision-ready analysis for specific sectors.</p>
 
-          {/* Country filter */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Country</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {COUNTRY_FILTERS.map(c => (
-                <Button key={c} variant={sectorCountry === c ? "default" : "outline"} size="sm" onClick={() => setSectorCountry(c)} className="text-xs h-7">
-                  {c}
-                </Button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-1.5 mb-6">
+            {COUNTRY_FILTERS.map(c => (
+              <Button key={c} variant={sectorCountry === c ? "default" : "outline"} size="sm" onClick={() => setSectorCountry(c)} className="text-xs h-7 px-3">{c}</Button>
+            ))}
           </div>
 
           {hasSectorContent ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredBriefs.map((brief, i) => (
-                <motion.div key={brief.title} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                  variants={fadeUp} custom={i} whileHover={{ y: -4 }}
-                  className="bg-background rounded-lg border border-border overflow-hidden card-shadow flex flex-col">
-                  <img src={brief.cover} alt={`${brief.title} cover`} className="w-full h-44 object-cover object-top" />
-                  <div className="p-5 flex flex-col flex-1">
-                  <span className="inline-block text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded-full mb-3 w-fit">{brief.country}</span>
-                  <h3 className="font-display font-bold text-foreground mb-2">{brief.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-4 flex-1">
-                    In-depth analysis of {brief.title.toLowerCase()} in {brief.country} — trends, risks, opportunities, and strategic recommendations for decision-makers.
-                  </p>
-                  <p className="font-display font-bold text-2xl text-primary mb-4">$95</p>
-                  <div className="space-y-2">
-                    <Button variant="hero" size="sm" className="w-full hover-sink" 
-                      onClick={() => handlePurchaseBrief(brief)}
-                      disabled={purchaseLoading === brief.file}>
-                      {purchaseLoading === brief.file ? "Processing..." : "Purchase Brief"} <ArrowRight className="ml-1 w-3 h-3" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-foreground" asChild>
-                      <Link to={`/sector-brief-preview/${encodeURIComponent(brief.file)}`}>
-                        <Eye className="w-4 h-4 mr-1" /> Browse Sample
-                      </Link>
-                    </Button>
-                  </div>
-                  </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {filteredBriefs.map((b, i) => (
+                <motion.div key={b.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
+                  <ProductCard product={b} onNotify={openInterest} />
                 </motion.div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-muted/30 rounded-lg border border-dashed border-border">
-              <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-display font-bold text-lg text-foreground mb-2">Sector briefs for {sectorCountry} coming soon</h3>
-              <p className="text-sm text-muted-foreground mb-4">Be the first to know when they're ready.</p>
-              <Button variant="hero-outline" size="sm" onClick={() => openInterest(`${sectorCountry} Sector Briefs`)}>
-                Notify Me When Available <ArrowRight className="ml-1 w-3 h-3" />
-              </Button>
+            <div className="text-center py-12 bg-muted/30 rounded-lg border border-dashed border-border">
+              <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Sector briefs for {sectorCountry} coming soon</h3>
+              <Button variant="outline" size="sm" onClick={() => openInterest(`${sectorCountry} Sector Briefs`)}>Notify Me</Button>
             </div>
           )}
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* SECTION 3: AUDIENCE NOTES */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="section-padding bg-muted/50">
+      {/* AUDIENCE NOTES */}
+      <section className="py-8 md:py-12 bg-muted/50">
         <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Audience Notes</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Audience-Specific Intelligence
-          </motion.h2>
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}
-            className="text-muted-foreground mb-8 max-w-2xl">
-            Economic intelligence repackaged for your specific audience — whether you're a development partner, corporate strategist, trade operator, or founder.
-          </motion.p>
+          <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Audience Notes</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Audience-Specific Intelligence</h2>
+          <p className="text-muted-foreground text-sm mb-4 max-w-2xl">Economic intelligence repackaged for your specific audience.</p>
 
-          {/* Country filter */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Country</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {COUNTRY_FILTERS.map(c => (
-                <Button key={c} variant={audienceCountry === c ? "default" : "outline"} size="sm" onClick={() => setAudienceCountry(c)} className="text-xs h-7">
-                  {c}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {AUDIENCE_NOTES.map((note, i) => (
-              <motion.div key={note.title} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i} whileHover={{ y: -4 }}
-                className="bg-background rounded-lg border border-border p-6 card-shadow flex flex-col">
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 rounded-full mb-3 w-fit">
-                  <Lock className="w-3 h-3" /> Coming Soon
-                </span>
-                <span className="inline-block text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-full mb-3 w-fit">{audienceCountry}</span>
-                <h3 className="font-display font-bold text-foreground mb-2">{note.title}</h3>
-                <p className="text-xs text-muted-foreground mb-4 flex-1">{note.description}</p>
-                <p className="font-display font-bold text-2xl text-primary mb-4">$195</p>
-                <Button variant="hero-outline" size="sm" className="w-full hover-sink" onClick={() => openInterest(`${audienceCountry} ${note.title}`)}>
-                  Notify Me <ArrowRight className="ml-1 w-3 h-3" />
-                </Button>
-              </motion.div>
+          <div className="flex flex-wrap gap-1.5 mb-6">
+            {COUNTRY_FILTERS.map(c => (
+              <Button key={c} variant={audienceCountry === c ? "default" : "outline"} size="sm" onClick={() => setAudienceCountry(c)} className="text-xs h-7 px-3">{c}</Button>
             ))}
           </div>
+
+          {hasAudienceContent ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {filteredAudience.map((n, i) => (
+                <motion.div key={n.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
+                  <ProductCard product={n} onNotify={openInterest} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-muted/30 rounded-lg border border-dashed border-border">
+              <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-bold text-lg mb-2">Audience notes for {audienceCountry} coming soon</h3>
+              <Button variant="outline" size="sm" onClick={() => openInterest(`${audienceCountry} Audience Notes`)}>Notify Me</Button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      {/* SECTION 4: Tailored Intelligence & Engagements */}
-      {/* ═══════════════════════════════════════════════════════════════ */}
-      <section className="section-padding">
+      {/* Advisory */}
+      <section className="py-8 md:py-12">
         <div className="container-page">
-          <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="font-mono text-xs text-gold uppercase tracking-widest mb-4">Advisory & Engagements</motion.p>
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="text-3xl md:text-4xl font-bold text-foreground mb-12">Custom Intelligence & Briefings</motion.h2>
-
+          <p className="font-mono text-xs text-accent uppercase tracking-widest mb-2">Advisory & Engagements</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">Custom Intelligence & Briefings</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { num: "01", icon: Briefcase, title: "Organization-Specific Economic Brief", desc: "We translate the macroeconomic environment into insights tailored to your organization, sector, and strategy.", deliverable: "Custom brief aligned to your organization's context", price: "$1,000 – $5,000+", cta: "Request a Brief" },
-              { num: "02", icon: Users, title: "Executive Strategy Briefings", desc: "We present insights directly to your leadership team, break them down, and answer questions in real time.", deliverable: "Pre-read document + live briefing + follow-up memo", price: "$1,500 – $10,000+", cta: "Book a Briefing" },
-              { num: "03", icon: Zap, title: "Intelligence Access Retainer", desc: "Continuous access to decision-grade economic insight. Quarterly deep-dives, real-time signals, and direct analyst access.", deliverable: "Quarterly report + monthly updates + analyst hotline", price: "$300 – $1,000/month", cta: "Discuss Access" },
+              { num: "01", icon: Briefcase, title: "Organization-Specific Economic Brief", desc: "We translate the macroeconomic environment into insights tailored to your organization.", price: "$1,000 – $5,000+", cta: "Request a Brief" },
+              { num: "02", icon: Users, title: "Executive Strategy Briefings", desc: "We present insights directly to your leadership team and answer questions in real time.", price: "$1,500 – $10,000+", cta: "Book a Briefing" },
+              { num: "03", icon: Zap, title: "Intelligence Access Retainer", desc: "Continuous access to decision-grade economic insight with quarterly deep-dives.", price: "$300 – $1,000/month", cta: "Discuss Access" },
             ].map((item, i) => (
-              <motion.div key={item.num} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i}
-                className="bg-background rounded-lg border border-border p-8 card-shadow flex flex-col">
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="font-mono text-2xl font-bold text-gold">{item.num}</span>
+              <motion.div key={item.num} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+                className="bg-background rounded-lg border border-border p-6 card-shadow flex flex-col">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="font-mono text-xl font-bold text-accent">{item.num}</span>
                   <item.icon className="w-5 h-5 text-primary" />
                 </div>
-                <h3 className="font-display font-bold text-xl text-foreground mb-3">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{item.desc}</p>
-                <p className="text-xs text-muted-foreground mb-1"><span className="font-semibold text-foreground">Deliverable:</span> {item.deliverable}</p>
+                <h3 className="font-bold text-lg text-foreground mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground mb-3 flex-1">{item.desc}</p>
                 <p className="text-xs text-muted-foreground mb-4"><span className="font-semibold text-foreground">Investment:</span> {item.price}</p>
-                <Button variant="hero" className="hover-sink w-full" asChild>
+                <Button className="w-full" asChild>
                   <Link to="/contact">{item.cta} <ArrowRight className="ml-1 w-3 h-3" /></Link>
                 </Button>
               </motion.div>
@@ -319,23 +212,17 @@ const IntelligenceMarketplace = () => {
       </section>
 
       {/* CTA */}
-      <section className="section-padding bg-primary">
+      <section className="py-12 bg-primary">
         <div className="container-page text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">Not sure where to start?</h2>
-          <p className="text-lg text-primary-foreground/70 mb-8 max-w-xl mx-auto">
-            Tell us what you're trying to decide, and we'll recommend the right intelligence product for your team.
-          </p>
-          <Button variant="gold" size="lg" className="hover-sink" asChild>
+          <h2 className="text-3xl font-bold text-primary-foreground mb-4">Not sure where to start?</h2>
+          <p className="text-primary-foreground/70 mb-6 max-w-xl mx-auto">Tell us what you're trying to decide, and we'll recommend the right intelligence product.</p>
+          <Button variant="gold" size="lg" asChild>
             <Link to="/contact">Get in Touch <ArrowRight className="ml-1" /></Link>
           </Button>
         </div>
       </section>
 
-      <ProductInterestModal
-        open={interestModal.open}
-        onOpenChange={(open) => setInterestModal(prev => ({ ...prev, open }))}
-        productTitle={interestModal.title}
-      />
+      <ProductInterestModal open={interestModal.open} onOpenChange={(open) => setInterestModal(prev => ({ ...prev, open }))} productTitle={interestModal.title} />
     </Layout>
   );
 };

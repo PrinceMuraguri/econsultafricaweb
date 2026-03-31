@@ -20,6 +20,10 @@ const BRIEF_NAMES: Record<string, string> = {
   "Kenya_2026_Tourism_Hospitality_Brief.pdf": "Tourism & Hospitality",
   "Kenya_2026_Real_Estate_Construction_Brief.pdf": "Real Estate & Construction",
   "Kenya_2026_Retail_Consumer_Brief.pdf": "Retail & Consumer",
+  "Kenya_2026_Investor_Strategy_Note.pdf": "Investor Strategy Note",
+  "Kenya_2026_Development_Partner_Brief.pdf": "Development Partner Brief",
+  "Kenya_2026_Corporate_Strategy_Brief.pdf": "Corporate Strategy Brief",
+  "Kenya_2026_Startup_SME_Scan.pdf": "Startup & SME Environment Scan",
 };
 
 const SectorBriefPreview = () => {

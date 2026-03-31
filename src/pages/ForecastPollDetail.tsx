@@ -8,6 +8,8 @@ import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import { usePoll } from "@/hooks/use-polls";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Clock, BarChart3, Scale, MessageSquare } from "lucide-react";
+import BookmarkToggle from "@/components/forecast/BookmarkToggle";
+import SharePopover from "@/components/forecast/SharePopover";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();

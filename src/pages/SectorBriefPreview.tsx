@@ -26,6 +26,7 @@ const BRIEF_NAMES: Record<string, string> = {
   "Kenya_2026_Startup_SME_Scan.pdf": "Startup & SME Environment Scan",
   "Kenya_2026_Exporter_Importer_Trade_Brief.pdf": "Exporter/Importer Trade Brief",
   "kenya-oil-shortage-assessment-march-2026.pdf": "Kenya 2026 Economic Outlook",
+  "Kenya_2026_Economic_Outlook.pdf": "Kenya 2026 Economic Outlook",
 };
 
 const SectorBriefPreview = () => {

@@ -79,13 +79,13 @@ const SectorBriefPreview = () => {
   const handlePurchase = async () => {
     setPurchaseLoading(true);
     try {
-      const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(briefTitle)}&type=sector_brief`;
+      const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(briefTitle)}&type=${productType}`;
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {
         body: {
           email: "",
-          amount: 95,
+          amount: price,
           callback_url: callbackUrl,
-          metadata: { type: "sector_brief", product: `Kenya ${briefTitle}`, file: decodedFilename },
+          metadata: { type: productType, product: `Kenya ${briefTitle}`, file: decodedFilename },
         },
       });
       if (error || !data?.authorization_url) throw new Error(data?.error || "Failed to start payment");

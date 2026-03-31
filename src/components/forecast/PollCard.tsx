@@ -212,6 +212,21 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto">
           <Clock className="w-3 h-3" />{getTimeRemaining(poll.close_at)}
         </span>
+
+        {/* Probability badge */}
+        {totalVotes > 0 && (() => {
+          const leading = sortedOptions.reduce((best, o) => o.total_votes_count > best.total_votes_count ? o : best, sortedOptions[0]);
+          const pct = Math.round((leading.total_votes_count / totalVotes) * 100);
+          const isYes = leading.label.toLowerCase() === "yes";
+          const isNo = leading.label.toLowerCase() === "no";
+          const color = pct >= 60 ? (isNo ? "text-red-500" : "text-green-600") : "text-amber-500";
+          return (
+            <div className="text-right ml-1">
+              <p className={`font-mono text-base font-bold leading-none ${color}`}>{pct}% {leading.label}</p>
+              <p className="text-[8px] text-muted-foreground">consensus</p>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Question title — use full width */}

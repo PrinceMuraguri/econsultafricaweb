@@ -29,6 +29,8 @@ import MyDashboard from "./pages/MyDashboard.tsx";
 import SectorBriefPreview from "./pages/SectorBriefPreview.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import ThankYou from "./pages/ThankYou.tsx";
+import Unsubscribe from "./pages/Unsubscribe.tsx";
 
 const queryClient = new QueryClient();
 

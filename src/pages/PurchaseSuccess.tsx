@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 import { CheckCircle, Download, ArrowLeft, Loader2 } from "lucide-react";
@@ -9,6 +9,7 @@ import { trackFunnelEvent } from "@/lib/sales-funnel";
 
 const PurchaseSuccess = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const reference = searchParams.get("reference") || searchParams.get("trxref");
   const pTitle = searchParams.get("product") || "Report";
   const pType = searchParams.get("type") || "report";
@@ -32,6 +33,28 @@ const PurchaseSuccess = () => {
         if (data?.download_url) {
           setDownloadUrl(data.download_url);
           trackFunnelEvent("purchase_complete", { productTitle: pTitle, productType: pType, metadata: { reference } });
+
+          // Send purchase confirmation email
+          const customerEmail = data.customer_email;
+          if (customerEmail) {
+            supabase.functions.invoke("send-transactional-email", {
+              body: {
+                templateName: "purchase-confirmation",
+                recipientEmail: customerEmail,
+                idempotencyKey: `purchase-confirm-${reference}`,
+                templateData: {
+                  productTitle: data.product_title || pTitle,
+                  downloadUrl: data.download_url,
+                  reference,
+                },
+              },
+            }).catch((err) => console.error("Failed to send confirmation email:", err));
+          }
+
+          // Redirect to thank you page after a brief moment
+          setTimeout(() => {
+            navigate(`/thank-you?reference=${reference}&product=${encodeURIComponent(pTitle)}&download=${encodeURIComponent(data.download_url)}`);
+          }, 2000);
         } else {
           throw new Error("Could not generate download link.");
         }
@@ -64,38 +87,22 @@ const PurchaseSuccess = () => {
               <>
                 <p className="text-destructive font-semibold mb-4">{error}</p>
                 <Button variant="hero-outline" size="lg" asChild>
-                  <Link to="/kenya-2026">Back to Report</Link>
+                  <Link to="/intelligence-marketplace">Back to Marketplace</Link>
                 </Button>
               </>
             ) : (
-              <>
-                <CheckCircle className="w-16 h-16 text-primary mx-auto mb-6" />
-                <h1 className="text-3xl font-bold text-foreground mb-4">
-                  Purchase Successful
-                </h1>
-                <p className="text-muted-foreground mb-2">
-                  Thank you for purchasing the Kenya 2026 Economic Outlook report.
-                </p>
-                {reference && (
-                  <p className="text-sm text-muted-foreground mb-8">
-                    Reference: <span className="font-mono">{reference}</span>
-                  </p>
-                )}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  {downloadUrl && (
-                    <Button variant="hero" size="lg" className="hover-sink" asChild>
-                      <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
-                        <Download className="mr-2 w-4 h-4" /> Download Report
-                      </a>
-                    </Button>
-                  )}
-                  <Button variant="hero-outline" size="lg" className="hover-sink" asChild>
-                    <Link to="/">
-                      <ArrowLeft className="mr-2 w-4 h-4" /> Back to Home
-                    </Link>
+              <div className="flex flex-col items-center gap-4">
+                <CheckCircle className="w-16 h-16 text-primary" />
+                <h1 className="text-2xl font-bold text-foreground">Purchase Verified!</h1>
+                <p className="text-muted-foreground">Redirecting you to your thank you page…</p>
+                {downloadUrl && (
+                  <Button variant="hero" size="lg" className="hover-sink" asChild>
+                    <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                      <Download className="mr-2 w-4 h-4" /> Download Report Now
+                    </a>
                   </Button>
-                </div>
-              </>
+                )}
+              </div>
             )}
           </motion.div>
         </div>

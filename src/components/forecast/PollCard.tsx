@@ -256,7 +256,17 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       <div className="grid grid-cols-2 gap-3 mb-2">
         {/* LEFT: Make Your Prediction */}
         <div className="flex flex-col relative">
-          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Take Your Position</p>
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">
+            Take Your Position
+            {hasVoted && votedOptionId && (() => {
+              const votedOpt = sortedOptions.find(o => o.id === votedOptionId);
+              return votedOpt ? (
+                <span className="ml-1 normal-case tracking-normal font-normal text-primary">
+                  — you selected <span className="font-semibold">{votedOpt.label}</span>
+                </span>
+              ) : null;
+            })()}
+          </p>
           {isTrending && (
             <div className="mb-1.5">
               <motion.span

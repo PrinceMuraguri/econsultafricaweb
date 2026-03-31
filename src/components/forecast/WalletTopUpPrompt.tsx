@@ -11,6 +11,7 @@ const WalletTopUpPrompt = () => {
   const { user, wallet, profile } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const displayName = profile?.full_name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || "there";
 

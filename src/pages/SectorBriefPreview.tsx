@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Lock, ArrowRight, ShoppingCart } from "lucid
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { trackFunnelEvent } from "@/lib/sales-funnel";
 import * as pdfjsLib from "pdfjs-dist";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;

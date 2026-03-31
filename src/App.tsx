@@ -20,6 +20,8 @@ import SampleReport from "./pages/SampleReport.tsx";
 import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
 import StakeResult from "./pages/StakeResult.tsx";
+import Leaderboard from "./pages/Leaderboard.tsx";
+import UserProfile from "./pages/UserProfile.tsx";
 import HowItWorks from "./pages/HowItWorks.tsx";
 import HowItWorksQuick from "./pages/HowItWorksQuick.tsx";
 import HowItWorksDetailed from "./pages/HowItWorksDetailed.tsx";
@@ -66,6 +68,8 @@ const App = () => (
               <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
               <Route path="/my-dashboard" element={<MyDashboard />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/profile/:username" element={<UserProfile />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* Redirects */}

@@ -71,6 +71,7 @@ const App = () => (
               <Route path="/my-dashboard" element={<MyDashboard />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/profile/:username" element={<UserProfile />} />
+              <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* Redirects */}

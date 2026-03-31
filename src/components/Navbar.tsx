@@ -58,11 +58,11 @@ const Navbar = () => {
             <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-5">
             {navLinks.map((link) => (
               <Link key={link.href} to={link.href}
                 className={`text-sm font-medium transition-colors duration-200 ${
-                  location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-accent"
+                  location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}>
                 {link.label}
               </Link>

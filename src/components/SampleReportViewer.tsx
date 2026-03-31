@@ -18,7 +18,7 @@ const SampleReportViewer = () => {
   // Load PDF
   useEffect(() => {
     const loadPdf = async () => {
-      const doc = await pdfjsLib.getDocument("/reports/Kenya_2026_Sample.pdf").promise;
+      const doc = await pdfjsLib.getDocument("/reports/Kenya_2026_Economic_Outlook.pdf").promise;
       setPdfDoc(doc);
       setTotalPages(doc.numPages);
     };

@@ -47,9 +47,7 @@ const ProductDetail = () => {
   };
 
   const previewUrl = product.file
-    ? product.type === "country_report"
-      ? "/sample-report"
-      : `/sector-brief-preview/${encodeURIComponent(product.file)}`
+    ? `/sector-brief-preview/${encodeURIComponent(product.file)}`
     : null;
 
   return (

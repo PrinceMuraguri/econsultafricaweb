@@ -24,12 +24,20 @@ const BRIEF_NAMES: Record<string, string> = {
   "Kenya_2026_Development_Partner_Brief.pdf": "Development Partner Brief",
   "Kenya_2026_Corporate_Strategy_Brief.pdf": "Corporate Strategy Brief",
   "Kenya_2026_Startup_SME_Scan.pdf": "Startup & SME Environment Scan",
+  "Kenya_2026_Exporter_Importer_Trade_Brief.pdf": "Exporter/Importer Trade Brief",
+  "kenya-oil-shortage-assessment-march-2026.pdf": "Kenya 2026 Economic Outlook",
 };
 
 const SectorBriefPreview = () => {
   const { filename } = useParams<{ filename: string }>();
   const decodedFilename = decodeURIComponent(filename || "");
   const briefTitle = BRIEF_NAMES[decodedFilename] || decodedFilename.replace(/_/g, " ").replace(".pdf", "");
+
+  // Use 50 pages for the Kenya country report, 8 for everything else
+  const isCountryReport = decodedFilename.includes("kenya-oil-shortage") || decodedFilename.includes("Kenya_2026_Sample");
+  const maxPages = isCountryReport ? 50 : MAX_PREVIEW_PAGES;
+  const price = isCountryReport ? 495 : 95;
+  const productType = isCountryReport ? "country_report" : "sector_brief";
 
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [pageImages, setPageImages] = useState<string[]>([]);
@@ -40,9 +48,13 @@ const SectorBriefPreview = () => {
   useEffect(() => {
     const loadPdf = async () => {
       try {
-        const doc = await pdfjsLib.getDocument(`/reports/sector-briefs/${decodedFilename}`).promise;
+        // Try sector-briefs folder first, fall back to reports folder for country reports
+        const pdfPath = isCountryReport
+          ? `/reports/${decodedFilename}`
+          : `/reports/sector-briefs/${decodedFilename}`;
+        const doc = await pdfjsLib.getDocument(pdfPath).promise;
         setPdfDoc(doc);
-        const pagesToRender = Math.min(doc.numPages, MAX_PREVIEW_PAGES);
+        const pagesToRender = Math.min(doc.numPages, maxPages);
         const images: string[] = [];
 
         for (let i = 1; i <= pagesToRender; i++) {
@@ -69,13 +81,13 @@ const SectorBriefPreview = () => {
   const handlePurchase = async () => {
     setPurchaseLoading(true);
     try {
-      const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(briefTitle)}&type=sector_brief`;
+      const callbackUrl = `${window.location.origin}/purchase-success?product=${encodeURIComponent(briefTitle)}&type=${productType}`;
       const { data, error } = await supabase.functions.invoke("paystack-checkout", {
         body: {
           email: "",
-          amount: 95,
+          amount: price,
           callback_url: callbackUrl,
-          metadata: { type: "sector_brief", product: `Kenya ${briefTitle}`, file: decodedFilename },
+          metadata: { type: productType, product: `Kenya ${briefTitle}`, file: decodedFilename },
         },
       });
       if (error || !data?.authorization_url) throw new Error(data?.error || "Failed to start payment");
@@ -98,7 +110,7 @@ const SectorBriefPreview = () => {
 
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">{briefTitle} — Sample Preview</h1>
           <p className="text-muted-foreground mb-6">
-            Browse the first {MAX_PREVIEW_PAGES} pages free. Purchase the full brief for the complete analysis.
+            Browse the first {maxPages} pages free. Purchase the full {isCountryReport ? "report" : "brief"} for the complete analysis.
           </p>
 
           {loading ? (
@@ -130,15 +142,17 @@ const SectorBriefPreview = () => {
                           You've seen the highlights. Now get the full picture.
                         </h2>
                         <p className="text-muted-foreground max-w-lg mb-2">
-                          The remaining pages contain the complete sector analysis — opportunity mapping, risk assessment, competitive landscape, and strategic recommendations that drive real decisions.
+                          {isCountryReport
+                            ? "The remaining chapters contain the real insights — the Opportunity Map, Risks & Mitigation table, policy recommendations, and the investor strategy framework. These sections include the practical \"So what\" about everything."
+                            : "The remaining pages contain the complete sector analysis — opportunity mapping, risk assessment, competitive landscape, and strategic recommendations that drive real decisions."}
                         </p>
                         <p className="text-lg font-bold text-primary mb-6">
-                          Unlock the full <span className="text-foreground">{briefTitle}</span> brief for just <span className="text-accent">$95</span>.
+                          Unlock the full <span className="text-foreground">{briefTitle}</span> {isCountryReport ? "report" : "brief"} for just <span className="text-accent">${price}</span>.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3">
                           <Button size="lg" className="hover-sink" onClick={handlePurchase} disabled={purchaseLoading}>
                             <ShoppingCart className="w-4 h-4 mr-2" />
-                            {purchaseLoading ? "Processing..." : "Purchase Full Brief — $95"}
+                            {purchaseLoading ? "Processing..." : `Purchase Full ${isCountryReport ? "Report" : "Brief"} — $${price}`}
                           </Button>
                           <Button variant="outline" size="lg" asChild>
                             <Link to="/intelligence-marketplace">Browse Other Briefs</Link>

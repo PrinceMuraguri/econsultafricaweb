@@ -59,6 +59,13 @@ function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNot
             <Button size="sm" className="w-full text-xs h-8" asChild>
               <Link to={`/product/${product.slug}`}>View Details <ArrowRight className="ml-1 w-3 h-3" /></Link>
             </Button>
+            {product.file && (
+              <Button variant="ghost" size="sm" className="w-full text-xs h-7 text-muted-foreground" asChild>
+                <Link to={product.type === "country_report" ? `/sector-brief-preview/${encodeURIComponent(product.file)}` : `/sector-brief-preview/${encodeURIComponent(product.file)}`}>
+                  <Eye className="w-3 h-3 mr-1" /> Browse Free Sample
+                </Link>
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country })}>
               <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
             </Button>

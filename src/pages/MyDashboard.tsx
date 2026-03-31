@@ -60,7 +60,7 @@ const MyDashboard = () => {
 
 
   // Fetch user's votes with poll data
-  const { data: positions, isLoading } = useQuery({
+  const { data: positions, isLoading, refetch: refetchPositions } = useQuery({
     queryKey: ["my-positions", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -120,6 +120,7 @@ const MyDashboard = () => {
       });
     },
     enabled: !!user,
+    refetchInterval: 15000, // Auto-refresh every 15s for real-time feel
   });
 
   // Fetch user's transactions
@@ -159,6 +160,7 @@ const MyDashboard = () => {
       return data || [];
     },
     enabled: !!user,
+    refetchInterval: 15000,
   });
 
   // Fetch payouts

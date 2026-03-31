@@ -214,9 +214,9 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </span>
       </div>
 
-      {/* Question title */}
+      {/* Question title — use full width */}
       <div className="mb-1">
-        <h3 className="font-display font-bold text-foreground leading-snug text-sm">{poll.title}</h3>
+        <h3 className="font-display font-bold text-foreground leading-snug text-sm pr-0">{poll.title}</h3>
       </div>
 
       {/* Context preview — show inline, expand if long */}
@@ -252,22 +252,34 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       )}
 
-      {/* Two-column layout: Left = Vote, Right = Sentiment */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+      {/* Two-column layout: Left = Vote, Right = Sentiment — side by side on all screens */}
+      <div className="grid grid-cols-2 gap-3 mb-2">
         {/* LEFT: Make Your Prediction */}
         <div className="flex flex-col relative">
-          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">Take Your Position</p>
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">
+            Take Your Position
+            {hasVoted && votedOptionId && (() => {
+              const votedOpt = sortedOptions.find(o => o.id === votedOptionId);
+              return votedOpt ? (
+                <span className="ml-1 normal-case tracking-normal font-normal text-primary">
+                  — you selected <span className="font-semibold">{votedOpt.label}</span>
+                </span>
+              ) : null;
+            })()}
+          </p>
           {isTrending && (
-            <p className="text-[9px] text-muted-foreground mb-1.5 flex items-center gap-1 flex-wrap">
+            <div className="mb-1.5">
               <motion.span
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
-                className="text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded"
+                className="inline-block text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded mb-0.5"
               >
                 New Feature
               </motion.span>
-              Commit to your view and earn rewards if you are correct.
-            </p>
+              <p className="text-[9px] text-muted-foreground flex items-center gap-1 flex-wrap">
+                Commit capital to your position and earn rewards if you are correct.
+              </p>
+            </div>
           )}
 
           <AnimatePresence>
@@ -343,9 +355,8 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             const potentialGain = (1 - price).toFixed(2);
             return (
               <div className="mt-2 pt-2 border-t border-border">
-                <p className="text-[9px] text-muted-foreground mb-1.5 text-center flex items-center justify-center gap-1 flex-wrap">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1 py-0.5 rounded">New Feature</span>
-                  Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
+                 <p className="text-[9px] text-muted-foreground mb-1.5 text-center flex items-center justify-center gap-1 flex-wrap">
+                   Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => handleAllocate(votedOption)}
@@ -364,17 +375,17 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
           {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
-                <Rocket className="w-3 h-3 text-accent" />
-                Vote first to commit capital
+              <Rocket className="w-3 h-3 text-accent" />
+                Take your position above to commit capital
               </p>
             </div>
           )}
         </div>
 
-        {/* RIGHT: What Others Are Saying */}
+        {/* RIGHT: What Others Think */}
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Others Are Saying</p>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Others Think (Current Sentiment)</p>
             <span className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</span>
           </div>
 

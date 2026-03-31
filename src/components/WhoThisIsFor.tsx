@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, Target, TrendingUp, Globe, Home } from "lucide-react";
+import { Users, Target, TrendingUp, Globe, Home, Heart } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
@@ -11,29 +11,34 @@ const fadeUp = {
 
 const segments = [
   {
+    icon: Heart,
+    title: "YOU",
+    benefit: "If you believe understanding the economy helps you make better decisions — for yourself, your family, your business, your organization, or your country, this is for you.",
+  },
+  {
     icon: Users,
     title: "CEOs & Leadership Teams",
-    benefit: "Making strategic decisions with clarity on where the economy is headed.",
+    benefit: "Making strategic decisions requires understanding where the economy is headed, not just where the business is today. This is for leaders who want clarity on inflation, interest rates, consumer demand, and the broader economic environment shaping their decisions.",
   },
   {
     icon: Target,
     title: "Strategy & Planning Teams",
-    benefit: "Aligning business direction with macroeconomic reality.",
+    benefit: "Good strategy is built on good assumptions about the future. This is for teams responsible for planning, forecasting, and positioning their organizations in a changing economic environment, using data and trends instead of guesswork.",
   },
   {
     icon: TrendingUp,
     title: "Investors & Operators",
-    benefit: "Evaluating opportunities with data-driven economic context.",
+    benefit: "Investment decisions are ultimately economic decisions. This is for investors and operators who want to evaluate opportunities, risks, sectors, and markets with a deeper understanding of the economic forces driving performance.",
   },
   {
     icon: Globe,
     title: "Development Organizations",
-    benefit: "Understanding the economic landscape to design effective programs.",
+    benefit: "Programs and policies work best when they are grounded in economic reality. This is for development organizations, NGOs, and policy teams that want to design programs informed by data, markets, and how people actually live and make decisions.",
   },
   {
     icon: Home,
     title: "Households & Individuals",
-    benefit: "Understanding the forces shaping their financial lives — because they are the real economy.",
+    benefit: "The economy is not abstract — it affects jobs, prices, salaries, businesses, and opportunities. This is for individuals and households who want to better understand the forces shaping their financial lives and future opportunities.",
   },
 ];
 
@@ -60,11 +65,11 @@ const WhoThisIsFor = () => (
           variants={fadeUp} custom={2}
           className="text-muted-foreground leading-relaxed"
         >
-          Economic intelligence designed for teams that need more than headlines.
+          Economic intelligence designed for everyone who needs more than headlines.
         </motion.p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {segments.map((seg, i) => (
           <motion.div
             key={seg.title}

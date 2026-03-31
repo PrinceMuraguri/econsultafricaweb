@@ -8,6 +8,7 @@ import WhoThisIsFor from "@/components/WhoThisIsFor";
 import EmailCapture from "@/components/EmailCapture";
 import SocialProof from "@/components/SocialProof";
 import { articles } from "@/data/articles";
+import { ALL_PRODUCTS } from "@/data/marketplace-products";
 import princeMuraguriImg from "@/assets/prince-muraguri.png";
 import mosesImg from "@/assets/moses-macharia.jpeg";
 import paoloImg from "@/assets/paolo-avitabile.jfif";
@@ -142,25 +143,29 @@ const OurPhilosophy = () => {
               transition={{ delay: 0.3, duration: 0.7, ease: [0.2, 0, 0, 1] as const }}
               className="lg:col-span-2">
               
-              <div className="relative">
-                <div className="bg-primary rounded-lg p-8 text-primary-foreground card-shadow-lg" style={{ transform: "perspective(800px) rotateY(-8deg)" }}>
-                  <p className="font-mono text-xs opacity-60 mb-2">ECONSULT AFRICA · 2026</p>
-                  <h3 className="font-display font-bold text-2xl mb-4">Kenya 2026<br />Economic Outlook</h3>
-                  <div className="h-px bg-primary-foreground/20 mb-4" />
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm"><span className="opacity-60">GDP Growth (Proj.)</span><span className="font-mono font-semibold">5.2%</span></div>
-                    <div className="flex justify-between text-sm"><span className="opacity-60">Inflation (Avg.)</span><span className="font-mono font-semibold">4.3%</span></div>
-                    <div className="flex justify-between text-sm"><span className="opacity-60">Key Sectors</span><span className="font-mono font-semibold">10 Analyzed</span></div>
-                  </div>
+              {/* Bookstore shelf display */}
+              <div className="bg-muted/30 rounded-lg border border-border p-6">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-4 text-center">Our Intelligence Library</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {ALL_PRODUCTS.filter(p => p.cover && p.available).slice(0, 8).map((product) => (
+                    <Link key={product.id} to={`/product/${product.slug}`} className="group">
+                      <div className="relative">
+                        <div className="absolute left-0 top-1 bottom-1 w-1 bg-foreground/10 rounded-l" />
+                        <img
+                          src={product.cover!}
+                          alt={product.title}
+                          className="w-full aspect-[3/4] object-cover rounded-sm shadow-md border border-border/50 group-hover:shadow-lg transition-shadow"
+                        />
+                      </div>
+                      <p className="text-[9px] text-muted-foreground mt-1 text-center truncate">{product.title}</p>
+                    </Link>
+                  ))}
                 </div>
-                <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                className="absolute -top-4 -right-4 bg-background card-shadow rounded-lg px-4 py-2 border border-border">
-                  <p className="font-mono text-xs text-gold font-semibold">+5.2% GDP</p>
-                </motion.div>
-                <motion.div animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
-                className="absolute -bottom-4 -left-4 bg-background card-shadow rounded-lg px-4 py-2 border border-border">
-                  <p className="font-mono text-xs text-primary font-semibold">Pan-African</p>
-                </motion.div>
+                <div className="text-center mt-4">
+                  <Button variant="outline" size="sm" className="text-xs" asChild>
+                    <Link to="/intelligence-marketplace">Browse All Products <ArrowRight className="ml-1 w-3 h-3" /></Link>
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -243,7 +248,11 @@ const OurPhilosophy = () => {
             </motion.p>
             <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}
             className="text-xl text-primary font-display font-bold mt-4">
-              "So what does this mean for your organization?"
+              "What does this mean for me?"
+            </motion.p>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={5}
+            className="text-muted-foreground leading-relaxed mt-4 max-w-2xl mx-auto">
+              We work tirelessly to give you insights that help you make better decisions, whether you're an individual, a business, a citizen, a leader, a founder, a startup, an investor, a policymaker, a researcher, a development partner, or a growing organization trying to make sense of a changing world. Our work is about turning complex economic and data insights into clear, practical meaning for you.
             </motion.p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -611,7 +620,7 @@ const OurPhilosophy = () => {
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}
             className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="gold" size="lg" className="hover-sink" asChild>
-              <Link to="/kenya-2026">Buy Kenya Report <ArrowRight className="ml-1" /></Link>
+              <Link to="/intelligence-marketplace">Take Me to the Intelligence Marketplace <ArrowRight className="ml-1" /></Link>
             </Button>
             <Button size="lg" className="hover-sink bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-display font-semibold" asChild>
               <Link to="/contact">Book a Consultation</Link>

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { Shield, Zap, Globe, ChevronDown, ChevronUp } from "lucide-react";
+import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";
@@ -96,7 +96,6 @@ const ForecastArena = () => {
         <div className="container-page relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="max-w-lg">
-              <span className="font-mono text-[10px] text-accent/70 uppercase tracking-[0.3em]">Introducing</span>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-background leading-[1] tracking-tight uppercase">Forecast Arena</h1>
               <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's Economic Sentiment Aggregator</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
@@ -159,7 +158,7 @@ const ForecastArena = () => {
         <div className="container-page py-2">
           <p className="text-[10px] text-muted-foreground text-center">
             Forecast Arena aggregates users' expectations on economic outcomes for research and insight purposes.
-            Not a trading or investment platform. <a href="/terms-of-use" className="text-primary underline">Terms</a>.
+            Not a trading or investment platform. <a href="/terms-of-use" className="text-primary underline">Terms of Use</a>.
           </p>
         </div>
       </div>
@@ -221,9 +220,8 @@ const ForecastArena = () => {
         <div className="container-page text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">Want Deeper Economic Intelligence?</h2>
           <p className="text-primary-foreground/70 mb-6 max-w-xl mx-auto text-sm">Go beyond forecasts. Get the full analysis behind Africa's economic trajectory.</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/kenya-2026" className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-5 py-2.5 font-semibold shadow hover:bg-accent/90 transition-colors text-sm">Get Kenya Report</Link>
-            <Link to="/intelligence-marketplace" className="inline-flex items-center justify-center rounded-md border-2 border-primary-foreground/30 text-primary-foreground px-5 py-2.5 font-semibold hover:bg-primary-foreground/10 transition-colors text-sm">Browse Intelligence Products</Link>
+          <div className="flex justify-center">
+            <Link to="/intelligence-marketplace" className="inline-flex items-center justify-center rounded-md bg-accent text-accent-foreground px-6 py-3 font-semibold shadow hover:bg-accent/90 transition-colors text-sm">Take Me to the Intelligence Marketplace <ArrowRight className="ml-2 w-4 h-4" /></Link>
           </div>
         </div>
       </section>

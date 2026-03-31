@@ -10,8 +10,8 @@ import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
   { label: "Forecast Arena", href: "/" },
-  { label: "Our Philosophy", href: "/our-philosophy" },
   { label: "Intelligence Marketplace", href: "/intelligence-marketplace" },
+  { label: "Our Philosophy", href: "/our-philosophy" },
   { label: "Insights & Media", href: "/insights" },
   { label: "About Us", href: "/about" },
   { label: "Contact", href: "/contact" },

@@ -15,9 +15,6 @@ export interface MarketplaceProduct {
 export const COUNTRY_REPORTS: MarketplaceProduct[] = [
   { id: "cr-kenya", title: "Kenya 2026 Economic Outlook", slug: "kenya-2026-outlook", type: "country_report", country: "Kenya", price: 495, available: true, flag: "🇰🇪", cover: "/reports/covers/Kenya_2026_Sample-01.jpg", file: "kenya-oil-shortage-assessment-march-2026.pdf", description: "120+ page comprehensive economic analysis covering GDP, inflation, currency, fiscal policy, and sector deep-dives for Kenya's economy in 2026." },
   { id: "cr-sa", title: "South Africa 2026 Economic Outlook", slug: "south-africa-2026-outlook", type: "country_report", country: "South Africa", price: 495, available: false, flag: "🇿🇦", description: "Comprehensive economic outlook for South Africa — coming soon." },
-  { id: "cr-nigeria", title: "Nigeria 2026 Economic Outlook", slug: "nigeria-2026-outlook", type: "country_report", country: "Nigeria", price: 495, available: false, flag: "🇳🇬", description: "Comprehensive economic outlook for Nigeria — coming soon." },
-  { id: "cr-rwanda", title: "Rwanda 2026 Economic Outlook", slug: "rwanda-2026-outlook", type: "country_report", country: "Rwanda", price: 495, available: false, flag: "🇷🇼", description: "Comprehensive economic outlook for Rwanda — coming soon." },
-  { id: "cr-ethiopia", title: "Ethiopia 2026 Economic Outlook", slug: "ethiopia-2026-outlook", type: "country_report", country: "Ethiopia", price: 495, available: false, flag: "🇪🇹", description: "Comprehensive economic outlook for Ethiopia — coming soon." },
 ];
 
 export const SECTOR_BRIEFS: MarketplaceProduct[] = [

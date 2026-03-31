@@ -108,7 +108,7 @@ const SectorBriefPreview = () => {
 
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">{briefTitle} — Sample Preview</h1>
           <p className="text-muted-foreground mb-6">
-            Browse the first {MAX_PREVIEW_PAGES} pages free. Purchase the full brief for the complete analysis.
+            Browse the first {maxPages} pages free. Purchase the full {isCountryReport ? "report" : "brief"} for the complete analysis.
           </p>
 
           {loading ? (

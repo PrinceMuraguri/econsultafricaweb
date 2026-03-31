@@ -31,6 +31,12 @@ const SectorBriefPreview = () => {
   const decodedFilename = decodeURIComponent(filename || "");
   const briefTitle = BRIEF_NAMES[decodedFilename] || decodedFilename.replace(/_/g, " ").replace(".pdf", "");
 
+  // Use 50 pages for the Kenya country report, 8 for everything else
+  const isCountryReport = decodedFilename.includes("kenya-oil-shortage") || decodedFilename.includes("Kenya_2026_Sample");
+  const maxPages = isCountryReport ? 50 : MAX_PREVIEW_PAGES;
+  const price = isCountryReport ? 495 : 95;
+  const productType = isCountryReport ? "country_report" : "sector_brief";
+
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

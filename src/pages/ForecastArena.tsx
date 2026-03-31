@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
-import { Shield, Zap, Globe, ChevronDown, ChevronUp } from "lucide-react";
+import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";

@@ -474,7 +474,7 @@ const MyDashboard = () => {
           {/* Resolved Positions */}
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4">
-              Past Positions ({resolvedPositions.length})
+              Forecast History ({resolvedPositions.length})
             </h2>
             {resolvedPositions.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">

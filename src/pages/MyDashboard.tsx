@@ -343,8 +343,8 @@ const MyDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {[
               { icon: Wallet, label: "Wallet Balance", value: `$${(wallet?.balance_usd || 0).toFixed(2)}` },
-              { icon: Activity, label: "Active Positions", value: activePositions.length },
-              { icon: DollarSign, label: "Capital Committed", value: `$${totalCommitted.toFixed(2)}` },
+              { icon: Activity, label: "My Active Forecasts", value: activePositions.length },
+              { icon: DollarSign, label: "Conviction Committed", value: `$${totalCommitted.toFixed(2)}` },
               { icon: TrendingUp, label: "Total Earnings", value: `$${totalEarnings.toFixed(2)}` },
               { icon: CheckCircle, label: "Accuracy", value: resolvedPositions.length > 0 ? `${Math.round((wonCount / resolvedPositions.length) * 100)}%` : "—" },
             ].map((stat) => (
@@ -378,7 +378,7 @@ const MyDashboard = () => {
             <div className="mb-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
-                Share Positions ({sharePositions.length})
+                My Forecast Positions ({sharePositions.length})
               </h2>
               <div className="space-y-2">
                 {sharePositions.map((pos: any) => (
@@ -404,14 +404,14 @@ const MyDashboard = () => {
             <div className="mb-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-primary" />
-                Recent Trades ({tradeHistory.length})
+                Recent Activity ({tradeHistory.length})
               </h2>
               <div className="space-y-2">
                 {tradeHistory.slice(0, 20).map((trade: any) => (
                   <div key={trade.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${trade.side === "buy" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
-                        {trade.side}
+                       <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${trade.side === "buy" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
+                        {trade.side === "buy" ? "Committed" : "Released"}
                       </span>
                       <span className="text-xs text-foreground">{Number(trade.shares)} shares @ ${Number(trade.price).toFixed(2)}</span>
                     </div>
@@ -430,7 +430,7 @@ const MyDashboard = () => {
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
-              Active Positions ({activePositions.length})
+              My Active Forecasts ({activePositions.length})
             </h2>
             {isLoading ? (
               <p className="text-sm text-muted-foreground py-4">Loading...</p>
@@ -454,10 +454,10 @@ const MyDashboard = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>Entry: ${pos.entry_price.toFixed(2)}</span>
+                          <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
                           <span>Consensus: {consensusPct}%</span>
-                          {pos.is_staked && <span className="text-primary font-semibold">Committed: ${pos.stake_amount?.toFixed(2)}</span>}
-                          {pos.is_staked && <span className="text-green-600 font-semibold">Potential: ${pos.potential_payout.toFixed(2)}</span>}
+                          {pos.is_staked && <span className="text-primary font-semibold">Conviction: ${pos.stake_amount?.toFixed(2)}</span>}
+                          {pos.is_staked && <span className="text-green-600 font-semibold">If correct: ${pos.potential_payout.toFixed(2)}</span>}
                           <span className="flex items-center gap-1 ml-auto">
                             <Clock className="w-3 h-3" />
                             {new Date(pos.close_at) > new Date() ? "Open" : "Closing..."}
@@ -474,7 +474,7 @@ const MyDashboard = () => {
           {/* Resolved Positions */}
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4">
-              Past Positions ({resolvedPositions.length})
+              Forecast History ({resolvedPositions.length})
             </h2>
             {resolvedPositions.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">
@@ -495,8 +495,8 @@ const MyDashboard = () => {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>Position: {pos.option_label}</span>
-                      <span>Entry: ${pos.entry_price.toFixed(2)}</span>
-                      {pos.is_staked && <span>Committed: ${pos.stake_amount?.toFixed(2)}</span>}
+                       <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
+                      {pos.is_staked && <span>Conviction: ${pos.stake_amount?.toFixed(2)}</span>}
                       {pos.outcome === "won" && pos.is_staked && (
                         <span className="text-green-600 font-semibold">Earned: ${pos.potential_payout.toFixed(2)}</span>
                       )}

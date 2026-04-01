@@ -343,8 +343,8 @@ const MyDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {[
               { icon: Wallet, label: "Wallet Balance", value: `$${(wallet?.balance_usd || 0).toFixed(2)}` },
-              { icon: Activity, label: "Active Positions", value: activePositions.length },
-              { icon: DollarSign, label: "Capital Committed", value: `$${totalCommitted.toFixed(2)}` },
+              { icon: Activity, label: "My Active Forecasts", value: activePositions.length },
+              { icon: DollarSign, label: "Conviction Committed", value: `$${totalCommitted.toFixed(2)}` },
               { icon: TrendingUp, label: "Total Earnings", value: `$${totalEarnings.toFixed(2)}` },
               { icon: CheckCircle, label: "Accuracy", value: resolvedPositions.length > 0 ? `${Math.round((wonCount / resolvedPositions.length) * 100)}%` : "—" },
             ].map((stat) => (

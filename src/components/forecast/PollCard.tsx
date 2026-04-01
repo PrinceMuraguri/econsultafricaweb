@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type MouseEvent, type TouchEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy } from "lucide-react";
@@ -36,9 +36,10 @@ interface PollCardProps {
   poll: Poll;
   compact?: boolean;
   isTrending?: boolean;
+  interactionMode?: "navigate" | "vote";
 }
 
-const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) => {
+const PollCard = ({ poll, compact = false, isTrending = false, interactionMode = "navigate" }: PollCardProps) => {
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -117,6 +118,22 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
     if (!isLoggedIn) { setRegisterOpen(true); return; }
     setStakeOption(option);
     setStakeOpen(true);
+  };
+
+  const handleOptionActivate = (
+    optionId: string,
+    event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (interactionMode === "vote") {
+      if (hasVoted || voting || isClosed) return;
+      void handleVote(optionId);
+      return;
+    }
+
+    navigate(`/forecast-arena/${poll.slug}`);
   };
 
   const isPumpPriceQuestion = poll.title.toLowerCase().includes("pump price") && poll.title.toLowerCase().includes("kenya");
@@ -302,17 +319,20 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
               const selectedText = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
 
               return (
-                <button key={option.id}
-                  onClick={(e) => { e.stopPropagation(); navigate(`/forecast-arena/${poll.slug}`); }}
-                  onTouchEnd={(e) => { e.preventDefault(); navigate(`/forecast-arena/${poll.slug}`); }}
-                  disabled={isClosed}
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={(e) => handleOptionActivate(option.id, e)}
+                  onTouchEnd={(e) => handleOptionActivate(option.id, e)}
+                  disabled={interactionMode === "vote" ? isClosed || hasVoted || voting : false}
                   className={`w-full relative overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
-                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 cursor-pointer bg-transparent"
-                  }`}>
+                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 bg-transparent"
+                  } ${interactionMode === "vote" && (isClosed || hasVoted || voting) ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
+                >
                   {(hasVoted || isClosed) && (
-                    <div className={`absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />
+                    <div className={`pointer-events-none absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />
                   )}
-                  <div className="relative flex items-center justify-between px-2.5 py-2">
+                  <div className="relative z-10 flex items-center justify-between px-2.5 py-2">
                     <span className={`flex items-center gap-1.5 text-sm font-semibold ${isVoted ? selectedText : "text-foreground"}`}>
                       {isVoted && <Check className={`w-3.5 h-3.5 ${selectedText}`} />}
                       {canVote && isYesNo ? (isYes ? "Vote Yes" : "Vote No") : option.label}

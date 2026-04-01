@@ -75,7 +75,7 @@ const ForecastPollDetail = () => {
 
       <div className="container-page max-w-3xl py-6 space-y-6">
         {/* The same PollCard from the homepage, centerstage */}
-        <PollCard poll={poll} />
+        <PollCard poll={poll} interactionMode="vote" />
 
         {/* Stage 3: Position panel — only if voted + logged in + active */}
         {showTradingPanel && (

@@ -436,7 +436,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       </div>
 
       {/* Stage 2: Post-vote nudge — commit capital (full width) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !localStorage.getItem("nudge_dismissed") && (() => {
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
@@ -449,7 +449,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
           >
             <div className="bg-muted/30 border border-border rounded-lg p-3 space-y-2 relative">
               <button
-                onClick={() => { localStorage.setItem("nudge_dismissed", "1"); setJustVoted(false); }}
+                onClick={() => { localStorage.setItem(`nudge_dismissed_${poll.id}`, "1"); setJustVoted(false); }}
                 className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs"
                 aria-label="Dismiss"
               >✕</button>
@@ -472,7 +472,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 <p>If your forecast is correct: <span className="font-mono font-semibold text-green-600">$1.00 per share</span></p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => { localStorage.setItem("nudge_dismissed", "1"); navigate(`/forecast-arena/${poll.slug}`); }}
+                <Button size="sm" onClick={() => { localStorage.setItem(`nudge_dismissed_${poll.id}`, "1"); handleAllocate(votedOption); }}
                   className="flex-1 text-xs font-bold">
                   Commit capital
                 </Button>

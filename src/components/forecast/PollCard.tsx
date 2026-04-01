@@ -387,7 +387,54 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       </div>
 
-      {/* Social Share prompt after voting */}
+      {/* Stage 2: Post-vote nudge — commit capital (full width) */}
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (() => {
+        const votedOption = sortedOptions.find(o => o.id === votedOptionId);
+        if (!votedOption) return null;
+        const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
+        const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
+        return (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-2 pt-2 border-t border-border overflow-hidden"
+          >
+            <div className="bg-muted/30 border border-border rounded-lg p-3 space-y-2">
+              <motion.span
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="inline-block text-[8px] font-black uppercase tracking-wider text-accent-foreground bg-accent px-1.5 py-0.5 rounded"
+              >
+                New Feature
+              </motion.span>
+              <p className="text-xs font-semibold text-foreground">
+                Commit capital to your forecast and earn rewards if you are right.
+              </p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                You've shared your view — now you can back it with conviction. When you commit capital, you receive shares in your position. If the outcome matches your forecast, each share pays $1.00.
+              </p>
+              <div className="text-[10px] text-muted-foreground space-y-0.5">
+                <p>Your forecast: <span className="font-semibold text-foreground">{votedOption.label}</span> (currently at {Math.round(consensusPct * 100)}%)</p>
+                <p>Cost per share: <span className="font-mono font-semibold text-foreground">${price.toFixed(2)}</span></p>
+                <p>If your forecast is correct: <span className="font-mono font-semibold text-green-600">$1.00 per share</span></p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
+                  className="flex-1 text-xs font-bold">
+                  Commit capital
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
+                  className="text-xs font-medium gap-1 shrink-0">
+                  <HelpCircle className="w-3 h-3" /> How it works
+                </Button>
+              </div>
+              <p className="text-[9px] text-muted-foreground text-center">
+                ℹ️ This is optional. Your vote counts either way.
+              </p>
+            </div>
+          </motion.div>
+        );
+      })()}
       {hasVoted && !isClosed && (
         <div className="flex items-center justify-center gap-3 mt-1 pt-1 border-t border-border">
           <span className="text-[9px] text-muted-foreground">Share your view:</span>

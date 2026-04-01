@@ -161,27 +161,46 @@ Deno.serve(async (req) => {
       performed_by: 'super_admin',
     });
 
-    // Notify all voters about market resolution
-    const allFps = [...new Set(votes.map((v: any) => v.voter_fingerprint))];
-    const { data: voterUsers } = await supabase
-      .from('user_profiles')
-      .select('user_id, voter_fingerprint')
-      .in('voter_fingerprint', allFps);
+    // Build notifications — use user_id from votes first, fingerprint as fallback
+    const notifs: any[] = [];
 
-    if (voterUsers?.length) {
-      const notifs = voterUsers.map((vu: any) => {
-        const isWinner = winners.some((w: any) => w.voter_fingerprint === vu.voter_fingerprint);
-        return {
-          user_id: vu.user_id,
+    for (const vote of (votes || [])) {
+      const isWinner = vote.option_id === winning_option_id;
+      let notifUserId = vote.user_id;
+
+      // If vote has no user_id, try looking up via fingerprint
+      if (!notifUserId) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('voter_fingerprint', vote.voter_fingerprint)
+          .maybeSingle();
+        notifUserId = profile?.user_id;
+      }
+
+      if (notifUserId) {
+        notifs.push({
+          user_id: notifUserId,
           type: isWinner ? 'position_won' : 'position_lost',
           title: isWinner
             ? `Correct! "${poll.title}" → ${winningOption.label}`
             : `Resolved: "${poll.title}" → ${winningOption.label}`,
           body: isWinner ? 'Check your dashboard for payout details.' : 'Keep forecasting to improve your accuracy.',
-          poll_id, link: '/forecast-arena/' + poll.slug
-        };
+          poll_id,
+          link: '/forecast-arena/' + poll.slug,
+        });
+      }
+    }
+
+    if (notifs.length > 0) {
+      // Deduplicate by user_id
+      const seen = new Set<string>();
+      const uniqueNotifs = notifs.filter(n => {
+        if (seen.has(n.user_id)) return false;
+        seen.add(n.user_id);
+        return true;
       });
-      await supabase.from('notifications').insert(notifs);
+      await supabase.from('notifications').insert(uniqueNotifs);
     }
 
     return new Response(JSON.stringify({

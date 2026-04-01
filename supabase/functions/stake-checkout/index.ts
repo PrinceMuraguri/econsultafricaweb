@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
       poll_id,
       option_id,
       voter_fingerprint,
+      user_id: user_id || null,
       amount_usd: amount,
       amount_kes: amountKes,
       fx_rate: usdToKesRate,

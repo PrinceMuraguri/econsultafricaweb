@@ -14,6 +14,7 @@ export interface MarketplaceProduct {
 
 export const COUNTRY_REPORTS: MarketplaceProduct[] = [
   { id: "cr-kenya", title: "Kenya 2026 Economic Outlook", slug: "kenya-2026-outlook", type: "country_report", country: "Kenya", price: 495, available: true, flag: "🇰🇪", cover: "/reports/covers/Kenya_2026_Economic_Outlook-01.jpg", file: "kenya-oil-shortage-assessment-march-2026.pdf", description: "120+ page comprehensive economic analysis covering GDP, inflation, currency, fiscal policy, and sector deep-dives for Kenya's economy in 2026." },
+  { id: "cr-kenya-genz", title: "Kenya 2026 — Gen Z Edition", slug: "kenya-2026-genz", type: "country_report", country: "Kenya", price: 0, available: true, flag: "🇰🇪", description: "The Kenya economy explained for young Kenyans. No jargon. No boring charts. Just the truth about GDP, jobs, cost of living, and opportunities. FREE — Econsult Africa giving back to the community." },
   { id: "cr-sa", title: "South Africa 2026 Economic Outlook", slug: "south-africa-2026-outlook", type: "country_report", country: "South Africa", price: 495, available: false, flag: "🇿🇦", description: "Comprehensive economic outlook for South Africa — coming soon." },
 ];
 

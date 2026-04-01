@@ -53,23 +53,33 @@ function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNot
           <h3 className="font-display font-bold text-sm text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2">{product.title}</h3>
         </Link>
         <p className="text-xs text-muted-foreground line-clamp-2 mb-3 flex-1">{product.description?.slice(0, 100)}...</p>
-        <p className="font-display font-bold text-xl text-primary mb-3">${product.price}</p>
+        <p className="font-display font-bold text-xl text-primary mb-3">{product.price === 0 ? "FREE" : `$${product.price}`}</p>
 
         {product.available ? (
           <div className="space-y-1.5">
-            <Button size="sm" className="w-full text-xs h-8" asChild>
-              <Link to={`/product/${product.slug}`}>View Details <ArrowRight className="ml-1 w-3 h-3" /></Link>
-            </Button>
-            {product.file && (
-              <Button variant="ghost" size="sm" className="w-full text-xs h-7 text-muted-foreground" asChild>
-                <Link to={product.type === "country_report" ? `/sector-brief-preview/${encodeURIComponent(product.file)}` : `/sector-brief-preview/${encodeURIComponent(product.file)}`}>
-                  <Eye className="w-3 h-3 mr-1" /> Browse Free Sample
-                </Link>
+            {product.price === 0 ? (
+              <Button size="sm" className="w-full text-xs h-8 bg-green-600 hover:bg-green-700 text-white" asChild>
+                <a href={product.id === "cr-kenya-genz" ? "/reports/Kenya_GenZ_Economic_Outlook_2026.html" : `/product/${product.slug}`} target={product.id === "cr-kenya-genz" ? "_blank" : undefined}>
+                  Read Free Report <ArrowRight className="ml-1 w-3 h-3" />
+                </a>
               </Button>
+            ) : (
+              <>
+                <Button size="sm" className="w-full text-xs h-8" asChild>
+                  <Link to={`/product/${product.slug}`}>View Details <ArrowRight className="ml-1 w-3 h-3" /></Link>
+                </Button>
+                {product.file && (
+                  <Button variant="ghost" size="sm" className="w-full text-xs h-7 text-muted-foreground" asChild>
+                    <Link to={`/sector-brief-preview/${encodeURIComponent(product.file)}`}>
+                      <Eye className="w-3 h-3 mr-1" /> Browse Free Sample
+                    </Link>
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country }); trackFunnelEvent("add_to_cart", { productId: product.id, productTitle: product.title, productType: product.type }); }}>
+                  <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
+                </Button>
+              </>
             )}
-            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country }); trackFunnelEvent("add_to_cart", { productId: product.id, productTitle: product.title, productType: product.type }); }}>
-              <ShoppingCart className="w-3 h-3 mr-1" /> Add to Cart
-            </Button>
           </div>
         ) : (
           <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onNotify(product.title)}>

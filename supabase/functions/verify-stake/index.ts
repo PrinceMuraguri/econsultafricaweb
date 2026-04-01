@@ -92,7 +92,9 @@ Deno.serve(async (req) => {
         .update({ status: 'success' })
         .eq('reference', reference);
 
-      await recordVote(supabase, tx);
+      const metadata = verifyData?.data?.metadata;
+      const userId = metadata?.user_id || null;
+      await recordVote(supabase, tx, userId);
 
       return new Response(JSON.stringify({
         success: true,

@@ -398,7 +398,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
               <Rocket className="w-3 h-3 text-accent" />
-                Take your position above to commit capital
+                Click an option to view details & trade
               </p>
             </div>
           )}

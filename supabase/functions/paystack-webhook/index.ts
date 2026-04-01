@@ -63,6 +63,77 @@ Deno.serve(async (req) => {
         });
       }
 
+      // ── WALLET DEPOSIT ──
+      if (metadata?.type === 'wallet_deposit') {
+        const userId = metadata.user_id;
+        const amountUsd = metadata.amount_usd || (amount / 100 / 129);
+
+        if (!userId) {
+          console.error('wallet_deposit missing user_id in metadata');
+          return new Response(JSON.stringify({ received: true }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Idempotency: check if this reference was already credited
+        const { data: existingWtx } = await supabase
+          .from('wallet_transactions')
+          .select('id')
+          .eq('reference', reference)
+          .maybeSingle();
+
+        if (existingWtx) {
+          console.log('Wallet deposit already processed:', reference);
+          return new Response(JSON.stringify({ received: true, already_processed: true }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Upsert wallet — create if doesn't exist, add to balance if it does
+        const { data: existingWallet } = await supabase
+          .from('wallets')
+          .select('id, balance_usd')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (existingWallet) {
+          await supabase
+            .from('wallets')
+            .update({
+              balance_usd: Number(existingWallet.balance_usd || 0) + Number(amountUsd),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', userId);
+        } else {
+          await supabase
+            .from('wallets')
+            .insert({
+              user_id: userId,
+              balance_usd: Number(amountUsd),
+              updated_at: new Date().toISOString(),
+            });
+        }
+
+        // Log the transaction
+        await supabase.from('wallet_transactions').insert({
+          user_id: userId,
+          type: 'deposit',
+          amount: Number(amountUsd),
+          description: `Wallet top-up via Paystack (${reference})`,
+          reference,
+          status: 'completed',
+        });
+
+        console.log(`Wallet deposit: ${userId} credited $${amountUsd}`);
+        return new Response(JSON.stringify({ received: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // ── FORECAST STAKE (existing logic) ──
       // Idempotency: check if already processed
       const { data: existingTx } = await supabase
         .from('transactions')
@@ -93,10 +164,8 @@ Deno.serve(async (req) => {
       // Only process forecast stake metadata
       if (metadata?.type === 'forecast_stake') {
         const { poll_id, option_id, voter_fingerprint, amount_usd } = metadata;
-        // Use the original USD amount from metadata, fallback to converting KES back
         const stakeAmountUsd = amount_usd || (amount / 100 / 129);
 
-        // Check if vote already exists (double-submit protection)
         const { data: existingVote } = await supabase
           .from('votes')
           .select('id')
@@ -105,7 +174,6 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (!existingVote) {
-          // Record the staked vote
           const { error: voteError } = await supabase.from('votes').insert({
             poll_id,
             option_id,
@@ -118,7 +186,6 @@ Deno.serve(async (req) => {
           if (voteError) {
             console.error('Vote insert error:', voteError);
           } else {
-            // Increment counts
             await supabase.rpc('increment_vote_count', { p_option_id: option_id });
             await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
           }

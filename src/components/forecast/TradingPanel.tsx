@@ -158,7 +158,7 @@ const TradingPanel = ({ poll }: TradingPanelProps) => {
                     : "bg-muted/30 text-foreground border-border hover:border-muted-foreground/40"
                 }`}
               >
-                {opt.label} {(price * 100).toFixed(0)}¢
+                {opt.label} ${price.toFixed(2)}
               </button>
             );
           })}

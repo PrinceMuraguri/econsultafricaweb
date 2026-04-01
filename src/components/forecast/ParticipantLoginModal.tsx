@@ -38,16 +38,19 @@ const ParticipantLoginModal = ({ open, onOpenChange, onSuccess }: ParticipantLog
     setSubmitting(true);
     try {
       const fp = await getFingerprint();
-      await supabase
-        .from("voter_profiles")
-        .upsert({
-          voter_fingerprint: fp,
-          email: email.trim(),
-          full_name: fullName.trim(),
-          phone_number: phoneNumber.trim(),
-          country_code: countryCode,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "voter_fingerprint" });
+      try {
+        await supabase
+          .from("voter_profiles")
+          .insert({
+            voter_fingerprint: fp,
+            email: email.trim(),
+            full_name: fullName.trim(),
+            phone_number: phoneNumber.trim(),
+            country_code: countryCode,
+          });
+      } catch {
+        // Already exists — skip
+      }
 
       // Store locally so we don't ask again
       localStorage.setItem("forecast_participant", JSON.stringify({

@@ -153,15 +153,18 @@ const RegistrationModal = ({ open, onOpenChange, onSuccess, onSwitchToLogin }: R
       voter_fingerprint: fp,
     });
 
-    // Also update legacy voter_profiles for backward compatibility
-    await supabase.from("voter_profiles").upsert({
-      voter_fingerprint: fp,
-      email: email.trim(),
-      full_name: fullName.trim(),
-      phone_number: phone.trim(),
-      country_code: countryCode,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "voter_fingerprint" });
+    // Insert legacy voter_profile for backward compat (ignore if already exists)
+    try {
+      await supabase.from("voter_profiles").insert({
+        voter_fingerprint: fp,
+        email: email.trim(),
+        full_name: fullName.trim(),
+        phone_number: phone.trim(),
+        country_code: countryCode,
+      });
+    } catch {
+      // Already exists — skip
+    }
 
     // Store in localStorage for backward compatibility
     localStorage.setItem("forecast_participant", JSON.stringify({

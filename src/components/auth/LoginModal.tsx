@@ -47,17 +47,20 @@ const LoginModal = ({ open, onOpenChange, onSuccess, onSwitchToRegister }: Login
           .update({ voter_fingerprint: fp })
           .eq("user_id", data.user.id);
 
-        // Upsert voter_profiles for backward compatibility
-        await supabase
-          .from("voter_profiles")
-          .upsert({
-            voter_fingerprint: fp,
-            email: data.user.email || "",
-            full_name: data.user.user_metadata?.full_name || "",
-            phone_number: data.user.user_metadata?.phone || "",
-            country_code: "+254",
-            updated_at: new Date().toISOString(),
-          }, { onConflict: "voter_fingerprint" });
+        // Insert voter_profile for backward compat (ignore if already exists)
+        try {
+          await supabase
+            .from("voter_profiles")
+            .insert({
+              voter_fingerprint: fp,
+              email: data.user.email || "",
+              full_name: data.user.user_metadata?.full_name || "",
+              phone_number: data.user.user_metadata?.phone || "",
+              country_code: "+254",
+            });
+        } catch {
+          // Row already exists for this fingerprint — that's fine, skip
+        }
 
         // Claim anonymous votes made on this device
         await supabase

@@ -454,10 +454,10 @@ const MyDashboard = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>Entry: ${pos.entry_price.toFixed(2)}</span>
+                          <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
                           <span>Consensus: {consensusPct}%</span>
-                          {pos.is_staked && <span className="text-primary font-semibold">Committed: ${pos.stake_amount?.toFixed(2)}</span>}
-                          {pos.is_staked && <span className="text-green-600 font-semibold">Potential: ${pos.potential_payout.toFixed(2)}</span>}
+                          {pos.is_staked && <span className="text-primary font-semibold">Conviction: ${pos.stake_amount?.toFixed(2)}</span>}
+                          {pos.is_staked && <span className="text-green-600 font-semibold">If correct: ${pos.potential_payout.toFixed(2)}</span>}
                           <span className="flex items-center gap-1 ml-auto">
                             <Clock className="w-3 h-3" />
                             {new Date(pos.close_at) > new Date() ? "Open" : "Closing..."}

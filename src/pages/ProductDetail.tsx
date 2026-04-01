@@ -73,6 +73,9 @@ const ProductDetail = () => {
     ? `/sector-brief-preview/${encodeURIComponent(product.file)}`
     : null;
 
+  const isFreeProduct = product.price === 0;
+  const isGenZReport = product.slug === "kenya-2026-genz";
+
   return (
     <Layout>
       <section className="py-8 md:py-12 px-4 md:px-8">

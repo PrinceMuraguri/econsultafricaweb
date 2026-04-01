@@ -75,16 +75,19 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     try {
       const fp = await getFingerprint();
 
-      await supabase
-        .from("voter_profiles")
-        .upsert({
-          voter_fingerprint: fp,
-          email,
-          full_name: fullName,
-          phone_number: phoneNumber,
-          country_code: countryCode,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "voter_fingerprint" });
+      try {
+        await supabase
+          .from("voter_profiles")
+          .insert({
+            voter_fingerprint: fp,
+            email,
+            full_name: fullName,
+            phone_number: phoneNumber,
+            country_code: countryCode,
+          });
+      } catch {
+        // Already exists — skip
+      }
 
       const callbackUrl = `${window.location.origin}/stake-result`;
 

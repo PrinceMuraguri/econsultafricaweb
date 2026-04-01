@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Authenticated users can update voter profiles" ON voter_profiles;

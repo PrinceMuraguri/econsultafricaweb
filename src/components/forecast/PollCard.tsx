@@ -449,7 +449,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
           >
             <div className="bg-muted/30 border border-border rounded-lg p-3 space-y-2 relative">
               <button
-                onClick={() => { localStorage.setItem("nudge_dismissed", "1"); setJustVoted(false); }}
+                onClick={() => { localStorage.setItem(`nudge_dismissed_${poll.id}`, "1"); setJustVoted(false); }}
                 className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs"
                 aria-label="Dismiss"
               >✕</button>

@@ -43,13 +43,23 @@ Deno.serve(async (req) => {
       // Check if vote was already recorded
       const { data: existingVote } = await supabase
         .from('votes')
-        .select('id')
+        .select('id, user_id')
         .eq('poll_id', tx.poll_id)
         .eq('voter_fingerprint', tx.voter_fingerprint)
         .maybeSingle();
 
       if (existingVote) {
-        return new Response(JSON.stringify({ success: true, message: 'Payment confirmed and vote recorded' }), {
+        // Update the existing vote with stake info from the successful payment
+        await supabase
+          .from('votes')
+          .update({
+            is_staked: true,
+            stake_amount: tx.amount,
+            payment_reference: tx.reference || tx.id,
+          })
+          .eq('id', existingVote.id);
+
+        return new Response(JSON.stringify({ success: true, message: 'Payment confirmed and vote updated' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

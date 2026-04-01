@@ -99,6 +99,22 @@ const AdminDashboard = () => {
         queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
         queryClient.invalidateQueries({ queryKey: ["admin-poll-manager"] });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'positions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-positions"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-registered-users"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [isAuthenticated, queryClient]);

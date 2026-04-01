@@ -98,15 +98,28 @@ const PollDiscussionTabs = ({ poll }: Props) => {
     if (!body.trim() || !user) return;
     setPosting(true);
     try {
-      const fp = await getFingerprint();
-      // Check if user has staked
-      const { data: stakeCheck } = await supabase
-        .from("votes")
-        .select("id")
-        .eq("poll_id", poll.id)
-        .eq("voter_fingerprint", fp)
-        .eq("is_staked", true)
-        .maybeSingle();
+      let stakeCheck = null;
+      if (user) {
+        const { data } = await supabase
+          .from("votes")
+          .select("id")
+          .eq("poll_id", poll.id)
+          .eq("user_id", user.id)
+          .eq("is_staked", true)
+          .maybeSingle();
+        stakeCheck = data;
+      }
+      if (!stakeCheck) {
+        const fp = await getFingerprint();
+        const { data } = await supabase
+          .from("votes")
+          .select("id")
+          .eq("poll_id", poll.id)
+          .eq("voter_fingerprint", fp)
+          .eq("is_staked", true)
+          .maybeSingle();
+        stakeCheck = data;
+      }
 
       await supabase.from("poll_comments").insert({
         poll_id: poll.id,

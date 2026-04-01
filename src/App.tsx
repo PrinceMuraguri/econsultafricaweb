@@ -75,6 +75,7 @@ const App = () => (
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/kenya-genz-2026" element={<KenyaGenZ2026 />} />
               {/* Redirects */}
               <Route path="/forecast-arena" element={<Navigate to="/" replace />} />
               <Route path="/forecast-arena/stake-result" element={<Navigate to="/stake-result" replace />} />

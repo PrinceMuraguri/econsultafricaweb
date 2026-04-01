@@ -989,6 +989,7 @@ export type Database = {
           payment_reference: string | null
           poll_id: string
           stake_amount: number | null
+          user_id: string | null
           voter_fingerprint: string
         }
         Insert: {
@@ -1000,6 +1001,7 @@ export type Database = {
           payment_reference?: string | null
           poll_id: string
           stake_amount?: number | null
+          user_id?: string | null
           voter_fingerprint: string
         }
         Update: {
@@ -1011,6 +1013,7 @@ export type Database = {
           payment_reference?: string | null
           poll_id?: string
           stake_amount?: number | null
+          user_id?: string | null
           voter_fingerprint?: string
         }
         Relationships: [

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Shield, TrendingUp, HelpCircle, Minus, Plus } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StakeModalProps {
   open: boolean;

@@ -197,7 +197,41 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch payouts — also across all fingerprints
+  // Fetch share positions from the new trading system
+  const { data: sharePositions = [] } = useQuery({
+    queryKey: ["my-share-positions", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("positions")
+        .select("*")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
+  // Fetch trade history
+  const { data: tradeHistory = [] } = useQuery({
+    queryKey: ["my-trades", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("trades")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
+
   const { data: payouts } = useQuery({
     queryKey: ["my-payouts", user?.id],
     queryFn: async () => {

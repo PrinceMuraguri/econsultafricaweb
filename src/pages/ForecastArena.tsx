@@ -142,7 +142,10 @@ const ForecastArena = () => {
         <div className="container-page relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="max-w-lg">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-background leading-[1.05] tracking-tight uppercase break-words">Forecast Arena</h1>
+              <h1 className="block w-full max-w-full text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-background leading-tight tracking-tight uppercase whitespace-normal break-words [text-wrap:wrap]">
+                <span className="block sm:inline">Forecast</span>{" "}
+                <span className="block sm:inline">Arena</span>
+              </h1>
               <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's Economic Sentiment Aggregator</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Your Voice. <span className="text-accent">Africa's Future.</span>

@@ -303,9 +303,10 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
               return (
                 <button key={option.id}
-                  onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/forecast-arena/${poll.slug}`); }}
+                  onTouchEnd={(e) => { e.preventDefault(); navigate(`/forecast-arena/${poll.slug}`); }}
                   disabled={isClosed}
-                  className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
+                  className={`w-full relative overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
                     isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 cursor-pointer bg-transparent"
                   }`}>
                   {(hasVoted || isClosed) && (

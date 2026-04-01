@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Payout error:', error.message);
-    return new Response(JSON.stringify({ error: 'Payout processing failed: ' + error.message }), {
+    return new Response(JSON.stringify({ error: 'Payout processing failed' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

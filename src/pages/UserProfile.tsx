@@ -52,9 +52,19 @@ const UserProfile = () => {
 
   // Staked positions (public)
   const { data: positions = [] } = useQuery({
-    queryKey: ["user-positions", profileData?.voter_fingerprint],
+    queryKey: ["user-positions", profileData?.user_id, profileData?.voter_fingerprint],
     queryFn: async () => {
-      if (!profileData?.voter_fingerprint) return [];
+      if (!profileData) return [];
+      if (profileData.user_id) {
+        const { data } = await supabase
+          .from("votes")
+          .select("*, polls!votes_poll_id_fkey(title, slug, status, close_at, winning_option_id, settled_at), poll_options!votes_option_id_fkey(label)")
+          .eq("user_id", profileData.user_id)
+          .eq("is_staked", true)
+          .order("created_at", { ascending: false });
+        if (data && data.length > 0) return data;
+      }
+      if (!profileData.voter_fingerprint) return [];
       const { data, error } = await supabase
         .from("votes")
         .select("*, polls!votes_poll_id_fkey(title, slug, status, close_at, winning_option_id, settled_at), poll_options!votes_option_id_fkey(label)")
@@ -64,7 +74,7 @@ const UserProfile = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!profileData?.voter_fingerprint,
+    enabled: !!(profileData?.user_id || profileData?.voter_fingerprint),
   });
 
   // Recent comments

@@ -61,7 +61,7 @@ function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNot
               <Button size="sm" className="w-full text-xs h-8 bg-green-600 hover:bg-green-700 text-white" asChild>
                 <Link to={product.id === "cr-kenya-genz" ? "/kenya-genz-2026" : `/product/${product.slug}`}>
                   Read Free Report <ArrowRight className="ml-1 w-3 h-3" />
-                </a>
+                </Link>
               </Button>
             ) : (
               <>

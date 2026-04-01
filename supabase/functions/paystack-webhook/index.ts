@@ -6,20 +6,30 @@ const corsHeaders = {
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { crypto } from 'https://deno.land/std@0.224.0/crypto/mod.ts';
 
-const FALLBACK_USD_KES_RATE = 129;
+const FALLBACK_RATES: Record<string, number> = { KES: 129, NGN: 1600, UGX: 3700, TZS: 2700, ZAR: 18, GHS: 15, RWF: 1350 };
 
-async function getUsdToKesRate(): Promise<number> {
+/** Fetch live USD → target currency rate; falls back to hardcoded defaults. */
+async function getUsdRate(currency: string): Promise<number> {
+  const cur = currency.toUpperCase();
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
     if (res.ok) {
       const data = await res.json();
-      const rate = data?.rates?.KES;
-      if (rate && rate > 50 && rate < 300) return rate;
+      const rate = data?.rates?.[cur];
+      if (rate && rate > 0) return rate;
     }
   } catch (e) {
-    console.log('FX fallback:', e.message);
+    console.log('FX fallback:', (e as Error).message);
   }
-  return FALLBACK_USD_KES_RATE;
+  return FALLBACK_RATES[cur] || 129;
+}
+
+/** Convert a local-currency amount (in subunits, e.g. kobo) back to USD. */
+async function localSubunitsToUsd(subunits: number, currency: string): Promise<{ amountUsd: number; rate: number }> {
+  const rate = await getUsdRate(currency);
+  const localAmount = subunits / 100;
+  const amountUsd = Math.round((localAmount / rate) * 100) / 100;
+  return { amountUsd, rate };
 }
 
 Deno.serve(async (req) => {
@@ -71,7 +81,9 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (event.event === 'charge.success') {
-      const { reference, metadata, amount, status } = event.data;
+      const { reference, metadata, amount, status, currency } = event.data;
+      // currency comes from Paystack event (e.g. "KES", "NGN")
+      const txCurrency = (currency || metadata?.charge_currency || 'KES').toUpperCase();
 
       if (status !== 'success') {
         return new Response(JSON.stringify({ received: true }), {
@@ -82,9 +94,6 @@ Deno.serve(async (req) => {
       // ── WALLET DEPOSIT ──
       if (metadata?.type === 'wallet_deposit') {
         const userId = metadata.user_id;
-        const kesRate = await getUsdToKesRate();
-        // metadata.amount_usd is set by paystack-checkout; fallback to FX conversion
-        const amountUsd = metadata.amount_usd || Math.round((amount / 100 / kesRate) * 100) / 100;
 
         if (!userId) {
           console.error('wallet_deposit missing user_id in metadata');
@@ -92,6 +101,18 @@ Deno.serve(async (req) => {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
+        }
+
+        // Use amount_usd from checkout metadata if available; otherwise convert live
+        let amountUsd: number;
+        let fxRate: number;
+        if (metadata.amount_usd) {
+          amountUsd = Number(metadata.amount_usd);
+          fxRate = metadata.exchange_rate || (await getUsdRate(txCurrency));
+        } else {
+          const conv = await localSubunitsToUsd(amount, txCurrency);
+          amountUsd = conv.amountUsd;
+          fxRate = conv.rate;
         }
 
         // Idempotency: check if this reference was already credited
@@ -109,7 +130,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Upsert wallet — create if doesn't exist, add to balance if it does
+        // Upsert wallet
         const { data: existingWallet } = await supabase
           .from('wallets')
           .select('id, balance_usd')
@@ -120,7 +141,7 @@ Deno.serve(async (req) => {
           await supabase
             .from('wallets')
             .update({
-              balance_usd: Number(existingWallet.balance_usd || 0) + Number(amountUsd),
+              balance_usd: Number(existingWallet.balance_usd || 0) + amountUsd,
               updated_at: new Date().toISOString(),
             })
             .eq('user_id', userId);
@@ -129,31 +150,30 @@ Deno.serve(async (req) => {
             .from('wallets')
             .insert({
               user_id: userId,
-              balance_usd: Number(amountUsd),
+              balance_usd: amountUsd,
               updated_at: new Date().toISOString(),
             });
         }
 
-        // Log the transaction with exchange rate for audit
+        // Log with exchange rate for audit
         await supabase.from('wallet_transactions').insert({
           user_id: userId,
           type: 'deposit',
-          amount: Number(amountUsd),
-          description: `Wallet top-up via Paystack (${reference})`,
+          amount: amountUsd,
+          description: `Wallet top-up via Paystack (${reference}) — ${txCurrency} @ ${fxRate}`,
           reference,
           status: 'completed',
-          exchange_rate: kesRate,
+          exchange_rate: fxRate,
         });
 
-        console.log(`Wallet deposit: ${userId} credited $${amountUsd} (rate: ${kesRate})`);
+        console.log(`Wallet deposit: ${userId} credited $${amountUsd} (${txCurrency} rate: ${fxRate})`);
         return new Response(JSON.stringify({ received: true }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      // ── FORECAST STAKE (existing logic) ──
-      // Idempotency: check if already processed
+      // ── FORECAST STAKE ──
       const { data: existingTx } = await supabase
         .from('transactions')
         .select('id, status')
@@ -174,16 +194,21 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Update transaction status
       await supabase
         .from('transactions')
         .update({ status: 'success' })
         .eq('reference', reference);
 
-      // Only process forecast stake metadata
       if (metadata?.type === 'forecast_stake') {
         const { poll_id, option_id, voter_fingerprint, amount_usd } = metadata;
-        const stakeAmountUsd = amount_usd || (amount / 100 / FALLBACK_USD_KES_RATE);
+        // Use amount_usd from metadata if available; otherwise live-convert
+        let stakeAmountUsd: number;
+        if (amount_usd) {
+          stakeAmountUsd = Number(amount_usd);
+        } else {
+          const conv = await localSubunitsToUsd(amount, txCurrency);
+          stakeAmountUsd = conv.amountUsd;
+        }
 
         const { data: existingVote } = await supabase
           .from('votes')
@@ -219,7 +244,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Webhook error:', error.message);
+    console.error('Webhook error:', (error as Error).message);
     return new Response(JSON.stringify({ error: 'Webhook processing failed' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -92,7 +92,9 @@ Deno.serve(async (req) => {
         .update({ status: 'success' })
         .eq('reference', reference);
 
-      await recordVote(supabase, tx);
+      const metadata = verifyData?.data?.metadata;
+      const userId = metadata?.user_id || null;
+      await recordVote(supabase, tx, userId);
 
       return new Response(JSON.stringify({
         success: true,
@@ -160,16 +162,53 @@ async function verifyWithPaystack(secretKey: string, reference: string) {
   }
 }
 
-async function recordVote(supabase: any, tx: any) {
-  // Check if vote already exists (idempotency)
+async function recordVote(supabase: any, tx: any, userId?: string | null) {
+  // Check by fingerprint first (existing logic)
   const { data: existingVote } = await supabase
     .from('votes')
-    .select('id')
+    .select('id, user_id')
     .eq('poll_id', tx.poll_id)
     .eq('voter_fingerprint', tx.voter_fingerprint)
     .maybeSingle();
 
-  if (existingVote) return;
+  if (existingVote) {
+    // Vote already exists — update it with stake info and user_id if missing
+    const updatePayload: any = { is_staked: true, stake_amount: tx.amount, payment_reference: tx.reference || tx.id };
+    if (!existingVote.user_id && userId) {
+      updatePayload.user_id = userId;
+    }
+    await supabase.from('votes').update(updatePayload).eq('id', existingVote.id);
+    return;
+  }
+
+  // Also check by user_id if available (catches case where fingerprint changed)
+  if (userId) {
+    const { data: userVote } = await supabase
+      .from('votes')
+      .select('id')
+      .eq('poll_id', tx.poll_id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (userVote) {
+      await supabase
+        .from('votes')
+        .update({ is_staked: true, stake_amount: tx.amount, payment_reference: tx.reference || tx.id })
+        .eq('id', userVote.id);
+      return;
+    }
+  }
+
+  // No existing vote — create new one with user_id
+  let resolvedUserId = userId;
+  if (!resolvedUserId) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('user_id')
+      .eq('voter_fingerprint', tx.voter_fingerprint)
+      .maybeSingle();
+    resolvedUserId = profile?.user_id || null;
+  }
 
   const { error: voteError } = await supabase.from('votes').insert({
     poll_id: tx.poll_id,
@@ -178,6 +217,7 @@ async function recordVote(supabase: any, tx: any) {
     is_staked: true,
     stake_amount: tx.amount,
     payment_reference: tx.reference || tx.id,
+    user_id: resolvedUserId,
   });
 
   if (voteError) {

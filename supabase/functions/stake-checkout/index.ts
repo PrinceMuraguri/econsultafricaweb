@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, amount, poll_id, option_id, voter_fingerprint, phone, callback_url } = await req.json();
+    const { email, amount, poll_id, option_id, voter_fingerprint, phone, callback_url, user_id } = await req.json();
 
     if (!email || !amount || !poll_id || !option_id || !voter_fingerprint) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
       poll_id,
       option_id,
       voter_fingerprint,
+      user_id: user_id || null,
       amount_usd: amount,
       amount_kes: amountKes,
       fx_rate: usdToKesRate,

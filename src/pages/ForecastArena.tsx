@@ -142,7 +142,7 @@ const ForecastArena = () => {
         <div className="container-page relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="max-w-lg">
-              <h1 className="block w-full max-w-full text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-background leading-tight tracking-tight uppercase whitespace-normal break-words [text-wrap:wrap]">
+              <h1 className="block w-full max-w-full overflow-visible text-[clamp(1.9rem,9vw,3.5rem)] font-black text-background leading-[0.95] tracking-tight uppercase whitespace-normal break-words [text-wrap:wrap]">
                 <span className="block sm:inline">Forecast</span>{" "}
                 <span className="block sm:inline">Arena</span>
               </h1>

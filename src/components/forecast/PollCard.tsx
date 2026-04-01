@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type MouseEvent, type TouchEvent } from "react";
+import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy } from "lucide-react";
@@ -56,6 +56,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;
 
@@ -120,12 +121,15 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     setStakeOpen(true);
   };
 
-  const handleOptionActivate = (
-    optionId: string,
-    event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>,
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const activateOption = (optionId: string) => {
+    const now = Date.now();
+    const lastActivation = activationRef.current;
+
+    if (lastActivation && lastActivation.optionId === optionId && now - lastActivation.timestamp < 350) {
+      return;
+    }
+
+    activationRef.current = { optionId, timestamp: now };
 
     if (interactionMode === "vote") {
       if (hasVoted || voting || isClosed) return;
@@ -134,6 +138,28 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     }
 
     navigate(`/forecast-arena/${poll.slug}`);
+  };
+
+  const handleOptionPointerUp = (optionId: string, event: PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    activateOption(optionId);
+  };
+
+  const handleOptionClick = (optionId: string, event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    activateOption(optionId);
+  };
+
+  const handleOptionKeyDown = (optionId: string, event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    activateOption(optionId);
   };
 
   const isPumpPriceQuestion = poll.title.toLowerCase().includes("pump price") && poll.title.toLowerCase().includes("kenya");
@@ -322,10 +348,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 <button
                   key={option.id}
                   type="button"
-                  onClick={(e) => handleOptionActivate(option.id, e)}
-                  onTouchEnd={(e) => handleOptionActivate(option.id, e)}
+                  onPointerUp={(e) => handleOptionPointerUp(option.id, e)}
+                  onClick={(e) => handleOptionClick(option.id, e)}
+                  onKeyDown={(e) => handleOptionKeyDown(option.id, e)}
                   disabled={interactionMode === "vote" ? isClosed || hasVoted || voting : false}
-                  className={`w-full relative overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
+                  className={`relative z-10 w-full pointer-events-auto overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
                     isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 bg-transparent"
                   } ${interactionMode === "vote" && (isClosed || hasVoted || voting) ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
                 >

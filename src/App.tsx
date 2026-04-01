@@ -34,6 +34,7 @@ import ProductDetail from "./pages/ProductDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import KenyaGenZ2026 from "./pages/KenyaGenZ2026.tsx";
 
 const queryClient = new QueryClient();
 

@@ -340,7 +340,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
               return (
                 <button key={option.id} onClick={() => navigate(`/forecast-arena/${poll.slug}`)} disabled={isClosed}
                   className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
-                    isVoted ? `${selectedBorder} ${selectedBg}` : canVote ? "border-border hover:border-muted-foreground/40 cursor-pointer bg-transparent" : "border-border cursor-default bg-transparent"
+                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 cursor-pointer bg-transparent"
                   }`}>
                   {(hasVoted || isClosed) && (
                     <div className={`absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />

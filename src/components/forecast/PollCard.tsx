@@ -381,13 +381,13 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
                    Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleAllocate(votedOption)}
+                  <Button size="sm" onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
                     className="flex-1 text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
-                    Commit capital (${price.toFixed(2)})
+                    Trade shares (${price.toFixed(2)})
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
                     className="text-xs font-medium gap-1 shrink-0">
-                    <HelpCircle className="w-3 h-3" /> How it works
+                    <HelpCircle className="w-3 h-3" /> Details
                   </Button>
                 </div>
               </div>

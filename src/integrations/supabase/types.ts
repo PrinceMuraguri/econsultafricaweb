@@ -1038,6 +1038,7 @@ export type Database = {
           amount: number
           created_at: string | null
           description: string | null
+          exchange_rate: number | null
           id: string
           reference: string | null
           related_vote_id: string | null
@@ -1049,6 +1050,7 @@ export type Database = {
           amount: number
           created_at?: string | null
           description?: string | null
+          exchange_rate?: number | null
           id?: string
           reference?: string | null
           related_vote_id?: string | null
@@ -1060,6 +1062,7 @@ export type Database = {
           amount?: number
           created_at?: string | null
           description?: string | null
+          exchange_rate?: number | null
           id?: string
           reference?: string | null
           related_vote_id?: string | null

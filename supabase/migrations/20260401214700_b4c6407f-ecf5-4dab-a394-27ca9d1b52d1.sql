@@ -1,0 +1,1 @@
+ALTER TABLE public.wallet_transactions ADD COLUMN IF NOT EXISTS exchange_rate numeric DEFAULT NULL;

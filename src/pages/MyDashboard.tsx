@@ -495,8 +495,8 @@ const MyDashboard = () => {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>Position: {pos.option_label}</span>
-                      <span>Entry: ${pos.entry_price.toFixed(2)}</span>
-                      {pos.is_staked && <span>Committed: ${pos.stake_amount?.toFixed(2)}</span>}
+                       <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
+                      {pos.is_staked && <span>Conviction: ${pos.stake_amount?.toFixed(2)}</span>}
                       {pos.outcome === "won" && pos.is_staked && (
                         <span className="text-green-600 font-semibold">Earned: ${pos.potential_payout.toFixed(2)}</span>
                       )}

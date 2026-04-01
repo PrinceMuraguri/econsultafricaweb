@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import PollManager from "@/components/admin/PollManager";
 import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
+import AdminTradingTab from "@/components/admin/AdminTradingTab";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Shield, TrendingUp, HelpCircle, Minus, Plus } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StakeModalProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface StakeModalProps {
 
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
+  const { user, profile: authProfile } = useAuth();
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -27,21 +29,28 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
 
-  // Re-read profile from localStorage every time the modal opens
   useEffect(() => {
     if (open) {
-      try {
-        const raw = localStorage.getItem("forecast_participant");
-        if (raw) {
-          const profile = JSON.parse(raw);
-          setEmail(profile.email || "");
-          setFullName(profile.fullName || "");
-          setPhoneNumber(profile.phone || "");
-          setCountryCode(profile.countryCode || "+254");
-        }
-      } catch { /* ignore */ }
+      if (user && authProfile) {
+        setEmail(user.email || "");
+        setFullName(authProfile.full_name || "");
+        const rawPhone = authProfile.phone || "";
+        setPhoneNumber(rawPhone.replace(/^\+\d{1,3}/, ""));
+        setCountryCode("+254");
+      } else {
+        try {
+          const raw = localStorage.getItem("forecast_participant");
+          if (raw) {
+            const p = JSON.parse(raw);
+            setEmail(p.email || "");
+            setFullName(p.fullName || "");
+            setPhoneNumber(p.phone || "");
+            setCountryCode(p.countryCode || "+254");
+          }
+        } catch { /* ignore */ }
+      }
     }
-  }, [open]);
+  }, [open, user, authProfile]);
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 
@@ -87,6 +96,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           option_id: selectedOption.id,
           voter_fingerprint: fp,
           callback_url: callbackUrl,
+          user_id: user?.id || null,
         },
       });
 

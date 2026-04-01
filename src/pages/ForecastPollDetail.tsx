@@ -21,6 +21,19 @@ const ForecastPollDetail = () => {
   useEffect(() => {
     if (!poll) return;
     (async () => {
+      if (user) {
+        const { data } = await supabase
+          .from("votes")
+          .select("option_id")
+          .eq("poll_id", poll.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data) {
+          setHasVoted(true);
+          setVotedOptionId(data.option_id);
+          return;
+        }
+      }
       const fp = await getFingerprint();
       const { data } = await supabase
         .from("votes")
@@ -33,7 +46,7 @@ const ForecastPollDetail = () => {
         setVotedOptionId(data.option_id);
       }
     })();
-  }, [poll?.id]);
+  }, [poll?.id, user]);
 
   const isClosed = poll ? (poll.status !== "active" || new Date(poll.close_at) < new Date()) : true;
   const showTradingPanel = hasVoted && !!user && !isClosed;

@@ -71,6 +71,19 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   useEffect(() => {
     (async () => {
+      if (user) {
+        const { data } = await supabase
+          .from("votes")
+          .select("option_id")
+          .eq("poll_id", poll.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data) {
+          setHasVoted(true);
+          setVotedOptionId(data.option_id);
+          return;
+        }
+      }
       const fp = await getFingerprint();
       const { data } = await supabase
         .from("votes")
@@ -78,9 +91,12 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         .eq("poll_id", poll.id)
         .eq("voter_fingerprint", fp)
         .maybeSingle();
-      if (data) { setHasVoted(true); setVotedOptionId(data.option_id); }
+      if (data) {
+        setHasVoted(true);
+        setVotedOptionId(data.option_id);
+      }
     })();
-  }, [poll.id]);
+  }, [poll.id, user]);
 
   const totalVotes = localOptions.reduce((s, o) => s + o.total_votes_count, 0);
   const isClosed = poll.status !== "active" || new Date(poll.close_at) < new Date();
@@ -92,7 +108,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     setVoting(true);
     try {
       const fp = await getFingerprint();
-      const { error } = await supabase.from("votes").insert({ poll_id: poll.id, option_id: optionId, voter_fingerprint: fp });
+      const { error } = await supabase.from("votes").insert({ poll_id: poll.id, option_id: optionId, voter_fingerprint: fp, user_id: user?.id || null });
       if (error) {
         if (error.code === "23505") { toast({ title: "Already submitted", description: "You've already submitted a forecast.", variant: "destructive" }); setHasVoted(true); return; }
         throw error;

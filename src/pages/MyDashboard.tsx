@@ -61,56 +61,49 @@ const MyDashboard = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      // Get fingerprint from user_profiles
+      // PRIMARY: fetch votes by user_id (survives fingerprint changes)
+      const { data: userVotes } = await supabase
+        .from("votes")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      // SECONDARY: fetch by fingerprint for legacy votes without user_id
       const { data: userProfile } = await supabase
         .from("user_profiles")
         .select("voter_fingerprint")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const fp = userProfile?.voter_fingerprint;
+      let fpVotes: any[] = [];
+      if (userProfile?.voter_fingerprint) {
+        const { data } = await supabase
+          .from("votes")
+          .select("*")
+          .eq("voter_fingerprint", userProfile.voter_fingerprint)
+          .is("user_id", null)
+          .order("created_at", { ascending: false });
+        fpVotes = data || [];
+      }
 
-      // Also check voter_profiles for any fingerprints linked to the user's email
-      const { data: voterProfiles } = await supabase
-        .from("voter_profiles")
-        .select("voter_fingerprint")
-        .eq("email", user.email || "");
-
-      // Collect all known fingerprints for this user
-      const allFingerprints = new Set<string>();
-      if (fp) allFingerprints.add(fp);
-      voterProfiles?.forEach((vp: any) => {
-        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
+      // Merge and deduplicate by poll_id
+      const allVotes = [...(userVotes || []), ...fpVotes];
+      const seenPolls = new Set<string>();
+      const deduped = allVotes.filter(v => {
+        if (seenPolls.has(v.poll_id)) return false;
+        seenPolls.add(v.poll_id);
+        return true;
       });
 
-      if (allFingerprints.size === 0) return [];
+      if (!deduped.length) return [];
 
-      const fpArray = Array.from(allFingerprints);
-
-      // Fetch all votes across all known fingerprints
-      const { data: votes, error: votesErr } = await supabase
-        .from("votes")
-        .select("*")
-        .in("voter_fingerprint", fpArray)
-        .order("created_at", { ascending: false });
-      if (votesErr) throw votesErr;
-      if (!votes?.length) return [];
-
-      const pollIds = [...new Set(votes.map(v => v.poll_id))];
+      const pollIds = [...new Set(deduped.map(v => v.poll_id))];
       const { data: polls } = await supabase
         .from("polls")
         .select("*, poll_options!poll_options_poll_id_fkey(*)")
         .in("id", pollIds);
 
       const pollMap = new Map(polls?.map(p => [p.id, p]) || []);
-
-      // Deduplicate by poll_id (keep latest vote per poll)
-      const seenPolls = new Set<string>();
-      const deduped = votes.filter(v => {
-        if (seenPolls.has(v.poll_id)) return false;
-        seenPolls.add(v.poll_id);
-        return true;
-      });
 
       return deduped.map(vote => {
         const poll = pollMap.get(vote.poll_id);
@@ -145,7 +138,7 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch user's transactions — also across all fingerprints
+  // Fetch user's transactions
   const { data: transactions } = useQuery({
     queryKey: ["my-transactions", user?.id],
     queryFn: async () => {
@@ -156,23 +149,12 @@ const MyDashboard = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const { data: voterProfiles } = await supabase
-        .from("voter_profiles")
-        .select("voter_fingerprint")
-        .eq("email", user.email || "");
-
-      const allFingerprints = new Set<string>();
-      if (userProfile?.voter_fingerprint) allFingerprints.add(userProfile.voter_fingerprint);
-      voterProfiles?.forEach((vp: any) => {
-        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
-      });
-
-      if (allFingerprints.size === 0) return [];
+      if (!userProfile?.voter_fingerprint) return [];
 
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
-        .in("voter_fingerprint", Array.from(allFingerprints))
+        .eq("voter_fingerprint", userProfile.voter_fingerprint)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -242,23 +224,12 @@ const MyDashboard = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const { data: voterProfiles } = await supabase
-        .from("voter_profiles")
-        .select("voter_fingerprint")
-        .eq("email", user.email || "");
-
-      const allFingerprints = new Set<string>();
-      if (userProfile?.voter_fingerprint) allFingerprints.add(userProfile.voter_fingerprint);
-      voterProfiles?.forEach((vp: any) => {
-        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
-      });
-
-      if (allFingerprints.size === 0) return [];
+      if (!userProfile?.voter_fingerprint) return [];
 
       const { data, error } = await supabase
         .from("payouts")
         .select("*")
-        .in("voter_fingerprint", Array.from(allFingerprints))
+        .eq("voter_fingerprint", userProfile.voter_fingerprint)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];

@@ -13,7 +13,13 @@ Deno.serve(async (req) => {
   try {
     const { poll_id, admin_key } = await req.json();
 
-    const expectedKey = Deno.env.get('ADMIN_SECRET_KEY') || 'econsult-admin-2026';
+    const expectedKey = Deno.env.get('ADMIN_SECRET_KEY');
+    if (!expectedKey) {
+      return new Response(JSON.stringify({ error: 'Admin key not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     if (admin_key !== expectedKey) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -224,7 +230,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Payout error:', error.message);
-    return new Response(JSON.stringify({ error: 'Payout processing failed: ' + error.message }), {
+    return new Response(JSON.stringify({ error: 'Payout processing failed' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -320,7 +320,7 @@ const sectors = [
 
 const myths = [
   {m:"Kenya is broke",r:"Kenya is growing — but heavily in debt. The economy isn't collapsing; it's stretched thin."},
-  {m:"A degree guarantees a job",r:"Skills > degrees. 67% youth unemployment exists despite millions of graduates."},
+  {m:"A degree guarantees a job",r:"Skills > degrees. Youth unemployment is ~15% officially — but some sources suggest it could be as high as 60%+. Either way, millions of graduates are jobless."},
   {m:"Government employs most people",r:"Private sector and informal economy employ 80%+ of Kenyans."},
   {m:"Starting a business is easy",r:"Kenya ranks among the most regulated markets. Red tape is real."},
   {m:"The dollar only affects importers",r:"Fuel, electronics, food ingredients, even Netflix — all priced in dollars."},
@@ -351,7 +351,7 @@ const rules = [
 ];
 
 const profiles = {
-  Student: {em:"🎓",a:"Focus on skills that pay: coding, data, digital marketing, AI. Intern in growing sectors — fintech, construction, tourism. Your degree is a starting point, not the destination.",op:"Digital skills, fintech internships",rk:"Graduating into a 40–67% youth unemployment market"},
+  Student: {em:"🎓",a:"Focus on skills that pay: coding, data, digital marketing, AI. Intern in growing sectors — fintech, construction, tourism. Your degree is a starting point, not the destination.",op:"Digital skills, fintech internships",rk:"Graduating into a market where youth unemployment is ~15% officially (some estimates say 60%+)"},
   Unemployed: {em:"🔍",a:"The formal job market is brutal. Look at the informal sector, freelancing, remote work. Learn M-Pesa integration, content creation, or agritech. The digital economy doesn't need your CV — it needs your skills.",op:"Freelancing, online work, gig economy",rk:"Waiting for 'the perfect job' that doesn't exist"},
   Employed: {em:"💼",a:"Your salary alone won't beat inflation. Start a side hustle. Negotiate your rate — the RBCPM reform means lending rates should be dropping. Save aggressively. Don't get comfortable.",op:"Side income, salary negotiation, investing",rk:"Cost of living eating your gains. Retrenchment risk."},
   Entrepreneur: {em:"🚀",a:"Lending rates at 14.8% are still high — borrow carefully. Target growing sectors: fintech, construction, horticulture. The election year means government spending will spike — position for tenders.",op:"Pre-election spending, growing sectors",rk:"High borrowing costs, post-election cliff"},
@@ -429,7 +429,7 @@ sectionHTML.push(
   '<div class="grid grid-2">' + dashboard.map((d,i) =>
     `<div class="card ${i===0?'card-accent':''}"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span class="dash-icon">${d.i}</span><div><div class="dash-label">${d.l}</div><div class="dash-val">${d.v}</div></div></div><div class="dash-note ${i===0?'dash-note-accent':'dash-note-light'}"><strong>So what?</strong> ${d.n}</div></div>`
   ).join('') + '</div>' +
-  `<div class="card card-dashed mt-20"><p class="fs-15 fw-700 text-orange" style="margin-bottom:6px">🔑 The Big Picture</p><p class="fs-14 lh-17">Kenya's economy in 2026 is <strong>stable enough to function, too fragile to transform.</strong> The numbers look decent on paper — growth at 5.2%, inflation at 4.4%, reserves at a decade high. But beneath the surface: 81% of your taxes pay old debts, food inflation hits 7.3%, youth unemployment is devastating, and banks kept half the interest rate cuts for themselves. The crisis is over, but the breakthrough hasn't started.</p></div>`
+  `<div class="card card-dashed mt-20"><p class="fs-15 fw-700 text-orange" style="margin-bottom:6px">🔑 The Big Picture</p><p class="fs-14 lh-17">Kenya's economy in 2026 is <strong>stable enough to function, too fragile to transform.</strong> The numbers look decent on paper — growth at 5.2%, inflation at 4.4%, reserves at a decade high. But beneath the surface: 81% of your taxes pay old debts, food inflation hits 7.3%, youth unemployment is officially ~15% (though some sources suggest it could be as high as 60%+), and banks kept half the interest rate cuts for themselves. The crisis is over, but the breakthrough hasn't started.</p></div>`
 );
 
 // 2. COST OF LIVING
@@ -444,7 +444,7 @@ sectionHTML.push(
 // 3. JOBS & HUSTLES
 sectionHTML.push(
   secHead(3,"Jobs, Hustles & Survival","How people are actually making money in Kenya right now") +
-  `<div class="card card-accent mb-20"><h3 class="fs-18 fw-700" style="margin-bottom:10px">The Uncomfortable Truth</h3><p class="fs-14 lh-17 op-9">Kenya's GDP grows at 5.2% but youth unemployment is estimated at <strong>40–67%</strong> depending on how you count it. This isn't a paradox — it's by design. Growth is services-led and skills-biased: it creates jobs for a small elite in finance, tech, and professional services while the mass of workers stay in low-productivity informal activities. Manufacturing — which historically lifts entire populations — has <em>declined</em> from 13% to ~11% of GDP. Economists call this "premature deindustrialization." You call it "there are no jobs."</p></div>` +
+  `<div class="card card-accent mb-20"><h3 class="fs-18 fw-700" style="margin-bottom:10px">The Uncomfortable Truth</h3><p class="fs-14 lh-17 op-9">Kenya's GDP grows at 5.2% but official youth unemployment sits at around <strong>15%</strong> — though some sources suggest the real figure could be as high as <strong>60%+</strong> depending on how you count it. This isn't a paradox — it's by design. Growth is services-led and skills-biased: it creates jobs for a small elite in finance, tech, and professional services while the mass of workers stay in low-productivity informal activities. Manufacturing — which historically lifts entire populations — has <em>declined</em> from 13% to ~11% of GDP. Economists call this "premature deindustrialization." You call it "there are no jobs."</p></div>` +
   `<div class="card mb-20"><h3 class="fs-16 fw-700 text-blue-dark mb-12">Where Jobs Are Actually Growing</h3>${bar("Tourism & Hospitality",85,"var(--orange)")}${bar("Construction",70,"var(--blue)")}${bar("Financial Services",65,"var(--blue-light)")}${bar("ICT & Digital",60,"var(--orange-light)")}${bar("Horticulture",55,"var(--blue)")}${bar("Transport & Logistics",45,"var(--blue-light)")}${bar("Manufacturing",15,"var(--gray)")}<p class="fs-11 text-gray mt-12">Relative job growth momentum, 2025–2026. Based on sectoral GDP growth and credit expansion data.</p></div>` +
   `<div class="card card-orange mb-20"><h3 class="fs-16 fw-700 text-orange" style="margin-bottom:14px">If You Are...</h3><div class="prof-btns" id="profBtns">${Object.keys(profiles).map(p=>`<button class="prof-btn ${p==='Student'?'active':''}" onclick="setProfile('${p}')">${profiles[p].em} ${p}</button>`).join('')}</div><div id="profContent"></div></div>`
 );

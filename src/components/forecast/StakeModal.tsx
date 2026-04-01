@@ -20,6 +20,7 @@ interface StakeModalProps {
 
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
+  const { user, profile: authProfile } = useAuth();
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");

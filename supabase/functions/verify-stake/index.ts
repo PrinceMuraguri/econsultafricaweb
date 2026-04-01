@@ -182,12 +182,19 @@ async function recordVote(supabase: any, tx: any, userId?: string | null) {
     .maybeSingle();
 
   if (existingVote) {
-    // Vote already exists — update it with stake info and user_id if missing
-    const updatePayload: any = { is_staked: true, stake_amount: tx.amount, payment_reference: tx.reference || tx.id };
+    // Always update existing vote with stake info
+    const updateData: Record<string, any> = {
+      is_staked: true,
+      stake_amount: tx.amount,
+      payment_reference: tx.reference || tx.id,
+    };
+    // Also set user_id if it's missing
     if (!existingVote.user_id && userId) {
-      updatePayload.user_id = userId;
+      updateData.user_id = userId;
     }
-    await supabase.from('votes').update(updatePayload).eq('id', existingVote.id);
+    await supabase.from('votes').update(updateData).eq('id', existingVote.id);
+    // Still increment stake amount on the poll option
+    await supabase.rpc('increment_stake_amount', { p_option_id: tx.option_id, p_amount: tx.amount });
     return;
   }
 

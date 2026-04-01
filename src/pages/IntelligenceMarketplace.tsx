@@ -59,9 +59,9 @@ function ProductCard({ product, onNotify }: { product: MarketplaceProduct; onNot
           <div className="space-y-1.5">
             {product.price === 0 ? (
               <Button size="sm" className="w-full text-xs h-8 bg-green-600 hover:bg-green-700 text-white" asChild>
-                <a href={product.id === "cr-kenya-genz" ? "/reports/Kenya_GenZ_Economic_Outlook_2026.html" : `/product/${product.slug}`} target={product.id === "cr-kenya-genz" ? "_blank" : undefined}>
+                <Link to={product.id === "cr-kenya-genz" ? "/kenya-genz-2026" : `/product/${product.slug}`}>
                   Read Free Report <ArrowRight className="ml-1 w-3 h-3" />
-                </a>
+                </Link>
               </Button>
             ) : (
               <>

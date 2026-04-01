@@ -34,6 +34,7 @@ import ProductDetail from "./pages/ProductDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ThankYou from "./pages/ThankYou.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import KenyaGenZ2026 from "./pages/KenyaGenZ2026.tsx";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/kenya-genz-2026" element={<KenyaGenZ2026 />} />
               {/* Redirects */}
               <Route path="/forecast-arena" element={<Navigate to="/" replace />} />
               <Route path="/forecast-arena/stake-result" element={<Navigate to="/stake-result" replace />} />

@@ -378,7 +378,7 @@ const MyDashboard = () => {
             <div className="mb-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
-                Share Positions ({sharePositions.length})
+                My Forecast Positions ({sharePositions.length})
               </h2>
               <div className="space-y-2">
                 {sharePositions.map((pos: any) => (

@@ -338,7 +338,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
               const selectedText = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
 
               return (
-                <button key={option.id} onClick={() => handleVote(option.id)} disabled={hasVoted || voting || isClosed}
+                <button key={option.id} onClick={() => navigate(`/forecast-arena/${poll.slug}`)} disabled={isClosed}
                   className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
                     isVoted ? `${selectedBorder} ${selectedBg}` : canVote ? "border-border hover:border-muted-foreground/40 cursor-pointer bg-transparent" : "border-border cursor-default bg-transparent"
                   }`}>

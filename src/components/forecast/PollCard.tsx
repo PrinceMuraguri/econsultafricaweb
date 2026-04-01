@@ -436,7 +436,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       </div>
 
       {/* Stage 2: Post-vote nudge — commit capital (full width) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !localStorage.getItem("nudge_dismissed") && (() => {
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;

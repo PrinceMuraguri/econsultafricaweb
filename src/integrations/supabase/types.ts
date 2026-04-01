@@ -542,6 +542,57 @@ export type Database = {
           },
         ]
       }
+      positions: {
+        Row: {
+          avg_price: number
+          created_at: string
+          id: string
+          option_id: string
+          poll_id: string
+          shares: number
+          total_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_price?: number
+          created_at?: string
+          id?: string
+          option_id: string
+          poll_id: string
+          shares?: number
+          total_cost?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_price?: number
+          created_at?: string
+          id?: string
+          option_id?: string
+          poll_id?: string
+          shares?: number
+          total_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "positions_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_funnel_events: {
         Row: {
           created_at: string
@@ -631,6 +682,63 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      trades: {
+        Row: {
+          created_at: string
+          fee: number
+          id: string
+          option_id: string
+          poll_id: string
+          price: number
+          reference: string | null
+          shares: number
+          side: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fee?: number
+          id?: string
+          option_id: string
+          poll_id: string
+          price: number
+          reference?: string | null
+          shares: number
+          side: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fee?: number
+          id?: string
+          option_id?: string
+          poll_id?: string
+          price?: number
+          reference?: string | null
+          shares?: number
+          side?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trades_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trading_waitlist: {
         Row: {

@@ -197,7 +197,41 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch payouts — also across all fingerprints
+  // Fetch share positions from the new trading system
+  const { data: sharePositions = [] } = useQuery({
+    queryKey: ["my-share-positions", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("positions")
+        .select("*")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
+  // Fetch trade history
+  const { data: tradeHistory = [] } = useQuery({
+    queryKey: ["my-trades", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("trades")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
+
   const { data: payouts } = useQuery({
     queryKey: ["my-payouts", user?.id],
     queryFn: async () => {
@@ -339,7 +373,60 @@ const MyDashboard = () => {
             </div>
           </div>
 
-          {/* Active Positions */}
+          {/* Share Positions (Trading) */}
+          {sharePositions.length > 0 && (
+            <div className="mb-8">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Share Positions ({sharePositions.length})
+              </h2>
+              <div className="space-y-2">
+                {sharePositions.map((pos: any) => (
+                  <div key={pos.id} className="bg-card border border-border rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-semibold text-foreground">{Number(pos.shares)} shares</span>
+                        <span className="text-xs text-muted-foreground ml-2">avg ${Number(pos.avg_price).toFixed(2)}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground">Cost basis: </span>
+                        <span className="font-mono text-sm font-bold">${Number(pos.total_cost).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recent Trades */}
+          {tradeHistory.length > 0 && (
+            <div className="mb-8">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                Recent Trades ({tradeHistory.length})
+              </h2>
+              <div className="space-y-2">
+                {tradeHistory.slice(0, 20).map((trade: any) => (
+                  <div key={trade.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${trade.side === "buy" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
+                        {trade.side}
+                      </span>
+                      <span className="text-xs text-foreground">{Number(trade.shares)} shares @ ${Number(trade.price).toFixed(2)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-xs font-semibold">${Number(trade.total_amount).toFixed(2)}</span>
+                      <span className="text-[9px] text-muted-foreground ml-1">
+                        {new Date(trade.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, MousePointer2, TrendingUp, Download, HelpCircle, Share2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ interface PollCardProps {
 const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) => {
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
@@ -233,9 +234,11 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       </div>
 
-      {/* Question title — use full width */}
+      {/* Question title — clickable with hover underline */}
       <div className="mb-1">
-        <h3 className="font-display font-bold text-foreground leading-snug text-sm pr-0">{poll.title}</h3>
+        <Link to={`/forecast-arena/${poll.slug}`}>
+          <h3 className="font-display font-bold text-foreground leading-snug text-sm pr-0 hover:underline decoration-primary/60 underline-offset-2 cursor-pointer transition-all">{poll.title}</h3>
+        </Link>
       </div>
 
       {/* Context preview — show inline, expand if long */}
@@ -335,9 +338,9 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
               const selectedText = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
 
               return (
-                <button key={option.id} onClick={() => handleVote(option.id)} disabled={hasVoted || voting || isClosed}
+                <button key={option.id} onClick={() => navigate(`/forecast-arena/${poll.slug}`)} disabled={isClosed}
                   className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
-                    isVoted ? `${selectedBorder} ${selectedBg}` : canVote ? "border-border hover:border-muted-foreground/40 cursor-pointer bg-transparent" : "border-border cursor-default bg-transparent"
+                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 cursor-pointer bg-transparent"
                   }`}>
                   {(hasVoted || isClosed) && (
                     <div className={`absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />
@@ -378,13 +381,13 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
                    Commit capital to your position. Gain <span className="font-mono font-bold text-primary">${potentialGain}</span> if your prediction is correct.
                 </p>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleAllocate(votedOption)}
+                  <Button size="sm" onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
                     className="flex-1 text-xs font-bold text-white transition-all bg-green-600 hover:bg-green-700">
-                    Commit capital (${price.toFixed(2)})
+                    Trade shares (${price.toFixed(2)})
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
                     className="text-xs font-medium gap-1 shrink-0">
-                    <HelpCircle className="w-3 h-3" /> How it works
+                    <HelpCircle className="w-3 h-3" /> Details
                   </Button>
                 </div>
               </div>
@@ -395,7 +398,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
               <Rocket className="w-3 h-3 text-accent" />
-                Take your position above to commit capital
+                Click an option to view details & trade
               </p>
             </div>
           )}

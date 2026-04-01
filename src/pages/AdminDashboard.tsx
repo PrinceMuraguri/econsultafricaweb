@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import PollManager from "@/components/admin/PollManager";
 import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
+import AdminTradingTab from "@/components/admin/AdminTradingTab";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 
@@ -21,7 +22,7 @@ const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
   const [keyInput, setKeyInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading">("polls");
   const [archiving, setArchiving] = useState<string | null>(null);
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
@@ -405,6 +406,7 @@ const AdminDashboard = () => {
               { key: "users", label: "Registered Users" },
               { key: "all-transactions", label: "All Transactions" },
               { key: "sales-funnel", label: "📊 Sales Funnel" },
+              { key: "trading", label: "📈 Trading" },
               { key: "inquiries", label: "📬 Inquiries" },
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
@@ -1011,6 +1013,10 @@ const AdminDashboard = () => {
 
           {/* Tab: Sales Funnel */}
           {activeTab === "sales-funnel" && <SalesFunnelTab />}
+
+          {/* Tab: Trading */}
+          {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} />}
+
 
           {/* Tab: Archive Data */}
           {activeTab === "archive" && (

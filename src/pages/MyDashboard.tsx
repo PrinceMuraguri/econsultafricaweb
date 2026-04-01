@@ -404,7 +404,7 @@ const MyDashboard = () => {
             <div className="mb-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-primary" />
-                Recent Trades ({tradeHistory.length})
+                Recent Activity ({tradeHistory.length})
               </h2>
               <div className="space-y-2">
                 {tradeHistory.slice(0, 20).map((trade: any) => (

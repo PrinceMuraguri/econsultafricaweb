@@ -41,6 +41,7 @@ interface PollCardProps {
 const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) => {
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);

@@ -6,6 +6,22 @@ const corsHeaders = {
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { crypto } from 'https://deno.land/std@0.224.0/crypto/mod.ts';
 
+const FALLBACK_USD_KES_RATE = 129;
+
+async function getUsdToKesRate(): Promise<number> {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.KES;
+      if (rate && rate > 50 && rate < 300) return rate;
+    }
+  } catch (e) {
+    console.log('FX fallback:', e.message);
+  }
+  return FALLBACK_USD_KES_RATE;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -66,7 +82,9 @@ Deno.serve(async (req) => {
       // ── WALLET DEPOSIT ──
       if (metadata?.type === 'wallet_deposit') {
         const userId = metadata.user_id;
-        const amountUsd = metadata.amount_usd || (amount / 100 / 129);
+        const kesRate = await getUsdToKesRate();
+        // metadata.amount_usd is set by paystack-checkout; fallback to FX conversion
+        const amountUsd = metadata.amount_usd || Math.round((amount / 100 / kesRate) * 100) / 100;
 
         if (!userId) {
           console.error('wallet_deposit missing user_id in metadata');
@@ -116,7 +134,7 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Log the transaction
+        // Log the transaction with exchange rate for audit
         await supabase.from('wallet_transactions').insert({
           user_id: userId,
           type: 'deposit',
@@ -124,9 +142,10 @@ Deno.serve(async (req) => {
           description: `Wallet top-up via Paystack (${reference})`,
           reference,
           status: 'completed',
+          exchange_rate: kesRate,
         });
 
-        console.log(`Wallet deposit: ${userId} credited $${amountUsd}`);
+        console.log(`Wallet deposit: ${userId} credited $${amountUsd} (rate: ${kesRate})`);
         return new Response(JSON.stringify({ received: true }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -164,7 +183,7 @@ Deno.serve(async (req) => {
       // Only process forecast stake metadata
       if (metadata?.type === 'forecast_stake') {
         const { poll_id, option_id, voter_fingerprint, amount_usd } = metadata;
-        const stakeAmountUsd = amount_usd || (amount / 100 / 129);
+        const stakeAmountUsd = amount_usd || (amount / 100 / FALLBACK_USD_KES_RATE);
 
         const { data: existingVote } = await supabase
           .from('votes')

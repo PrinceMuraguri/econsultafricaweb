@@ -233,9 +233,11 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
         </div>
       </div>
 
-      {/* Question title — use full width */}
+      {/* Question title — clickable with hover underline */}
       <div className="mb-1">
-        <h3 className="font-display font-bold text-foreground leading-snug text-sm pr-0">{poll.title}</h3>
+        <Link to={`/forecast-arena/${poll.slug}`}>
+          <h3 className="font-display font-bold text-foreground leading-snug text-sm pr-0 hover:underline decoration-primary/60 underline-offset-2 cursor-pointer transition-all">{poll.title}</h3>
+        </Link>
       </div>
 
       {/* Context preview — show inline, expand if long */}

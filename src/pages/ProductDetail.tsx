@@ -123,22 +123,39 @@ const ProductDetail = () => {
                 </div>
               )}
 
-              <p className="text-3xl font-bold text-primary mb-1">${product.price}</p>
-              <p className="text-xs text-muted-foreground mb-6">Single organization license · Instant PDF delivery</p>
+              <p className="text-3xl font-bold text-primary mb-1">{isFreeProduct ? "FREE" : `$${product.price}`}</p>
+              <p className="text-xs text-muted-foreground mb-6">{isFreeProduct ? "Free community resource by Econsult Africa" : "Single organization license · Instant PDF delivery"}</p>
 
               {product.available ? (
                 <div className="space-y-3">
-                  <Button size="lg" className="w-full hover-sink" onClick={handleBuyNow} disabled={purchaseLoading}>
-                    {purchaseLoading ? "Processing..." : `Buy Now — $${product.price}`}
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="lg" className="w-full" onClick={() => addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country })}>
-                    <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
-                  </Button>
-                  {previewUrl && (
-                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground" asChild>
-                      <Link to={previewUrl}><Eye className="w-4 h-4 mr-2" /> Browse Sample</Link>
+                  {isGenZReport ? (
+                    <Button size="lg" className="w-full hover-sink" asChild>
+                      <Link to="/kenya-genz-2026">
+                        <BookOpen className="w-4 h-4 mr-2" /> Read Free Report
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Link>
                     </Button>
+                  ) : isFreeProduct ? (
+                    previewUrl && (
+                      <Button size="lg" className="w-full hover-sink" asChild>
+                        <Link to={previewUrl}><Eye className="w-4 h-4 mr-2" /> Read Free Sample</Link>
+                      </Button>
+                    )
+                  ) : (
+                    <>
+                      <Button size="lg" className="w-full hover-sink" onClick={handleBuyNow} disabled={purchaseLoading}>
+                        {purchaseLoading ? "Processing..." : `Buy Now — $${product.price}`}
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="lg" className="w-full" onClick={() => addItem({ id: product.id, title: product.title, price: product.price, type: product.type, file: product.file, country: product.country })}>
+                        <ShoppingCart className="w-4 h-4 mr-2" /> Add to Cart
+                      </Button>
+                      {previewUrl && (
+                        <Button variant="ghost" size="sm" className="w-full text-muted-foreground" asChild>
+                          <Link to={previewUrl}><Eye className="w-4 h-4 mr-2" /> Browse Sample</Link>
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               ) : (

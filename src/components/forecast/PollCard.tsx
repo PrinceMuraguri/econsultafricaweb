@@ -303,7 +303,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
               return (
                 <button key={option.id}
-                  onClick={() => canVote ? handleVote(option.id) : navigate(`/forecast-arena/${poll.slug}`)}
+                  onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
                   disabled={isClosed}
                   className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
                     isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 cursor-pointer bg-transparent"

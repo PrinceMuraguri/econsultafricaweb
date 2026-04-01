@@ -1,16 +1,42 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import TradingPanel from "@/components/forecast/TradingPanel";
 import { usePoll } from "@/hooks/use-polls";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getFingerprint } from "@/lib/fingerprint";
 import { ArrowLeft, Scale, BarChart3 } from "lucide-react";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: poll, isLoading, error } = usePoll(slug || "");
+  const { user } = useAuth();
+  const [hasVoted, setHasVoted] = useState(false);
+  const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
+
+  // Check if user has voted on this poll
+  useEffect(() => {
+    if (!poll) return;
+    (async () => {
+      const fp = await getFingerprint();
+      const { data } = await supabase
+        .from("votes")
+        .select("option_id")
+        .eq("poll_id", poll.id)
+        .eq("voter_fingerprint", fp)
+        .maybeSingle();
+      if (data) {
+        setHasVoted(true);
+        setVotedOptionId(data.option_id);
+      }
+    })();
+  }, [poll?.id]);
+
+  const isClosed = poll ? (poll.status !== "active" || new Date(poll.close_at) < new Date()) : true;
+  const showTradingPanel = hasVoted && !!user && !isClosed;
 
   if (isLoading) {
     return (
@@ -51,8 +77,10 @@ const ForecastPollDetail = () => {
         {/* The same PollCard from the homepage, centerstage */}
         <PollCard poll={poll} />
 
-        {/* Trading Panel */}
-        <TradingPanel poll={poll} />
+        {/* Stage 3: Position panel — only if voted + logged in + active */}
+        {showTradingPanel && (
+          <TradingPanel poll={poll} votedOptionId={votedOptionId} hasVoted={hasVoted} />
+        )}
 
         {/* Economic Context */}
         {poll.context && (
@@ -83,7 +111,7 @@ const ForecastPollDetail = () => {
         <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 text-center">
           <p className="font-semibold text-foreground text-sm mb-1">Want the full analysis?</p>
           <p className="text-[10px] text-muted-foreground mb-3">
-            Go beyond predictions with our comprehensive reports.
+            Go beyond forecasts with our comprehensive reports.
           </p>
           <Link
             to="/intelligence-marketplace"

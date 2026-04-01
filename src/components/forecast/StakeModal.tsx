@@ -96,6 +96,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           option_id: selectedOption.id,
           voter_fingerprint: fp,
           callback_url: callbackUrl,
+          user_id: user?.id || null,
         },
       });
 

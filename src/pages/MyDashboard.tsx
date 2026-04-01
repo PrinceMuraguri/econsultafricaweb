@@ -224,23 +224,12 @@ const MyDashboard = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const { data: voterProfiles } = await supabase
-        .from("voter_profiles")
-        .select("voter_fingerprint")
-        .eq("email", user.email || "");
-
-      const allFingerprints = new Set<string>();
-      if (userProfile?.voter_fingerprint) allFingerprints.add(userProfile.voter_fingerprint);
-      voterProfiles?.forEach((vp: any) => {
-        if (vp.voter_fingerprint) allFingerprints.add(vp.voter_fingerprint);
-      });
-
-      if (allFingerprints.size === 0) return [];
+      if (!userProfile?.voter_fingerprint) return [];
 
       const { data, error } = await supabase
         .from("payouts")
         .select("*")
-        .in("voter_fingerprint", Array.from(allFingerprints))
+        .eq("voter_fingerprint", userProfile.voter_fingerprint)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];

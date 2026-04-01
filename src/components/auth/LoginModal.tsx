@@ -38,8 +38,35 @@ const LoginModal = ({ open, onOpenChange, onSuccess, onSwitchToRegister }: Login
 
       if (error) throw error;
 
-      // Sync to legacy localStorage for backward compatibility
       if (data.user) {
+        const fp = await getFingerprint();
+
+        // Update user_profiles with current device fingerprint
+        await supabase
+          .from("user_profiles")
+          .update({ voter_fingerprint: fp })
+          .eq("user_id", data.user.id);
+
+        // Upsert voter_profiles for backward compatibility
+        await supabase
+          .from("voter_profiles")
+          .upsert({
+            voter_fingerprint: fp,
+            email: data.user.email || "",
+            full_name: data.user.user_metadata?.full_name || "",
+            phone_number: data.user.user_metadata?.phone || "",
+            country_code: "+254",
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "voter_fingerprint" });
+
+        // Claim anonymous votes made on this device
+        await supabase
+          .from("votes")
+          .update({ user_id: data.user.id })
+          .eq("voter_fingerprint", fp)
+          .is("user_id", null);
+
+        // Legacy localStorage sync
         const meta = data.user.user_metadata;
         localStorage.setItem("forecast_participant", JSON.stringify({
           fullName: meta?.full_name || "",

@@ -44,13 +44,25 @@ const Watchlist = () => {
         .select("*, poll_options!poll_options_poll_id_fkey(*)")
         .in("id", pollIds);
 
-      // Fetch user's votes
-      const fp = await getFingerprint();
-      const { data: votes } = await supabase
-        .from("votes")
-        .select("poll_id, option_id")
-        .eq("voter_fingerprint", fp)
-        .in("poll_id", pollIds);
+      // Fetch user's votes — prefer user_id, fallback to fingerprint
+      let votes: any[] = [];
+      if (user) {
+        const { data } = await supabase
+          .from("votes")
+          .select("poll_id, option_id")
+          .eq("user_id", user.id)
+          .in("poll_id", pollIds);
+        votes = data || [];
+      }
+      if (votes.length === 0) {
+        const fp = await getFingerprint();
+        const { data } = await supabase
+          .from("votes")
+          .select("poll_id, option_id")
+          .eq("voter_fingerprint", fp)
+          .in("poll_id", pollIds);
+        votes = data || [];
+      }
 
       const pollMap: Record<string, any> = {};
       (polls || []).forEach((p: any) => { pollMap[p.id] = p; });

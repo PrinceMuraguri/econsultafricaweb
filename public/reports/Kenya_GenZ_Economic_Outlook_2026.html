@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kenya Economic Outlook 2026 — Gen Z Edition | Econsult Africa</title>
+<meta name="description" content="The Kenya economy explained for young Kenyans. No jargon. No boring charts. Just the truth about GDP, jobs, cost of living, and opportunities.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #3852C0;
+  --blue-dark: #2A3E8F;
+  --blue-light: #5A73D6;
+  --orange: #F4714D;
+  --orange-light: #F89A80;
+  --cream: #FAF8F5;
+  --dark: #1A1A2E;
+  --gray: #6B7280;
+  --white: #FFFFFF;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); line-height: 1.6; }
+.hero {
+  background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%);
+  padding: 48px 24px 40px; text-align: center; color: white; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px;
+  border-radius: 50%; background: rgba(244,113,77,0.13);
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -40px; left: -40px; width: 150px; height: 150px;
+  border-radius: 50%; background: rgba(244,113,77,0.08);
+}
+.hero-logo { width: 80px; height: 80px; border-radius: 16px; margin-bottom: 12px; }
+.hero h1 {
+  font-family: 'Playfair Display', serif; font-size: clamp(28px, 6vw, 44px);
+  font-weight: 900; line-height: 1.15; margin-bottom: 12px;
+}
+.hero-badge {
+  display: inline-block; background: var(--orange); padding: 8px 24px; border-radius: 24px;
+  font-size: clamp(14px, 3vw, 18px); font-weight: 700; margin-bottom: 16px;
+}
+.hero-sub { font-size: 14px; opacity: 0.85; max-width: 500; margin: 0 auto; line-height: 1.6; }
+.hero-source { font-size: 11px; opacity: 0.5; margin-top: 16px; }
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+  padding: 10px 16px; display: flex; gap: 8px; overflow-x: auto;
+  border-bottom: 3px solid var(--orange); -webkit-overflow-scrolling: touch;
+}
+.nav::-webkit-scrollbar { height: 0; }
+.nav-btn {
+  padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 600; white-space: nowrap; font-family: 'DM Sans', sans-serif;
+  background: rgba(255,255,255,0.12); color: white; transition: all 0.2s; flex-shrink: 0;
+}
+.nav-btn.active { background: var(--orange); }
+.nav-btn:hover { background: rgba(255,255,255,0.25); }
+.nav-btn.active:hover { background: var(--orange); }
+
+/* SECTIONS */
+.section { display: none; padding: 24px 16px; max-width: 800px; margin: 0 auto; }
+.section.active { display: block; }
+
+/* SECTION HEADER */
+.sec-head { margin-bottom: 32px; }
+.sec-head-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.sec-num {
+  background: var(--orange); color: white; font-weight: 800; font-size: 14px;
+  width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.sec-title {
+  font-size: clamp(22px, 4vw, 30px); font-weight: 800; color: var(--blue-dark);
+  font-family: 'DM Sans', sans-serif; line-height: 1.2;
+}
+.sec-sub { color: var(--gray); font-size: 14px; margin: 4px 0 0 44px; font-style: italic; }
+.sec-line {
+  height: 3px; background: linear-gradient(90deg, var(--orange), var(--blue), transparent);
+  margin-top: 12px; border-radius: 2px;
+}
+
+/* CARDS */
+.card {
+  background: white; border-radius: 16px; padding: 20px 24px;
+  border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 14px;
+}
+.card-accent {
+  background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+  border: none; box-shadow: 0 8px 32px rgba(56,82,192,0.2); color: white;
+}
+.card-orange { background: rgba(244,113,77,0.06); border: none; }
+.card-blue { background: rgba(56,82,192,0.04); border: none; }
+.card-dashed { background: rgba(244,113,77,0.06); border: 2px dashed var(--orange); }
+.card-left-blue { border-left: 4px solid var(--blue); }
+.card-left-orange { border-left: 4px solid var(--orange); }
+
+/* GRID */
+.grid { display: grid; gap: 14px; }
+.grid-2 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grid-2sm { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.grid-num { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+@media (max-width: 600px) {
+  .grid-2sm { grid-template-columns: 1fr; }
+}
+
+/* DASHBOARD CARD */
+.dash-icon { font-size: 28px; }
+.dash-label { font-size: 12px; opacity: 0.7; }
+.dash-val { font-size: 26px; font-weight: 800; }
+.dash-note {
+  font-size: 13px; padding: 8px 12px; border-radius: 10px; line-height: 1.5; font-style: italic;
+}
+.dash-note-accent { background: rgba(255,255,255,0.15); }
+.dash-note-light { background: rgba(56,82,192,0.05); }
+
+/* PIE CHART */
+.pie-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; justify-content: center; }
+.pie-legend { display: flex; flex-direction: column; gap: 4px; }
+.pie-leg-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.pie-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* FLOW ARROWS */
+.flow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; margin-bottom: 8px; }
+.flow-pill {
+  padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; color: white;
+}
+.flow-pill-blue { background: var(--blue); }
+.flow-pill-orange { background: var(--orange); }
+.flow-arrow { font-size: 18px; color: var(--gray); }
+
+/* BAR METER */
+.bar-wrap { margin-bottom: 10px; }
+.bar-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+.bar-label { font-weight: 600; color: var(--dark); }
+.bar-pct { color: var(--gray); }
+.bar-track { height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+/* PROFILE BUTTONS */
+.prof-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.prof-btn {
+  padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  background: white; color: var(--dark); box-shadow: 0 1px 4px rgba(0,0,0,0.08); transition: all 0.2s;
+}
+.prof-btn.active { background: var(--blue); color: white; }
+
+/* SECTOR CARD */
+.sector-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+}
+.sector-high { background: rgba(56,82,192,0.1); color: var(--blue); }
+.sector-med { background: rgba(244,113,77,0.1); color: var(--orange); }
+.sector-low { background: rgba(107,114,128,0.15); color: var(--gray); }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 28px; }
+.timeline-line {
+  position: absolute; left: 11px; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(var(--blue), var(--orange));
+}
+.tl-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; position: relative; }
+.tl-dot {
+  position: absolute; left: -22px; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; color: white;
+}
+.tl-dot-blue { background: var(--blue); }
+.tl-dot-orange { background: var(--orange); }
+
+/* SURVIVAL RULE */
+.rule-num {
+  width: 28px; height: 28px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0;
+}
+.rule-num-blue { background: rgba(56,82,192,0.1); color: var(--blue); }
+.rule-num-orange { background: rgba(244,113,77,0.1); color: var(--orange); }
+
+/* NUMBER CARDS */
+.num-card {
+  background: white; border-radius: 14px; padding: 16px 18px; text-align: center;
+  border: 1px solid #E5E7EB; position: relative; overflow: hidden;
+}
+.num-card-bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.num-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.num-val { font-size: 26px; font-weight: 800; color: var(--blue-dark); }
+.num-sub { font-size: 11px; color: var(--gray); margin-top: 4px; }
+
+/* MYTH TABLE */
+.myth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 500px) { .myth-grid { grid-template-columns: 1fr; } }
+.myth-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+
+/* DEBT BARS */
+.debt-row { margin-bottom: 10px; }
+.debt-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 2px; }
+.debt-bar { height: 6px; background: #E5E7EB; border-radius: 3px; }
+.debt-fill { height: 100%; border-radius: 3px; }
+
+/* TIPS GRID */
+.tip-box { padding: 12px; background: white; border-radius: 10px; }
+.tip-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; color: var(--blue-dark); }
+.tip-text { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+/* DO/DONT LIST */
+.dd-item { font-size: 13px; padding: 6px 0; border-bottom: 1px solid #E5E7EB; color: var(--dark); }
+
+/* FOOTER */
+.footer {
+  background: var(--blue-dark); color: white; padding: 24px 16px; text-align: center;
+  font-size: 12px; line-height: 1.8; margin-top: 20px;
+}
+.footer-logo { width: 48px; height: 48px; border-radius: 10px; margin-bottom: 8px; }
+.footer-sub { opacity: 0.6; }
+
+/* UTILS */
+.mb-20 { margin-bottom: 20px; }
+.mb-12 { margin-bottom: 12px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.text-center { text-align: center; }
+.text-blue { color: var(--blue); }
+.text-orange { color: var(--orange); }
+.text-blue-dark { color: var(--blue-dark); }
+.text-gray { color: var(--gray); }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+.fs-11 { font-size: 11px; }
+.fs-12 { font-size: 12px; }
+.fs-13 { font-size: 13px; }
+.fs-14 { font-size: 14px; }
+.fs-15 { font-size: 15px; }
+.fs-16 { font-size: 16px; }
+.fs-18 { font-size: 18px; }
+.fs-20 { font-size: 20px; }
+.fs-24 { font-size: 24px; }
+.lh-17 { line-height: 1.7; }
+.op-9 { opacity: 0.9; }
+a { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <img src="data:image/jpeg;base64,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" alt="Econsult Africa" class="hero-logo">
+  <p style="font-size:12px;letter-spacing:3px;text-transform:uppercase;opacity:0.8;margin-bottom:8px">Econsult Africa</p>
+  <h1>Kenya Economic Outlook 2026</h1>
+  <div class="hero-badge">Gen Z Edition</div>
+  <p class="hero-sub">The economy explained like you're a normal person.<br>No jargon. No boring charts. Just the truth.</p>
+  <p class="hero-source">Source: Kenya 2026 Economic Outlook — Fragile Stabilization or Structural Inflection?</p>
+</div>
+
+<!-- NAV -->
+<div class="nav" id="nav"></div>
+
+<!-- SECTIONS CONTAINER -->
+<div id="sections"></div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <img src="data:image/jpeg;base64,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" alt="Econsult Africa" class="footer-logo"><br>
+  <p class="fw-700" style="margin-bottom:4px">Kenya Economic Outlook 2026 — Gen Z Edition</p>
+  <p class="footer-sub">
+    Produced by Econsult Africa · Based on the full Kenya 2026 Economic Outlook report<br>
+    Data sources: CBK, KNBS, IMF, National Treasury, World Bank, S&amp;P, Fitch, Moody's<br>
+    &copy; 2026 Econsult Africa. For educational purposes.
+  </p>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────
+const SECTIONS = [
+  "Cheat Sheet","Cost of Living","Jobs & Hustles","Opportunities",
+  "Govt & Debt","Dollar vs Shilling","The Future","Survive & Win",
+  "Key Numbers","Myths vs Reality","Remember This"
+];
+
+const dashboard = [
+  {l:"GDP Growth",v:"5.2%",i:"📈",n:"Economy is growing — but jobs aren't keeping up"},
+  {l:"Inflation",v:"4.4%",i:"🛒",n:"Sounds low? Food inflation is actually 7.3%"},
+  {l:"CBR (Interest)",v:"8.75%",i:"🏦",n:"CBK cut rates 10 times. Banks barely budged"},
+  {l:"KES/USD",v:"~130",i:"💵",n:"Stable for 16 months after hitting 160 in 2024"},
+  {l:"Govt Debt",v:"KSh 11.8T",i:"💳",n:"81.1% of tax revenue goes to debt payments"},
+  {l:"Youth Jobless",v:"40–67%",i:"👷",n:"GDP grows but most young people can't find work"},
+  {l:"Population",v:"~56M",i:"👥",n:"70% under 35 — youngest workforce in the world"},
+  {l:"Reserves",v:"$12.5B",i:"🛡️",n:"Highest in a decade — 5.4 months import cover"},
+];
+
+const budgetPie = [
+  {l:"Rent",p:30,c:"var(--blue)"},{l:"Food",p:25,c:"var(--orange)"},
+  {l:"Transport",p:15,c:"var(--blue-light)"},{l:"Airtime/Data",p:8,c:"var(--orange-light)"},
+  {l:"Electricity",p:7,c:"#8B9FE8"},{l:"Loans",p:8,c:"#E85D3A"},
+  {l:"Entertainment",p:4,c:"#C0CDF0"},{l:"Savings",p:3,c:"#FDD"},
+];
+
+const taxPie = [
+  {l:"Debt Repayment",p:53,c:"var(--orange)"},{l:"Salaries",p:18,c:"var(--blue)"},
+  {l:"Counties",p:10,c:"var(--blue-light)"},{l:"Infrastructure",p:7,c:"#8B9FE8"},
+  {l:"Health",p:5,c:"var(--orange-light)"},{l:"Education",p:4,c:"#C0CDF0"},
+  {l:"Other",p:3,c:"var(--gray)"},
+];
+
+const sectors = [
+  {n:"Banking & Fintech",g:"6.6%",o:"High",d:"Medium",w:"Tech grads, developers",i:"💳"},
+  {n:"Digital Economy",g:"4.5–5.8%",o:"High",d:"Low–Med",w:"Freelancers, creatives",i:"💻"},
+  {n:"Construction",g:"6.7%",o:"High",d:"Medium",w:"Engineers, artisans",i:"🏗️"},
+  {n:"Tourism",g:"17.7%",o:"High",d:"Medium",w:"Hospitality, guides",i:"🌍"},
+  {n:"Horticulture",g:"36.2%",o:"High",d:"Medium",w:"Agri-entrepreneurs",i:"🌸"},
+  {n:"Agriculture",g:"3.2%",o:"Medium",d:"High",w:"Farmers, agritech",i:"🌾"},
+  {n:"Manufacturing",g:"~2%",o:"Low",d:"High",w:"Cautious investors",i:"🏭"},
+  {n:"Textiles (AGOA)",g:"Uncertain",o:"Low",d:"Very High",w:"Wait and see",i:"🧵"},
+];
+
+const myths = [
+  {m:"Kenya is broke",r:"Kenya is growing — but heavily in debt. The economy isn't collapsing; it's stretched thin."},
+  {m:"A degree guarantees a job",r:"Skills > degrees. 67% youth unemployment exists despite millions of graduates."},
+  {m:"Government employs most people",r:"Private sector and informal economy employ 80%+ of Kenyans."},
+  {m:"Starting a business is easy",r:"Kenya ranks among the most regulated markets. Red tape is real."},
+  {m:"The dollar only affects importers",r:"Fuel, electronics, food ingredients, even Netflix — all priced in dollars."},
+  {m:"Inflation is under control",r:"Headline is 4.4%. But food inflation is 7.3% — sukuma wiki up 23%, tomatoes up 30%."},
+];
+
+const timeline = [
+  {y:"2003",e:"Economic recovery begins",em:"🌱"},
+  {y:"2007",e:"Post-election violence crisis",em:"⚠️"},
+  {y:"2010",e:"New Constitution adopted",em:"📜"},
+  {y:"2013",e:"Devolution & counties begin",em:"🏛️"},
+  {y:"2017",e:"SGR railway opens",em:"🚂"},
+  {y:"2020",e:"COVID-19 lockdowns",em:"😷"},
+  {y:"2024",e:"Gen Z protests. KES hits 160/USD",em:"✊"},
+  {y:"2025",e:"10 rate cuts. Rating upgrades ×3",em:"📊"},
+  {y:"2026",e:"Fragile stabilization. Pre-election year",em:"⚖️"},
+];
+
+const rules = [
+  {r:"Have more than one income stream",d:"Salary alone won't cut it. Freelance, side hustle, invest."},
+  {r:"Avoid expensive loans",d:"Banks charge 14.8%. If you borrow, have a plan that earns more than that."},
+  {r:"Learn digital skills",d:"ICT is growing 5.8%. Remote work pays in USD. Position yourself."},
+  {r:"Save in dollars when possible",d:"The shilling is stable now, but history says it won't stay that way forever."},
+  {r:"Start something small — today",d:"84.8% of Kenyans have financial access via M-Pesa. Use it."},
+  {r:"Invest in skills, not just degrees",d:"The economy rewards what you can DO, not what certificate you hold."},
+  {r:"Understand the economy",d:"Don't fight the economy. Read it. Position yourself. Play smart."},
+  {r:"Think long-term",d:"Kenya's future belongs to the patient. Build assets, not just income."},
+];
+
+const profiles = {
+  Student: {em:"🎓",a:"Focus on skills that pay: coding, data, digital marketing, AI. Intern in growing sectors — fintech, construction, tourism. Your degree is a starting point, not the destination.",op:"Digital skills, fintech internships",rk:"Graduating into a 40–67% youth unemployment market"},
+  Unemployed: {em:"🔍",a:"The formal job market is brutal. Look at the informal sector, freelancing, remote work. Learn M-Pesa integration, content creation, or agritech. The digital economy doesn't need your CV — it needs your skills.",op:"Freelancing, online work, gig economy",rk:"Waiting for 'the perfect job' that doesn't exist"},
+  Employed: {em:"💼",a:"Your salary alone won't beat inflation. Start a side hustle. Negotiate your rate — the RBCPM reform means lending rates should be dropping. Save aggressively. Don't get comfortable.",op:"Side income, salary negotiation, investing",rk:"Cost of living eating your gains. Retrenchment risk."},
+  Entrepreneur: {em:"🚀",a:"Lending rates at 14.8% are still high — borrow carefully. Target growing sectors: fintech, construction, horticulture. The election year means government spending will spike — position for tenders.",op:"Pre-election spending, growing sectors",rk:"High borrowing costs, post-election cliff"},
+  Freelancer: {em:"🎨",a:"You're already ahead — the gig economy is the future. Get paid in USD where possible ($1 = KSh 130 in your pocket). Build digital skills. Kenya's 84.8% financial inclusion is your distribution network.",op:"Remote work, USD earnings, global clients",rk:"Income volatility, no benefits"},
+  Diaspora: {em:"✈️",a:"Remittances hit $5B in 2025 — you're literally Kenya's biggest forex earner. The Diaspora Remittance Bond proposal could let you invest long-term. Real estate and horticulture are solid bets.",op:"Property, bonds, agribusiness investment",rk:"Political risk, currency risk"},
+};
+
+const keyNums = [
+  {l:"GDP Growth",v:"5.2%",s:"Outpacing SSA average (4.6%)"},
+  {l:"Headline Inflation",v:"4.4%",s:"Sounds great. Food says otherwise."},
+  {l:"Food Inflation",v:"7.3%",s:"Tomatoes +30%, sukuma +23%"},
+  {l:"Core Inflation",v:"2.2%",s:"Demand is weak. Economy below potential."},
+  {l:"CBR",v:"8.75%",s:"Down from 13%. 10 cuts in a row."},
+  {l:"Lending Rate",v:"~14.8%",s:"Banks passed only half the cuts."},
+  {l:"Exchange Rate",v:"~130/USD",s:"Stable 16 months. Down from 160."},
+  {l:"Forex Reserves",v:"$12.5B",s:"5.4 months cover. Decade high."},
+  {l:"Public Debt",v:"KSh 11.8T",s:"67.8% of GDP. $91.3 billion."},
+  {l:"Debt Service",v:"81.1%",s:"Of tax revenue. Going to old debts."},
+  {l:"Remittances",v:"$5B+",s:"Largest forex source. Bigger than tea+tourism."},
+  {l:"Youth Unemployment",v:"40–67%",s:"Depending on definition. Either way: crisis."},
+  {l:"Financial Inclusion",v:"84.8%",s:"M-Pesa changed the game."},
+  {l:"Manufacturing/GDP",v:"~11%",s:"Down from 13%. Wrong direction."},
+  {l:"Population",v:"~56M",s:"70% under 35. Young nation."},
+  {l:"Brent Oil",v:"$58–60",s:"Low oil = lower transport & fuel costs."},
+];
+
+const trends = [
+  {t:"Technology & AI",i:"🤖",x:"ICT growing 5.8%. AI is reshaping work globally. Kenya's tech scene (Nairobi = \"Silicon Savannah\") attracts most East African venture capital."},
+  {t:"Digital Payments",i:"📱",x:"84.8% financial inclusion. 78.9% mobile money penetration. M-Pesa expanding into credit, savings, insurance. Kenya leads the world."},
+  {t:"Youth Bulge",i:"👶",x:"70%+ under 35. Largest young workforce. This is either Kenya's greatest asset or its biggest threat — depends on jobs."},
+  {t:"Climate Change",i:"🌡️",x:"Short rains in 2025 worst since 1981. Agriculture = 25% of GDP. Climate is Kenya's #1 economic risk."},
+  {t:"Urbanization",i:"🏙️",x:"Cities are growing fast. Construction up 6.7%. Affordable Housing = 720K+ registrations. Nairobi is expanding."},
+  {t:"Remote Work",i:"🌐",x:"Global companies hiring Kenyan talent. Developers, designers, writers earning in USD. The geography tax is dying."},
+  {t:"US vs China",i:"🌍",x:"US raises tariffs (15%). China shifts to 'small yet beautiful' investments in Kenya. Both want influence. Kenya navigates."},
+  {t:"AGOA Uncertainty",i:"📦",x:"AGOA reauthorized for just 1 year. 66,000 textile workers in limbo. US trade policy = existential risk for apparel sector."},
+];
+
+// ─── PIE CHART SVG GENERATOR ─────────────────────────────────────
+function makePie(data, size=200) {
+  let cum = 0;
+  const r = size/2 - 4, cx = size/2, cy = size/2;
+  let paths = '';
+  data.forEach(d => {
+    const s = cum; cum += d.p;
+    const sa = (s/100)*360-90, ea = (cum/100)*360-90;
+    const la = d.p > 50 ? 1 : 0;
+    const x1 = cx+r*Math.cos(sa*Math.PI/180), y1 = cy+r*Math.sin(sa*Math.PI/180);
+    const x2 = cx+r*Math.cos(ea*Math.PI/180), y2 = cy+r*Math.sin(ea*Math.PI/180);
+    paths += `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${la} 1 ${x2} ${y2} Z" fill="${d.c}" stroke="white" stroke-width="2"/>`;
+  });
+  const legend = data.map(d => `<div class="pie-leg-item"><span class="pie-dot" style="background:${d.c}"></span><span style="color:var(--dark)">${d.l}</span><span style="color:var(--gray);font-weight:600">${d.p}%</span></div>`).join('');
+  return `<div class="pie-wrap"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg><div class="pie-legend">${legend}</div></div>`;
+}
+
+function flow(items) {
+  return '<div class="flow">' + items.map((t,i) =>
+    `<span class="flow-pill ${i===items.length-1?'flow-pill-orange':'flow-pill-blue'}">${t}</span>${i<items.length-1?'<span class="flow-arrow">→</span>':''}`
+  ).join('') + '</div>';
+}
+
+function bar(label, value, color='var(--blue)') {
+  return `<div class="bar-wrap"><div class="bar-top"><span class="bar-label">${label}</span><span class="bar-pct">${value}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${value}%;background:${color}"></div></div></div>`;
+}
+
+// ─── BUILD SECTIONS HTML ─────────────────────────────────────────
+function secHead(n, title, sub) {
+  return `<div class="sec-head"><div class="sec-head-top"><span class="sec-num">${n}</span><span class="sec-title">${title}</span></div>${sub?`<p class="sec-sub">${sub}</p>`:''}<div class="sec-line"></div></div>`;
+}
+
+const sectionHTML = [];
+
+// 1. CHEAT SHEET
+sectionHTML.push(
+  secHead(1,"Kenya in One Page","If you only read one page, read this one") +
+  '<div class="grid grid-2">' + dashboard.map((d,i) =>
+    `<div class="card ${i===0?'card-accent':''}"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span class="dash-icon">${d.i}</span><div><div class="dash-label">${d.l}</div><div class="dash-val">${d.v}</div></div></div><div class="dash-note ${i===0?'dash-note-accent':'dash-note-light'}"><strong>So what?</strong> ${d.n}</div></div>`
+  ).join('') + '</div>' +
+  `<div class="card card-dashed mt-20"><p class="fs-15 fw-700 text-orange" style="margin-bottom:6px">🔑 The Big Picture</p><p class="fs-14 lh-17">Kenya's economy in 2026 is <strong>stable enough to function, too fragile to transform.</strong> The numbers look decent on paper — growth at 5.2%, inflation at 4.4%, reserves at a decade high. But beneath the surface: 81% of your taxes pay old debts, food inflation hits 7.3%, youth unemployment is devastating, and banks kept half the interest rate cuts for themselves. The crisis is over, but the breakthrough hasn't started.</p></div>`
+);
+
+// 2. COST OF LIVING
+sectionHTML.push(
+  secHead(2,"Why Everything Is Expensive","Your wallet vs the economy — and why your salary disappears") +
+  `<div class="card mb-20"><h3 class="fs-18 fw-700 text-blue-dark" style="margin-bottom:16px">Your Salary Disappears Like This</h3><p class="fs-13 text-gray" style="margin-bottom:16px">If you earn KSh 100, here's where it goes (typical Nairobi young professional):</p>${makePie(budgetPie)}<p class="fs-12 text-gray mt-12 text-center" style="font-style:italic">Yes, that savings slice really is that small. 😅</p></div>` +
+  `<div class="card card-accent mb-20"><h3 class="fs-18 fw-700" style="margin-bottom:12px">Why Prices Go Up Even When Your Salary Doesn't</h3>${flow(["Global oil ↑","Transport ↑","Food ↑","Everything ↑"])}${flow(["Dollar ↑","Imports ↑","Fuel ↑","Electricity ↑"])}${flow(["Weak rains","Less food","Prices spike","You suffer"])}</div>` +
+  `<div class="card mb-20"><h3 class="fs-16 fw-700 text-orange" style="margin-bottom:10px">💡 Why Life Still Feels Expensive Even When Inflation Is "Falling"</h3><p class="fs-14 lh-17">Here's the thing: when they say inflation is 4.4%, they're averaging everything — including stuff you don't buy often (like furniture or electronics). But <strong>food inflation is 7.3%</strong>. Tomatoes are up 30%. Sukuma wiki up 23%. Maize flour up 13%. If you spend half your income on food (and most young Kenyans do), your <em>real</em> inflation is closer to 8–10%.</p><p class="fs-14 lh-17 mt-12">The poorest 40% of Kenyans face a cost-of-living crisis that official numbers hide. The October–December 2025 short rains were the worst since 1981. If the March–May 2026 long rains also fail, food inflation could spike above 10%.</p></div>` +
+  `<div class="card card-blue"><h3 class="fs-16 fw-700 text-blue-dark" style="margin-bottom:10px">So What Should You Do?</h3><div class="grid grid-2sm" style="gap:12px">${[["Budget","Track every shilling. Use M-Pesa statements as your P&L.","var(--blue)"],["Save","Even KSh 500/month matters. Money market funds beat savings accounts.","var(--orange)"],["Borrow Carefully","Lending rates are ~14.8%. Only borrow for income-generating activities.","var(--blue)"],["Be Strategic","Cut subscriptions. Cook more. Share rent. Think like a CFO.","var(--orange)"]].map(t=>`<div class="tip-box" style="border-left:3px solid ${t[2]}"><div class="tip-title">${t[0]}</div><div class="tip-text">${t[1]}</div></div>`).join('')}</div></div>`
+);
+
+// 3. JOBS & HUSTLES
+sectionHTML.push(
+  secHead(3,"Jobs, Hustles & Survival","How people are actually making money in Kenya right now") +
+  `<div class="card card-accent mb-20"><h3 class="fs-18 fw-700" style="margin-bottom:10px">The Uncomfortable Truth</h3><p class="fs-14 lh-17 op-9">Kenya's GDP grows at 5.2% but youth unemployment is estimated at <strong>40–67%</strong> depending on how you count it. This isn't a paradox — it's by design. Growth is services-led and skills-biased: it creates jobs for a small elite in finance, tech, and professional services while the mass of workers stay in low-productivity informal activities. Manufacturing — which historically lifts entire populations — has <em>declined</em> from 13% to ~11% of GDP. Economists call this "premature deindustrialization." You call it "there are no jobs."</p></div>` +
+  `<div class="card mb-20"><h3 class="fs-16 fw-700 text-blue-dark mb-12">Where Jobs Are Actually Growing</h3>${bar("Tourism & Hospitality",85,"var(--orange)")}${bar("Construction",70,"var(--blue)")}${bar("Financial Services",65,"var(--blue-light)")}${bar("ICT & Digital",60,"var(--orange-light)")}${bar("Horticulture",55,"var(--blue)")}${bar("Transport & Logistics",45,"var(--blue-light)")}${bar("Manufacturing",15,"var(--gray)")}<p class="fs-11 text-gray mt-12">Relative job growth momentum, 2025–2026. Based on sectoral GDP growth and credit expansion data.</p></div>` +
+  `<div class="card card-orange mb-20"><h3 class="fs-16 fw-700 text-orange" style="margin-bottom:14px">If You Are...</h3><div class="prof-btns" id="profBtns">${Object.keys(profiles).map(p=>`<button class="prof-btn ${p==='Student'?'active':''}" onclick="setProfile('${p}')">${profiles[p].em} ${p}</button>`).join('')}</div><div id="profContent"></div></div>`
+);
+
+// 4. OPPORTUNITIES
+sectionHTML.push(
+  secHead(4,"Where The Opportunities Are","Sectors with money — ranked by reality, not hype") +
+  '<div class="grid grid-2">' + sectors.map(s => {
+    const cls = s.o==='High'?'sector-high':s.o==='Medium'?'sector-med':'sector-low';
+    const brd = s.o==='High'?'var(--blue)':s.o==='Medium'?'var(--orange)':'var(--gray)';
+    return `<div class="card" style="border-left:4px solid ${brd}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="fs-24">${s.i}</span><span class="sector-badge ${cls}">${s.o} opportunity</span></div><h4 class="fs-15 fw-700" style="margin-bottom:6px">${s.n}</h4><div class="fs-12 text-gray" style="margin-bottom:4px">Growth: <strong style="color:var(--dark)">${s.g}</strong></div><div class="fs-12 text-gray" style="margin-bottom:4px">Difficulty: <strong>${s.d}</strong></div><div class="fs-12 text-blue">Best for: ${s.w}</div></div>`;
+  }).join('') + '</div>' +
+  `<div class="card card-accent mt-20"><h3 class="fs-16 fw-700" style="margin-bottom:8px">🎯 So What?</h3><p class="fs-14 lh-17 op-9">The biggest opportunities right now are in <strong>fintech, construction, tourism, and horticulture</strong>. Digital economy and M-Pesa (84.8% financial inclusion!) provide a unique structural advantage that most frontier economies don't have. But manufacturing is dying and textiles are uncertain because of AGOA tariff drama. Pick your lane wisely.</p></div>`
+);
+
+// 5. GOVT & DEBT
+sectionHTML.push(
+  secHead(5,"Government, Taxes & Your Stress","How government decisions affect your life — even if you don't think about them") +
+  `<div class="card mb-20"><h3 class="fs-18 fw-700 text-blue-dark" style="margin-bottom:16px">Where Your Taxes Actually Go</h3>${makePie(taxPie)}<p class="fs-13 text-orange fw-700 mt-16 text-center">Over half of every tax shilling goes to paying old debts. Not roads. Not hospitals. Debts.</p></div>` +
+  `<div class="card card-accent mb-20"><h3 class="fs-16 fw-700 mb-12">Why Government Debt Affects Your Life</h3>${flow(["Govt borrows","Pays interest","Taxes go up","Less for services","Your cost of living ↑"])}<div class="mt-16 fs-14 lh-17 op-9"><p>Kenya's total debt is <strong>KSh 11.8 trillion</strong> (67.8% of GDP). That's ~KSh 211,000 per Kenyan. The government spends <strong>KSh 83.7 billion per month</strong> on interest alone — that's <em>double</em> what it spends on development.</p><p class="mt-12">In the first half of FY2025/26, debt service hit <strong>KSh 941 billion</strong>. Capital expenditure is at 20-year lows. The state isn't borrowing to build your future — it's borrowing to pay for its past.</p></div></div>` +
+  `<div class="card card-orange mb-20"><h3 class="fs-16 fw-700 text-orange" style="margin-bottom:10px">🏛️ The Election Budget Problem</h3><p class="fs-14 lh-17">The August 2027 election is 14 months away. History shows: every election year, government spending jumps by 1.0–1.5% of GDP. The FY2026/27 budget will <em>say</em> the deficit is 3.9%. The <em>actual</em> deficit will be 5.0–5.8%. After the Gen Z protests forced withdrawal of the Finance Bill 2024 and the IMF program collapsed, the government has no room for tax increases — but plenty of incentive to spend. This is what economists call the "fiscal-political trap."</p></div>` +
+  `<div class="card"><h3 class="fs-16 fw-700 text-blue-dark" style="margin-bottom:8px">The Debt Story in Numbers</h3>${[["Total Public Debt","KSh 11.8 trillion ($91.3B)",90],["Debt-to-GDP","67.8%",68],["Tax Revenue → Debt Service","81.1%",81],["Interest-to-Revenue","30–35%",33]].map(d=>`<div class="debt-row"><div class="debt-top"><span class="fw-700">${d[0]}</span><span class="text-orange fw-700">${d[1]}</span></div><div class="debt-bar"><div class="debt-fill" style="width:${d[2]}%;background:${d[2]>70?'var(--orange)':'var(--blue)'}"></div></div></div>`).join('')}</div>`
+);
+
+// 6. DOLLAR VS SHILLING
+sectionHTML.push(
+  secHead(6,"Dollar vs Shilling","Why the dollar controls your life — even if you've never held one") +
+  `<div class="card card-accent mb-20 text-center"><h3 class="fs-20 fw-800" style="margin-bottom:8px">KSh 130 / $1</h3><p class="fs-14 lh-17 op-9">Stable for 16 months after hitting KSh 160 in early 2024. The CBK pulled off a 21% appreciation. But this stability is fragile.</p></div>` +
+  `<div class="grid grid-2sm mb-20"><div class="card card-blue"><h4 class="fs-14 fw-700 text-blue-dark" style="margin-bottom:8px">✅ Who Benefits From a Stable Shilling</h4><ul style="font-size:13px;line-height:1.8;padding-left:16px;margin:0"><li>Importers (cheaper goods)</li><li>Students abroad (tuition)</li><li>Anyone buying foreign goods</li><li>Businesses with dollar loans</li><li>Travellers</li></ul></div><div class="card card-orange"><h4 class="fs-14 fw-700 text-orange" style="margin-bottom:8px">⚠️ Who Suffers From a Strong Shilling</h4><ul style="font-size:13px;line-height:1.8;padding-left:16px;margin:0"><li>Exporters (earn less KES)</li><li>Tea & coffee farmers</li><li>Freelancers earning USD</li><li>Tourism operators</li><li>Diaspora sending money home</li></ul></div></div>` +
+  `<div class="card mb-20"><h3 class="fs-16 fw-700 text-blue-dark" style="margin-bottom:10px">What's Keeping the Shilling Stable?</h3><div class="grid grid-4">${[["🛡️","Reserves at $12.5B","5.4 months of imports — highest in a decade"],["💸","Remittances $5B+","Diaspora = Kenya's #1 forex earner"],["📊","Rating Upgrades ×3","S&P, Fitch, Moody's all upgraded Kenya"],["🏦","Eurobond Access","$2.25B issued Feb 2026 at ~8.4% yield"]].map(t=>`<div style="background:rgba(56,82,192,0.03);padding:12px;border-radius:10px;text-align:center"><div class="fs-24" style="margin-bottom:4px">${t[0]}</div><div class="fs-13 fw-700 text-blue-dark">${t[1]}</div><div class="fs-11 text-gray" style="margin-top:2px">${t[2]}</div></div>`).join('')}</div></div>` +
+  `<div class="card card-orange"><h3 class="fs-16 fw-700 text-orange" style="margin-bottom:8px">💡 What Young Kenyans Should Know</h3><p class="fs-14 lh-17">If you earn in dollars (remote work, freelancing, online business), you're sitting on a structural advantage. At KSh 130/$1, every $100 is KSh 13,000. If you travel abroad, the exchange rate eats your budget. If you buy anything imported — iPhones, laptops, certain foods — you're paying the dollar tax. The shilling is stable <em>now</em>, but the U.S. Fed's "higher for longer" rates keep pressure on all emerging market currencies. Don't assume KSh 130 is forever.</p></div>`
+);
+
+// 7. THE FUTURE
+sectionHTML.push(
+  secHead(7,"The Future Kenya You Will Live In","Big trends you should not ignore if you want to win in the next decade") +
+  `<div class="card mb-20"><h3 class="fs-16 fw-700 text-blue-dark" style="margin-bottom:16px">Kenya Economy Timeline</h3><div class="timeline"><div class="timeline-line"></div>${timeline.map((t,i)=>`<div class="tl-item"><div class="tl-dot ${i===timeline.length-1?'tl-dot-orange':'tl-dot-blue'}">${t.em}</div><div><span class="fs-13 fw-800" style="color:${i===timeline.length-1?'var(--orange)':'var(--blue)'}">${t.y}</span><span class="fs-13" style="margin-left:8px">${t.e}</span></div></div>`).join('')}</div></div>` +
+  `<div class="grid grid-3 mb-20">${trends.map(t=>`<div class="card"><div class="fs-24" style="margin-bottom:6px">${t.i}</div><h4 class="fs-14 fw-700 text-blue-dark" style="margin-bottom:4px">${t.t}</h4><p class="fs-12 text-gray" style="line-height:1.6;margin:0">${t.x}</p></div>`).join('')}</div>`
+);
+
+// 8. SURVIVE & WIN
+sectionHTML.push(
+  secHead(8,"How To Survive & Win In This Economy","Don't fight the economy. Understand it. Position yourself.") +
+  rules.map((r,i) => `<div class="card ${i%2===0?'card-left-blue':'card-left-orange'}"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="rule-num ${i%2===0?'rule-num-blue':'rule-num-orange'}">${i+1}</span><h4 class="fs-15 fw-700">${r.r}</h4></div><p class="fs-13 text-gray lh-17" style="margin-left:38px">${r.d}</p></div>`).join('')
+);
+
+// 9. KEY NUMBERS
+sectionHTML.push(
+  secHead(9,"Numbers That Run Your Life","The key figures every young Kenyan should know by heart") +
+  '<div class="grid grid-num">' + keyNums.map((d,i) => {
+    const c = i%3===0?'var(--orange)':i%3===1?'var(--blue)':'var(--blue-light)';
+    return `<div class="num-card"><div class="num-card-bar" style="background:${c}"></div><div class="num-label">${d.l}</div><div class="num-val">${d.v}</div><div class="num-sub">${d.s}</div></div>`;
+  }).join('') + '</div>'
+);
+
+// 10. MYTHS VS REALITY
+sectionHTML.push(
+  secHead(10,"Economy Myths vs Reality","Things people believe about the economy that aren't quite true") +
+  myths.map(m => `<div class="card"><div class="myth-grid"><div><div class="myth-label text-orange">❌ Myth</div><p class="fs-14 fw-700">"${m.m}"</p></div><div><div class="myth-label text-blue">✅ Reality</div><p class="fs-13 text-gray lh-17">${m.r}</p></div></div></div>`).join('')
+);
+
+// 11. REMEMBER THIS
+sectionHTML.push(
+  secHead(11,"If You Remember Nothing Else, Remember This","The absolute essentials from this entire report") +
+  `<div class="card card-accent mb-20 text-center" style="padding:32px"><p class="fs-12" style="text-transform:uppercase;letter-spacing:2px;opacity:0.7;margin-bottom:8px">The 2026 Verdict</p><h3 style="font-size:clamp(20px,4vw,28px);font-weight:800;font-family:'Playfair Display',serif;line-height:1.3;margin-bottom:16px">"Stable enough to function.<br>Too fragile to transform."</h3><p class="fs-14 op-9" style="max-width:500px;margin:0 auto;line-height:1.7">The crisis is over. The boom hasn't started. Kenya sits in a narrow equilibrium where decent headline numbers coexist with deep structural problems. The question for 2026 isn't whether the economy will crash — it won't. It's whether the economy will actually start working for young people. The honest answer: not yet.</p></div>` +
+  `<div class="grid grid-2sm mb-20"><div class="card card-blue"><h4 class="fs-14 fw-700 text-blue-dark" style="margin-bottom:10px">✅ Do's In This Economy</h4>${["Build multiple income streams","Learn digital & AI skills","Save and invest — even small amounts","Understand how the economy works","Start something before it's perfect","Think in 5-year horizons"].map(d=>`<div class="dd-item">${d}</div>`).join('')}</div><div class="card card-orange"><h4 class="fs-14 fw-700 text-orange" style="margin-bottom:10px">❌ Don'ts In This Economy</h4>${["Don't depend on one salary","Don't take expensive loans for consumption","Don't wait for 'the government to fix things'","Don't ignore the dollar — it affects everything","Don't assume growth = jobs for you","Don't confuse activity with progress"].map(d=>`<div class="dd-item">${d}</div>`).join('')}</div></div>` +
+  `<div class="card text-center" style="padding:32px;background:linear-gradient(135deg,var(--cream),white);border:2px solid rgba(56,82,192,0.12)"><p class="fs-16 fw-700 text-blue-dark lh-17">The economy won't wait for you.<br>But if you understand it — you can get ahead of it.</p><p class="fs-13 text-orange fw-700 mt-12">Play the game smart. 🇰🇪</p></div>`
+);
+
+// ─── INIT ────────────────────────────────────────────────────────
+let active = 0;
+
+function renderNav() {
+  document.getElementById('nav').innerHTML = SECTIONS.map((s,i) =>
+    `<button class="nav-btn ${i===active?'active':''}" onclick="go(${i})">${s}</button>`
+  ).join('');
+}
+
+function renderSections() {
+  document.getElementById('sections').innerHTML = sectionHTML.map((h,i) =>
+    `<div class="section ${i===active?'active':''}" id="sec${i}">${h}</div>`
+  ).join('');
+}
+
+function go(i) {
+  active = i;
+  renderNav();
+  document.querySelectorAll('.section').forEach((s,j) => s.classList.toggle('active', j===i));
+  window.scrollTo({top: document.querySelector('.nav').offsetTop, behavior: 'smooth'});
+  if (i === 2) setProfile('Student');
+}
+
+function setProfile(name) {
+  const p = profiles[name];
+  document.querySelectorAll('.prof-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(name)));
+  document.getElementById('profContent').innerHTML =
+    `<div style="background:white;border-radius:14px;padding:20px"><div class="fs-24" style="margin-bottom:4px">${p.em}</div><p class="fs-14 lh-17 mb-12">${p.a}</p><div class="grid grid-2sm" style="gap:10px"><div style="background:rgba(56,82,192,0.05);padding:12px;border-radius:10px"><div class="fs-12 fw-700 text-blue" style="margin-bottom:4px">✅ Opportunities</div><div class="fs-13">${p.op}</div></div><div style="background:rgba(244,113,77,0.05);padding:12px;border-radius:10px"><div class="fs-12 fw-700 text-orange" style="margin-bottom:4px">⚠️ Risks</div><div class="fs-13">${p.rk}</div></div></div></div>`;
+}
+
+// Boot
+renderNav();
+renderSections();
+setProfile('Student');
+</script>
+</body>
+</html>

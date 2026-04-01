@@ -29,21 +29,28 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const [shares, setShares] = useState(10);
   const [loading, setLoading] = useState(false);
 
-  // Re-read profile from localStorage every time the modal opens
   useEffect(() => {
     if (open) {
-      try {
-        const raw = localStorage.getItem("forecast_participant");
-        if (raw) {
-          const profile = JSON.parse(raw);
-          setEmail(profile.email || "");
-          setFullName(profile.fullName || "");
-          setPhoneNumber(profile.phone || "");
-          setCountryCode(profile.countryCode || "+254");
-        }
-      } catch { /* ignore */ }
+      if (user && authProfile) {
+        setEmail(user.email || "");
+        setFullName(authProfile.full_name || "");
+        const rawPhone = authProfile.phone || "";
+        setPhoneNumber(rawPhone.replace(/^\+\d{1,3}/, ""));
+        setCountryCode("+254");
+      } else {
+        try {
+          const raw = localStorage.getItem("forecast_participant");
+          if (raw) {
+            const p = JSON.parse(raw);
+            setEmail(p.email || "");
+            setFullName(p.fullName || "");
+            setPhoneNumber(p.phone || "");
+            setCountryCode(p.countryCode || "+254");
+          }
+        } catch { /* ignore */ }
+      }
     }
-  }, [open]);
+  }, [open, user, authProfile]);
 
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 

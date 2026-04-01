@@ -430,7 +430,7 @@ const MyDashboard = () => {
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
-              Active Positions ({activePositions.length})
+              My Active Forecasts ({activePositions.length})
             </h2>
             {isLoading ? (
               <p className="text-sm text-muted-foreground py-4">Loading...</p>

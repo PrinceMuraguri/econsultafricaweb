@@ -43,13 +43,23 @@ Deno.serve(async (req) => {
       // Check if vote was already recorded
       const { data: existingVote } = await supabase
         .from('votes')
-        .select('id')
+        .select('id, user_id')
         .eq('poll_id', tx.poll_id)
         .eq('voter_fingerprint', tx.voter_fingerprint)
         .maybeSingle();
 
       if (existingVote) {
-        return new Response(JSON.stringify({ success: true, message: 'Payment confirmed and vote recorded' }), {
+        // Update the existing vote with stake info from the successful payment
+        await supabase
+          .from('votes')
+          .update({
+            is_staked: true,
+            stake_amount: tx.amount,
+            payment_reference: tx.reference || tx.id,
+          })
+          .eq('id', existingVote.id);
+
+        return new Response(JSON.stringify({ success: true, message: 'Payment confirmed and vote updated' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -172,12 +182,19 @@ async function recordVote(supabase: any, tx: any, userId?: string | null) {
     .maybeSingle();
 
   if (existingVote) {
-    // Vote already exists — update it with stake info and user_id if missing
-    const updatePayload: any = { is_staked: true, stake_amount: tx.amount, payment_reference: tx.reference || tx.id };
+    // Always update existing vote with stake info
+    const updateData: Record<string, any> = {
+      is_staked: true,
+      stake_amount: tx.amount,
+      payment_reference: tx.reference || tx.id,
+    };
+    // Also set user_id if it's missing
     if (!existingVote.user_id && userId) {
-      updatePayload.user_id = userId;
+      updateData.user_id = userId;
     }
-    await supabase.from('votes').update(updatePayload).eq('id', existingVote.id);
+    await supabase.from('votes').update(updateData).eq('id', existingVote.id);
+    // Still increment stake amount on the poll option
+    await supabase.rpc('increment_stake_amount', { p_option_id: tx.option_id, p_amount: tx.amount });
     return;
   }
 

@@ -410,8 +410,8 @@ const MyDashboard = () => {
                 {tradeHistory.slice(0, 20).map((trade: any) => (
                   <div key={trade.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${trade.side === "buy" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
-                        {trade.side}
+                       <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${trade.side === "buy" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
+                        {trade.side === "buy" ? "Committed" : "Released"}
                       </span>
                       <span className="text-xs text-foreground">{Number(trade.shares)} shares @ ${Number(trade.price).toFixed(2)}</span>
                     </div>

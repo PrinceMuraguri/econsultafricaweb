@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
     };
     const chargeMetadata = {
       ...baseMetadata,
+      amount_usd: amountUsd,
       ...(email ? { customer_email: email } : {}),
     };
 

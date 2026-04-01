@@ -303,7 +303,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
 
               return (
                 <button key={option.id}
-                  onClick={() => canVote ? handleVote(option.id) : navigate(`/forecast-arena/${poll.slug}`)}
+                  onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
                   disabled={isClosed}
                   className={`w-full relative overflow-hidden rounded-md border transition-all text-left ${
                     isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 cursor-pointer bg-transparent"
@@ -388,7 +388,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
       </div>
 
       {/* Stage 2: Post-vote nudge — commit capital (full width) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (() => {
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !localStorage.getItem("nudge_dismissed") && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
@@ -399,7 +399,12 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
             animate={{ opacity: 1, height: "auto" }}
             className="mt-2 pt-2 border-t border-border overflow-hidden"
           >
-            <div className="bg-muted/30 border border-border rounded-lg p-3 space-y-2">
+            <div className="bg-muted/30 border border-border rounded-lg p-3 space-y-2 relative">
+              <button
+                onClick={() => { localStorage.setItem("nudge_dismissed", "1"); setJustVoted(false); }}
+                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs"
+                aria-label="Dismiss"
+              >✕</button>
               <motion.span
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
@@ -419,7 +424,7 @@ const PollCard = ({ poll, compact = false, isTrending = false }: PollCardProps) 
                 <p>If your forecast is correct: <span className="font-mono font-semibold text-green-600">$1.00 per share</span></p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => navigate(`/forecast-arena/${poll.slug}`)}
+                <Button size="sm" onClick={() => { localStorage.setItem("nudge_dismissed", "1"); navigate(`/forecast-arena/${poll.slug}`); }}
                   className="flex-1 text-xs font-bold">
                   Commit capital
                 </Button>

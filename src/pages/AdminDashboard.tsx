@@ -391,7 +391,23 @@ const AdminDashboard = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (!isAuthenticated) {
+  if (validating) {
+    return (
+      <Layout>
+        <section className="section-padding">
+          <div className="container-page max-w-md mx-auto">
+            <div className="bg-card border border-border rounded-lg p-8 card-shadow text-center">
+              <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+              <h1 className="font-display text-2xl font-bold text-foreground mb-2">Verifying Admin Access</h1>
+              <p className="text-sm text-muted-foreground">Validating your credentials...</p>
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (!isAuthenticated || !isAdminUser) {
     return (
       <Layout>
         <section className="section-padding">
@@ -399,20 +415,28 @@ const AdminDashboard = () => {
             <div className="bg-card border border-border rounded-lg p-8 card-shadow text-center">
               <Lock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">Admin Access</h1>
-              <p className="text-sm text-muted-foreground mb-6">Enter your admin key to access the Forecast Arena dashboard.</p>
-              <div className="space-y-4">
-                <Input
-                  type="password"
-                  placeholder="Admin key"
-                  value={keyInput}
-                  onChange={(e) => setKeyInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                />
-                <Button onClick={handleLogin} className="w-full" disabled={!keyInput.trim() || loginLoading}>
-                  {loginLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shield className="w-4 h-4 mr-2" />}
-                  {loginLoading ? "Validating..." : "Access Dashboard"}
-                </Button>
-              </div>
+              {!isAdminUser && user ? (
+                <p className="text-sm text-destructive mb-6">Your account ({user.email}) is not authorized for admin access.</p>
+              ) : !user ? (
+                <p className="text-sm text-muted-foreground mb-6">Please sign in with an admin account first, then enter your admin key.</p>
+              ) : (
+                <p className="text-sm text-muted-foreground mb-6">Enter your admin key to access the Forecast Arena dashboard.</p>
+              )}
+              {isAdminUser && (
+                <div className="space-y-4">
+                  <Input
+                    type="password"
+                    placeholder="Admin key"
+                    value={keyInput}
+                    onChange={(e) => setKeyInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  />
+                  <Button onClick={handleLogin} className="w-full" disabled={!keyInput.trim() || loginLoading}>
+                    {loginLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shield className="w-4 h-4 mr-2" />}
+                    {loginLoading ? "Validating..." : "Access Dashboard"}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </section>

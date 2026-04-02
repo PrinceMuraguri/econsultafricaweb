@@ -319,7 +319,7 @@ const AdminDashboard = () => {
   const payoutMutation = useMutation({
     mutationFn: async (pollId: string) => {
       const { data, error } = await supabase.functions.invoke("run-payouts", {
-        body: { poll_id: pollId, admin_key: adminKey },
+        body: { poll_id: pollId, admin_key: adminKey, payout_mode: 'wallet' },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);

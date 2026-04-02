@@ -3,6 +3,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const FALLBACK_USD_KES_RATE = 129;
+
+async function getUsdToKesRate(): Promise<number> {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.KES;
+      if (rate && rate > 50 && rate < 300) return rate;
+    }
+  } catch (e) {
+    console.log('FX fallback:', (e as Error).message);
+  }
+  return FALLBACK_USD_KES_RATE;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });

@@ -108,10 +108,15 @@ Deno.serve(async (req) => {
       // payout = shares * $1
       const payoutAmount = sharesOwned;
 
+      const platformFeeRate = 0.035;
+      const grossPayout = Math.round(payoutAmount * 100) / 100;
+      const platformFee = Math.round(grossPayout * platformFeeRate * 100) / 100;
+      const netPayout = Math.round((grossPayout - platformFee) * 100) / 100;
+
       payoutRecords.push({
         voter_fingerprint: winner.voter_fingerprint,
         poll_id,
-        amount: Math.round(payoutAmount * 100) / 100,
+        amount: netPayout,
         status: 'pending',
         reference: `payout_${poll_id.slice(0, 8)}_${winner.voter_fingerprint.slice(0, 8)}_${Date.now()}`,
       });

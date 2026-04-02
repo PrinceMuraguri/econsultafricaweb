@@ -560,14 +560,14 @@ const AdminDashboard = () => {
                               size="sm"
                               disabled={payoutMutation.isPending}
                               onClick={() => {
-                                if (confirm(`Run M-PESA payouts for "${poll.title}"? This will transfer funds to all winners.`)) {
+                                if (confirm(`Credit wallets for "${poll.title}"? This will add winnings to all winners' wallets.`)) {
                                   payoutMutation.mutate(poll.id);
                                 }
                               }}
                               className="bg-green-600 hover:bg-green-700 text-white"
                             >
                               {payoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4 mr-1" />}
-                              Run Payouts
+                              Credit Winner Wallets
                             </Button>
                           </div>
                         )}

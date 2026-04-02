@@ -79,6 +79,23 @@ Deno.serve(async (req) => {
     const batchId = `batch_${poll_id.slice(0, 8)}_${Date.now()}`;
     const results: any[] = [];
 
+    // Fetch correct M-Pesa bank code from Paystack (do this once before the payout loop)
+    let mpesaBankCode = 'MPESA'; // default fallback
+    try {
+      const banksRes = await fetch('https://api.paystack.co/bank?currency=KES&type=mobile_money', {
+        headers: { Authorization: `Bearer ${paystackSecretKey}` },
+      });
+      const banksData = await banksRes.json();
+      console.log('Available KES mobile money providers:', JSON.stringify(banksData.data?.map((b: any) => ({ name: b.name, code: b.code })) || []));
+      const mpesa = banksData.data?.find((b: any) => b.name.toLowerCase().includes('m-pesa') || b.name.toLowerCase().includes('mpesa'));
+      if (mpesa) {
+        mpesaBankCode = mpesa.code;
+        console.log('Using M-Pesa bank code:', mpesaBankCode);
+      }
+    } catch (e) {
+      console.log('Bank list fetch failed, using default:', mpesaBankCode);
+    }
+
     for (const payout of payouts) {
       try {
         // Get voter profile for recipient details — try voter_profiles first, fall back to user_profiles

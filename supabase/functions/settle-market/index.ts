@@ -210,6 +210,99 @@ Deno.serve(async (req) => {
       await supabase.from('notifications').insert(uniqueNotifs);
     }
 
+    // ── EMAIL NOTIFICATIONS (fire-and-forget) ──
+    const siteUrl = 'https://econsultafricaweb.lovable.app';
+    const emailPromises: Promise<any>[] = [];
+
+    // Build a map of voter_fingerprint → payout amount for winners
+    const payoutByFingerprint = new Map<string, number>();
+    for (const pr of payoutRecords) {
+      payoutByFingerprint.set(pr.voter_fingerprint, pr.amount);
+    }
+
+    // Get option labels for loser emails
+    const optionLabels = new Map<string, string>();
+    for (const o of poll.poll_options) {
+      optionLabels.set(o.id, o.label);
+    }
+
+    // Deduplicate votes by user_id for email sending
+    const emailSeen = new Set<string>();
+    for (const vote of (votes || [])) {
+      let userId = vote.user_id;
+      if (!userId) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('voter_fingerprint', vote.voter_fingerprint)
+          .maybeSingle();
+        userId = profile?.user_id;
+      }
+      if (!userId || emailSeen.has(userId)) continue;
+      emailSeen.add(userId);
+
+      // Get user email
+      const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
+      if (!authUser?.email) continue;
+
+      // Get user name
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const isWinner = vote.option_id === winning_option_id;
+
+      if (isWinner) {
+        const payoutAmt = payoutByFingerprint.get(vote.voter_fingerprint) || 0;
+        emailPromises.push(
+          supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'settlement-winner',
+              recipientEmail: authUser.email,
+              idempotencyKey: `settlement-winner-${poll_id}-${userId}`,
+              templateData: {
+                pollTitle: poll.title,
+                winningOption: winningOption.label,
+                payoutAmount: `$${payoutAmt.toFixed(2)}`,
+                stakeAmount: `$${(vote.stake_amount || 0).toFixed(2)}`,
+                pollUrl: `${siteUrl}/forecast-arena/${poll.slug}`,
+                userName: userProfile?.full_name?.split(' ')[0] || undefined,
+              },
+            },
+          }).catch(e => console.error('Winner email error:', e.message))
+        );
+      } else {
+        emailPromises.push(
+          supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'settlement-loser',
+              recipientEmail: authUser.email,
+              idempotencyKey: `settlement-loser-${poll_id}-${userId}`,
+              templateData: {
+                pollTitle: poll.title,
+                winningOption: winningOption.label,
+                userOption: optionLabels.get(vote.option_id) || 'Unknown',
+                stakeAmount: `$${(vote.stake_amount || 0).toFixed(2)}`,
+                arenaUrl: `${siteUrl}/forecast-arena`,
+                userName: userProfile?.full_name?.split(' ')[0] || undefined,
+              },
+            },
+          }).catch(e => console.error('Loser email error:', e.message))
+        );
+      }
+    }
+
+    // Fire all emails in parallel, don't block the response
+    if (emailPromises.length > 0) {
+      Promise.allSettled(emailPromises).then(results => {
+        const sent = results.filter(r => r.status === 'fulfilled').length;
+        const failed = results.filter(r => r.status === 'rejected').length;
+        console.log(`Settlement emails: ${sent} sent, ${failed} failed`);
+      });
+    }
+
     return new Response(JSON.stringify({
       success: true,
       summary: {

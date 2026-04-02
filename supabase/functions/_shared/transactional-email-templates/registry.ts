@@ -10,7 +10,11 @@ export interface TemplateEntry {
 }
 
 import { template as purchaseConfirmation } from './purchase-confirmation.tsx'
+import { template as settlementWinner } from './settlement-winner.tsx'
+import { template as settlementLoser } from './settlement-loser.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'purchase-confirmation': purchaseConfirmation,
+  'settlement-winner': settlementWinner,
+  'settlement-loser': settlementLoser,
 }

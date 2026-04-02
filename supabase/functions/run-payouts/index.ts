@@ -79,6 +79,23 @@ Deno.serve(async (req) => {
     const batchId = `batch_${poll_id.slice(0, 8)}_${Date.now()}`;
     const results: any[] = [];
 
+    // Fetch correct M-Pesa bank code from Paystack (do this once before the payout loop)
+    let mpesaBankCode = 'MPESA'; // default fallback
+    try {
+      const banksRes = await fetch('https://api.paystack.co/bank?currency=KES&type=mobile_money', {
+        headers: { Authorization: `Bearer ${paystackSecretKey}` },
+      });
+      const banksData = await banksRes.json();
+      console.log('Available KES mobile money providers:', JSON.stringify(banksData.data?.map((b: any) => ({ name: b.name, code: b.code })) || []));
+      const mpesa = banksData.data?.find((b: any) => b.name.toLowerCase().includes('m-pesa') || b.name.toLowerCase().includes('mpesa'));
+      if (mpesa) {
+        mpesaBankCode = mpesa.code;
+        console.log('Using M-Pesa bank code:', mpesaBankCode);
+      }
+    } catch (e) {
+      console.log('Bank list fetch failed, using default:', mpesaBankCode);
+    }
+
     for (const payout of payouts) {
       try {
         // Get voter profile for recipient details — try voter_profiles first, fall back to user_profiles
@@ -132,9 +149,14 @@ Deno.serve(async (req) => {
           recipientCode = existingRecipient.recipient_code;
         } else {
           // Create Paystack transfer recipient for mobile money
-          let phone = profile.phone_number.replace(/\s+/g, '').replace(/^0/, '254').replace(/^\+/, '');
-          if (!phone.startsWith('254')) phone = '254' + phone;
+          let phone = profile.phone_number.replace(/\s+/g, '').replace(/^\+/, '');
+          // Try local format first (0XXXXXXXXX), which Paystack often prefers
+          if (phone.startsWith('254')) {
+            phone = '0' + phone.slice(3);
+          }
+          console.log('Formatted phone for M-Pesa:', phone, 'original:', profile.phone_number);
 
+          console.log('Creating recipient with phone:', phone, 'bank_code:', mpesaBankCode);
           const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
             method: 'POST',
             headers: {
@@ -146,7 +168,7 @@ Deno.serve(async (req) => {
               name: profile.full_name,
               email: profile.email,
               account_number: phone,
-              bank_code: 'MPESA',
+              bank_code: mpesaBankCode,
               currency: 'KES',
             }),
           });

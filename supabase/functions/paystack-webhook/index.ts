@@ -288,8 +288,14 @@ Deno.serve(async (req) => {
 
     // ── TRANSFER EVENTS (withdrawals + payouts) ──
     if (event.event === 'transfer.success' || event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
-      const { reference } = event.data;
-      const newStatus = event.event === 'transfer.success' ? 'completed' : 'failed';
+      const { reference, transfer_code, reason, status: transferStatus } = event.data;
+      const recipient = event.data.recipient;
+
+      console.log(`Transfer event: ${event.event}, ref: ${reference}, status: ${transferStatus}`);
+
+      const newStatus = event.event === 'transfer.success' ? 'completed'
+        : event.event === 'transfer.reversed' ? 'reversed'
+        : 'failed';
 
       // Handle user withdrawals (withdraw_ prefix)
       if (reference?.startsWith('withdraw_')) {
@@ -349,6 +355,99 @@ Deno.serve(async (req) => {
 
         console.log('Withdrawal transfer event processed:', reference, newStatus);
       }
+
+      // Handle payout transfers (payout_ prefix or any non-withdraw transfer)
+      if (reference && !reference.startsWith('withdraw_')) {
+        // Update payout record
+        const { error: payoutErr } = await supabase
+          .from('payouts')
+          .update({
+            status: newStatus,
+            settled_at: new Date().toISOString(),
+          })
+          .eq('reference', reference);
+
+        if (payoutErr) {
+          console.error('Payout update error:', payoutErr);
+        }
+
+        // Update payout_transfers record
+        if (transfer_code) {
+          await supabase
+            .from('payout_transfers')
+            .update({
+              status: newStatus,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('transfer_code', transfer_code);
+        }
+
+        // If transfer succeeded, log audit wallet transaction
+        if (event.event === 'transfer.success') {
+          const { data: payout } = await supabase
+            .from('payouts')
+            .select('voter_fingerprint, amount, poll_id')
+            .eq('reference', reference)
+            .maybeSingle();
+
+          if (payout) {
+            const { data: vote } = await supabase
+              .from('votes')
+              .select('user_id')
+              .eq('poll_id', payout.poll_id)
+              .eq('voter_fingerprint', payout.voter_fingerprint)
+              .eq('is_staked', true)
+              .maybeSingle();
+
+            if (vote?.user_id) {
+              await supabase.from('wallet_transactions').insert({
+                user_id: vote.user_id,
+                type: 'payout_mpesa',
+                amount: payout.amount,
+                description: `Forecast payout sent to M-Pesa (${reference})`,
+                reference: reference,
+                status: 'completed',
+              });
+            }
+          }
+        }
+
+        // If transfer failed, notify user
+        if (event.event === 'transfer.failed') {
+          const { data: payout } = await supabase
+            .from('payouts')
+            .select('voter_fingerprint, poll_id')
+            .eq('reference', reference)
+            .maybeSingle();
+
+          if (payout) {
+            const { data: vote } = await supabase
+              .from('votes')
+              .select('user_id')
+              .eq('poll_id', payout.poll_id)
+              .eq('voter_fingerprint', payout.voter_fingerprint)
+              .maybeSingle();
+
+            if (vote?.user_id) {
+              await supabase.from('notifications').insert({
+                user_id: vote.user_id,
+                type: 'payout_failed',
+                title: 'Payout transfer failed',
+                body: 'Your M-Pesa payout could not be completed. Our team will retry or credit your wallet. Contact support if needed.',
+                poll_id: payout.poll_id,
+                link: '/my-dashboard',
+              });
+            }
+          }
+        }
+
+        console.log('Payout transfer event processed:', reference, newStatus);
+      }
+
+      return new Response(JSON.stringify({ received: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     return new Response(JSON.stringify({ received: true }), {

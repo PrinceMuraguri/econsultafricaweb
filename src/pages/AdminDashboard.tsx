@@ -271,12 +271,12 @@ const AdminDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Fetch registered users (voter_profiles)
+  // Fetch registered users (user_profiles — not voter_profiles)
   const { data: registeredUsers } = useQuery({
     queryKey: ["admin-registered-users"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("voter_profiles")
+        .from("user_profiles")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;

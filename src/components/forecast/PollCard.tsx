@@ -239,8 +239,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const leadingPct = leadingOption && totalVotes > 0 ? Math.round((leadingOption.total_votes_count / totalVotes) * 100) : 0;
   const probColor = leadingPct >= 60
-    ? (leadingOption?.label.toLowerCase() === "no" ? "text-red-500" : "text-green-600")
-    : leadingPct <= 40 ? "text-red-500" : "text-amber-500";
+    ? (leadingOption?.label.toLowerCase() === "no" ? "text-amber-500" : "text-green-600")
+    : leadingPct <= 40 ? "text-amber-500" : "text-amber-500";
 
   return (
     <motion.div

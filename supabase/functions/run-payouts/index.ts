@@ -149,9 +149,14 @@ Deno.serve(async (req) => {
           recipientCode = existingRecipient.recipient_code;
         } else {
           // Create Paystack transfer recipient for mobile money
-          let phone = profile.phone_number.replace(/\s+/g, '').replace(/^0/, '254').replace(/^\+/, '');
-          if (!phone.startsWith('254')) phone = '254' + phone;
+          let phone = profile.phone_number.replace(/\s+/g, '').replace(/^\+/, '');
+          // Try local format first (0XXXXXXXXX), which Paystack often prefers
+          if (phone.startsWith('254')) {
+            phone = '0' + phone.slice(3);
+          }
+          console.log('Formatted phone for M-Pesa:', phone, 'original:', profile.phone_number);
 
+          console.log('Creating recipient with phone:', phone, 'bank_code:', mpesaBankCode);
           const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
             method: 'POST',
             headers: {
@@ -163,7 +168,7 @@ Deno.serve(async (req) => {
               name: profile.full_name,
               email: profile.email,
               account_number: phone,
-              bank_code: 'MPESA',
+              bank_code: mpesaBankCode,
               currency: 'KES',
             }),
           });

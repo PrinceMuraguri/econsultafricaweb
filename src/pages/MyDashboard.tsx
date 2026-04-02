@@ -364,8 +364,8 @@ const MyDashboard = () => {
             {[
               { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
               { icon: Activity, label: "My Active Forecasts", value: activePositions.length },
-              { icon: DollarSign, label: "Conviction Committed", value: `$${totalCommitted.toFixed(2)}` },
-              { icon: TrendingUp, label: "Total Earnings", value: `$${totalEarnings.toFixed(2)}` },
+              { icon: DollarSign, label: "Conviction Committed", value: <DualCurrency amount={totalCommitted} /> },
+              { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
               { icon: CheckCircle, label: "Accuracy", value: resolvedPositions.length > 0 ? `${Math.round((wonCount / resolvedPositions.length) * 100)}%` : "—" },
             ].map((stat) => (
               <div key={stat.label} className="bg-card border border-border rounded-lg p-4">

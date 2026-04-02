@@ -241,6 +241,7 @@ Deno.serve(async (req) => {
 
         results.push({ payout_id: payout.id, status: 'processing', transfer_code: transferCode });
       } catch (err: any) {
+        console.error('Payout processing error for', payout.id, ':', err.message, err.stack);
         results.push({ payout_id: payout.id, status: 'failed', error: err.message });
         await supabase.from('payouts').update({ status: 'failed' }).eq('id', payout.id);
       }

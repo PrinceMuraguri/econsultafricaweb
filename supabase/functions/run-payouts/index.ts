@@ -81,15 +81,39 @@ Deno.serve(async (req) => {
 
     for (const payout of payouts) {
       try {
-        // Get voter profile for recipient details
-        const { data: profile } = await supabase
+        // Get voter profile for recipient details — try voter_profiles first, fall back to user_profiles
+        const { data: voterProfile } = await supabase
           .from('voter_profiles')
           .select('*')
           .eq('voter_fingerprint', payout.voter_fingerprint)
           .maybeSingle();
 
+        let profile: { full_name: string; email: string; phone_number: string } | null = voterProfile;
+
         if (!profile) {
-          results.push({ payout_id: payout.id, status: 'failed', error: 'No profile found' });
+          // Fallback: look up user_profiles by voter_fingerprint
+          const { data: userProfile } = await supabase
+            .from('user_profiles')
+            .select('full_name, phone, user_id')
+            .eq('voter_fingerprint', payout.voter_fingerprint)
+            .maybeSingle();
+
+          if (userProfile) {
+            // Get email from auth.users via service role
+            const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userProfile.user_id);
+            profile = {
+              full_name: userProfile.full_name,
+              email: authUser?.email ?? '',
+              phone_number: userProfile.phone ?? '',
+            };
+            console.log('Profile found via user_profiles fallback for fingerprint:', payout.voter_fingerprint);
+          }
+        }
+
+        console.log('Profile lookup result:', profile ? 'found' : 'not found', 'fingerprint:', payout.voter_fingerprint);
+
+        if (!profile) {
+          results.push({ payout_id: payout.id, status: 'failed', error: 'No profile found in voter_profiles or user_profiles' });
           await supabase.from('payouts').update({ status: 'failed' }).eq('id', payout.id);
           continue;
         }

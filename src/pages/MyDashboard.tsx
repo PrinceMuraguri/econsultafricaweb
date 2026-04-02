@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import DualCurrency from "@/components/DualCurrency";
 
 interface Position {
   id: string;
@@ -361,10 +362,10 @@ const MyDashboard = () => {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {[
-              { icon: Wallet, label: "Wallet Balance", value: `$${(wallet?.balance_usd || 0).toFixed(2)}` },
+              { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
               { icon: Activity, label: "My Active Forecasts", value: activePositions.length },
-              { icon: DollarSign, label: "Conviction Committed", value: `$${totalCommitted.toFixed(2)}` },
-              { icon: TrendingUp, label: "Total Earnings", value: `$${totalEarnings.toFixed(2)}` },
+              { icon: DollarSign, label: "Conviction Committed", value: <DualCurrency amount={totalCommitted} /> },
+              { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
               { icon: CheckCircle, label: "Accuracy", value: resolvedPositions.length > 0 ? `${Math.round((wonCount / resolvedPositions.length) * 100)}%` : "—" },
             ].map((stat) => (
               <div key={stat.label} className="bg-card border border-border rounded-lg p-4">
@@ -517,7 +518,7 @@ const MyDashboard = () => {
                     <div className="text-right">
                       <span className="font-mono text-xs font-semibold">${Number(trade.total_amount).toFixed(2)}</span>
                       <span className="text-[9px] text-muted-foreground ml-1">
-                        {new Date(trade.created_at).toLocaleDateString()}
+                        {new Date(trade.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
                       </span>
                     </div>
                   </div>
@@ -599,7 +600,7 @@ const MyDashboard = () => {
                       {pos.outcome === "won" && pos.is_staked && (
                         <span className="text-green-600 font-semibold">Earned: ${pos.potential_payout.toFixed(2)}</span>
                       )}
-                      <span className="text-muted-foreground/60 ml-auto">{new Date(pos.created_at).toLocaleDateString()}</span>
+                      <span className="text-muted-foreground/60 ml-auto">{new Date(pos.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</span>
                     </div>
                   </div>
                 ))}
@@ -625,7 +626,7 @@ const MyDashboard = () => {
                     <tbody>
                       {walletTxns.map((tx: any) => (
                         <tr key={tx.id} className="border-t border-border">
-                          <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
                           <td className="px-4 py-2 capitalize text-muted-foreground">{tx.type}</td>
                           <td className={`px-4 py-2 font-mono font-semibold ${tx.amount > 0 ? "text-green-600" : "text-red-500"}`}>
                             {tx.amount > 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
@@ -659,7 +660,7 @@ const MyDashboard = () => {
                     <tbody>
                       {transactions.map((tx: any) => (
                         <tr key={tx.id} className="border-t border-border">
-                          <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
                           <td className="px-4 py-2 font-mono font-semibold text-foreground">${tx.amount.toFixed(2)}</td>
                           <td className="px-4 py-2 text-muted-foreground capitalize">{tx.channel}</td>
                           <td className="px-4 py-2">
@@ -697,7 +698,7 @@ const MyDashboard = () => {
                     <tbody>
                       {payouts.map((p: any) => (
                         <tr key={p.id} className="border-t border-border">
-                          <td className="px-4 py-2 text-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-2 text-foreground">{new Date(p.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
                           <td className="px-4 py-2 font-mono font-semibold text-green-600">${p.amount.toFixed(2)}</td>
                           <td className="px-4 py-2">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${

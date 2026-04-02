@@ -87,7 +87,7 @@ const Navbar = () => {
                     location.pathname === "/my-dashboard" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}>
                   <User className="w-4 h-4" />
-                  {profile?.username || "Dashboard"}
+                  {profile?.full_name?.split(" ")[0] || profile?.username || "Dashboard"}
                 </Link>
                 <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-destructive gap-1">
                   <LogOut className="w-3.5 h-3.5" /> Sign Out
@@ -130,7 +130,7 @@ const Navbar = () => {
                     </Link>
                     <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
                       className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
-                      <User className="w-4 h-4" /> Dashboard
+                      <User className="w-4 h-4" /> {profile?.full_name?.split(" ")[0] || "Dashboard"}
                       {wallet && <span className="text-xs font-mono text-primary ml-auto">${wallet.balance_usd.toFixed(2)}</span>}
                     </Link>
                     <Button variant="ghost" size="sm" onClick={() => { signOut(); setMobileOpen(false); }} className="justify-start text-muted-foreground hover:text-destructive gap-1">

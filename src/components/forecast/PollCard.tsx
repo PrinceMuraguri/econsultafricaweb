@@ -103,8 +103,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-    const freeVoteCount = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
-    if (!isLoggedIn && freeVoteCount >= 3) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
+    if (!isLoggedIn) {
+      setPendingVoteOptionId(optionId);
+      setRegisterOpen(true);
+      return;
+    }
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -119,10 +122,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       setHasVoted(true);
       setVotedOptionId(optionId);
       setLocalOptions(prev => prev.map(o => o.id === optionId ? { ...o, total_votes_count: o.total_votes_count + 1 } : o));
-      if (!isLoggedIn) {
-        const count = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
-        localStorage.setItem("free_vote_count", String(count + 1));
-      }
       toast({ title: "🎯 Forecast recorded", description: "Your view has been added to the collective sentiment." });
     } catch {
       toast({ title: "Error", description: "Could not record forecast. Try again.", variant: "destructive" });
@@ -240,8 +239,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const leadingPct = leadingOption && totalVotes > 0 ? Math.round((leadingOption.total_votes_count / totalVotes) * 100) : 0;
   const probColor = leadingPct >= 60
-    ? (leadingOption?.label.toLowerCase() === "no" ? "text-red-500" : "text-green-600")
-    : leadingPct <= 40 ? "text-red-500" : "text-amber-500";
+    ? (leadingOption?.label.toLowerCase() === "no" ? "text-amber-500" : "text-green-600")
+    : leadingPct <= 40 ? "text-amber-500" : "text-amber-500";
 
   return (
     <motion.div
@@ -356,9 +355,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               const isYes = option.label.toLowerCase() === "yes";
               const isNo = option.label.toLowerCase() === "no";
 
-              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-red-500 ring-1 ring-red-500/30" : "border-primary ring-1 ring-primary/30";
-              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
-              const selectedText = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
+              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-blue-500 ring-1 ring-blue-500/30" : "border-primary ring-1 ring-primary/30";
+              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-blue-500/10" : "bg-primary/10";
+              const selectedText = isYes ? "text-green-600" : isNo ? "text-blue-600" : "text-primary";
 
               return (
                 <button
@@ -402,7 +401,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
               <Rocket className="w-3 h-3 text-accent" />
-                Click an option to add your voice
+                {isLoggedIn ? "Click an option to add your voice" : "Sign in to add your voice"}
               </p>
             </div>
           )}
@@ -420,7 +419,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 0;
               const isYes = option.label.toLowerCase() === "yes";
               const isNo = option.label.toLowerCase() === "no";
-              const barColor = isYes ? "bg-green-500" : isNo ? "bg-red-400" : "bg-primary";
+              const barColor = isYes ? "bg-green-500" : isNo ? "bg-blue-400" : "bg-primary";
 
               return (
                 <div key={option.id} className="space-y-0.5">

@@ -7,19 +7,23 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
   Shield, Lock, Eye, CheckCircle, DollarSign, Download,
-  AlertTriangle, Loader2, BarChart3, Users, TrendingUp
+  AlertTriangle, Loader2, BarChart3, Users, TrendingUp, RefreshCw
 } from "lucide-react";
 import PollManager from "@/components/admin/PollManager";
 import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
 import AdminTradingTab from "@/components/admin/AdminTradingTab";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
+const ADMIN_EMAILS = ['princemuraguri@gmail.com'];
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE)?.trim() || "");
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
+  const { user } = useAuth();
+  const [adminKey, setAdminKey] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [validating, setValidating] = useState(true);
   const [keyInput, setKeyInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading">("polls");
@@ -27,6 +31,40 @@ const AdminDashboard = () => {
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
   const [payoutMode, setPayoutMode] = useState<'wallet' | 'mpesa'>('wallet');
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+
+  const isAdminUser = user && ADMIN_EMAILS.includes(user.email || '');
+
+  // Validate stored admin key on mount
+  useEffect(() => {
+    const storedKey = localStorage.getItem(ADMIN_KEY_STORAGE)?.trim();
+    if (!storedKey) {
+      setValidating(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-polls", {
+          body: { admin_key: storedKey, action: "validate_admin" },
+        });
+        if (!error && !data?.error) {
+          setAdminKey(storedKey);
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem(ADMIN_KEY_STORAGE);
+        }
+      } catch {
+        localStorage.removeItem(ADMIN_KEY_STORAGE);
+      } finally {
+        setValidating(false);
+      }
+    })();
+  }, []);
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries();
+    setLastRefresh(new Date());
+  };
 
   const handleLogin = async () => {
     const trimmedKey = keyInput.trim();
@@ -233,12 +271,12 @@ const AdminDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Fetch registered users (voter_profiles)
+  // Fetch registered users (user_profiles — not voter_profiles)
   const { data: registeredUsers } = useQuery({
     queryKey: ["admin-registered-users"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("voter_profiles")
+        .from("user_profiles")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -353,7 +391,23 @@ const AdminDashboard = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (!isAuthenticated) {
+  if (validating) {
+    return (
+      <Layout>
+        <section className="section-padding">
+          <div className="container-page max-w-md mx-auto">
+            <div className="bg-card border border-border rounded-lg p-8 card-shadow text-center">
+              <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+              <h1 className="font-display text-2xl font-bold text-foreground mb-2">Verifying Admin Access</h1>
+              <p className="text-sm text-muted-foreground">Validating your credentials...</p>
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (!isAuthenticated || !isAdminUser) {
     return (
       <Layout>
         <section className="section-padding">
@@ -361,20 +415,28 @@ const AdminDashboard = () => {
             <div className="bg-card border border-border rounded-lg p-8 card-shadow text-center">
               <Lock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h1 className="font-display text-2xl font-bold text-foreground mb-2">Admin Access</h1>
-              <p className="text-sm text-muted-foreground mb-6">Enter your admin key to access the Forecast Arena dashboard.</p>
-              <div className="space-y-4">
-                <Input
-                  type="password"
-                  placeholder="Admin key"
-                  value={keyInput}
-                  onChange={(e) => setKeyInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                />
-                <Button onClick={handleLogin} className="w-full" disabled={!keyInput.trim() || loginLoading}>
-                  {loginLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shield className="w-4 h-4 mr-2" />}
-                  {loginLoading ? "Validating..." : "Access Dashboard"}
-                </Button>
-              </div>
+              {!isAdminUser && user ? (
+                <p className="text-sm text-destructive mb-6">Your account ({user.email}) is not authorized for admin access.</p>
+              ) : !user ? (
+                <p className="text-sm text-muted-foreground mb-6">Please sign in with an admin account first, then enter your admin key.</p>
+              ) : (
+                <p className="text-sm text-muted-foreground mb-6">Enter your admin key to access the Forecast Arena dashboard.</p>
+              )}
+              {isAdminUser && (
+                <div className="space-y-4">
+                  <Input
+                    type="password"
+                    placeholder="Admin key"
+                    value={keyInput}
+                    onChange={(e) => setKeyInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  />
+                  <Button onClick={handleLogin} className="w-full" disabled={!keyInput.trim() || loginLoading}>
+                    {loginLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shield className="w-4 h-4 mr-2" />}
+                    {loginLoading ? "Validating..." : "Access Dashboard"}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -394,7 +456,11 @@ const AdminDashboard = () => {
               <h1 className="font-display text-3xl font-bold text-foreground">Forecast Arena Admin</h1>
               <p className="text-sm text-muted-foreground">Manage polls, settlements, and payouts</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-muted-foreground">Updated: {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <Button variant="outline" size="sm" onClick={handleRefresh}><RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh</Button>
+              <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+            </div>
           </div>
 
           {/* Stats */}
@@ -855,25 +921,27 @@ const AdminDashboard = () => {
                   <Download className="w-4 h-4 mr-1" /> Export CSV
                 </Button>
               </div>
-              <div className="overflow-x-auto bg-card border border-border rounded-lg">
+               <div className="overflow-x-auto bg-card border border-border rounded-lg">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Name</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Full Name</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Username</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Phone</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Country</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Occupation</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Registered</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Fingerprint</th>
                     </tr>
                   </thead>
                   <tbody>
                     {registeredUsers?.map((u: any) => (
                       <tr key={u.id} className="border-t border-border/50">
                         <td className="px-4 py-2 font-medium text-foreground">{u.full_name}</td>
-                        <td className="px-4 py-2 text-foreground">{u.email}</td>
-                        <td className="px-4 py-2 font-mono text-foreground">{u.country_code}{u.phone_number}</td>
+                        <td className="px-4 py-2 text-foreground">{u.username}</td>
+                        <td className="px-4 py-2 font-mono text-foreground">{u.phone || "—"}</td>
+                        <td className="px-4 py-2 text-foreground">{u.country || "—"}</td>
+                        <td className="px-4 py-2 text-foreground">{u.occupation || "—"}</td>
                         <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(u.created_at).toLocaleString()}</td>
-                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{u.voter_fingerprint?.slice(0, 12)}…</td>
                       </tr>
                     ))}
                   </tbody>

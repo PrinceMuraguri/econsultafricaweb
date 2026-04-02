@@ -401,7 +401,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
               <Rocket className="w-3 h-3 text-accent" />
-                Click an option to add your voice
+                {isLoggedIn ? "Click an option to add your voice" : "Sign in to add your voice"}
               </p>
             </div>
           )}

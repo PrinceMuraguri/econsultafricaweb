@@ -355,9 +355,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               const isYes = option.label.toLowerCase() === "yes";
               const isNo = option.label.toLowerCase() === "no";
 
-              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-red-500 ring-1 ring-red-500/30" : "border-primary ring-1 ring-primary/30";
-              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-red-500/10" : "bg-primary/10";
-              const selectedText = isYes ? "text-green-600" : isNo ? "text-red-500" : "text-primary";
+              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-blue-500 ring-1 ring-blue-500/30" : "border-primary ring-1 ring-primary/30";
+              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-blue-500/10" : "bg-primary/10";
+              const selectedText = isYes ? "text-green-600" : isNo ? "text-blue-600" : "text-primary";
 
               return (
                 <button

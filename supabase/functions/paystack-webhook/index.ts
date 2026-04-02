@@ -200,8 +200,8 @@ Deno.serve(async (req) => {
         .eq('reference', reference);
 
       if (metadata?.type === 'forecast_stake') {
-        const { poll_id, option_id, voter_fingerprint, amount_usd } = metadata;
-        // Use amount_usd from metadata if available; otherwise live-convert
+        const { poll_id, option_id, voter_fingerprint, amount_usd, user_id: metaUserId } = metadata;
+        
         let stakeAmountUsd: number;
         if (amount_usd) {
           stakeAmountUsd = Number(amount_usd);
@@ -210,28 +210,75 @@ Deno.serve(async (req) => {
           stakeAmountUsd = conv.amountUsd;
         }
 
+        // Resolve user_id: from metadata, or look up from user_profiles
+        let resolvedUserId = metaUserId || null;
+        if (!resolvedUserId) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('user_id')
+            .eq('voter_fingerprint', voter_fingerprint)
+            .maybeSingle();
+          resolvedUserId = profile?.user_id || null;
+        }
+
+        // Check for existing vote by fingerprint
         const { data: existingVote } = await supabase
           .from('votes')
-          .select('id')
+          .select('id, user_id')
           .eq('poll_id', poll_id)
           .eq('voter_fingerprint', voter_fingerprint)
           .maybeSingle();
 
-        if (!existingVote) {
-          const { error: voteError } = await supabase.from('votes').insert({
-            poll_id,
-            option_id,
-            voter_fingerprint,
+        if (existingVote) {
+          // Update existing vote with stake info
+          const updateData: Record<string, any> = {
             is_staked: true,
             stake_amount: stakeAmountUsd,
             payment_reference: reference,
-          });
+          };
+          if (!existingVote.user_id && resolvedUserId) {
+            updateData.user_id = resolvedUserId;
+          }
+          await supabase.from('votes').update(updateData).eq('id', existingVote.id);
+          await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
+        } else {
+          // Also check by user_id (fingerprint may have changed)
+          let foundByUserId = false;
+          if (resolvedUserId) {
+            const { data: userVote } = await supabase
+              .from('votes')
+              .select('id')
+              .eq('poll_id', poll_id)
+              .eq('user_id', resolvedUserId)
+              .maybeSingle();
+            if (userVote) {
+              await supabase.from('votes').update({
+                is_staked: true,
+                stake_amount: stakeAmountUsd,
+                payment_reference: reference,
+              }).eq('id', userVote.id);
+              await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
+              foundByUserId = true;
+            }
+          }
 
-          if (voteError) {
-            console.error('Vote insert error:', voteError);
-          } else {
-            await supabase.rpc('increment_vote_count', { p_option_id: option_id });
-            await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
+          if (!foundByUserId) {
+            // No existing vote at all — create new one
+            const { error: voteError } = await supabase.from('votes').insert({
+              poll_id,
+              option_id,
+              voter_fingerprint,
+              is_staked: true,
+              stake_amount: stakeAmountUsd,
+              payment_reference: reference,
+              user_id: resolvedUserId,
+            });
+            if (voteError) {
+              console.error('Vote insert error:', voteError);
+            } else {
+              await supabase.rpc('increment_vote_count', { p_option_id: option_id });
+              await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
+            }
           }
         }
       }

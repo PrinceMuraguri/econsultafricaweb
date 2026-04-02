@@ -121,22 +121,57 @@ Deno.serve(async (req) => {
       reference: `buy_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     });
 
-    // Also register as a vote if user hasn't voted
-    const { data: existingVote } = await supabase
+    // Check for existing vote — by user_id first (reliable), then fingerprint
+    const { data: existingVoteByUser } = await supabase
       .from("votes")
-      .select("id")
+      .select("id, voter_fingerprint")
       .eq("poll_id", poll_id)
-      .eq("voter_fingerprint", user.id)
+      .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!existingVote) {
-      await supabase.from("votes").insert({
-        poll_id, option_id, voter_fingerprint: user.id, is_staked: true, stake_amount: totalCost,
-      });
-      await supabase.rpc("increment_vote_count", { p_option_id: option_id });
+    if (existingVoteByUser) {
+      // User already voted — update with stake info
+      await supabase.from("votes").update({
+        is_staked: true,
+        stake_amount: totalCost,
+      }).eq("id", existingVoteByUser.id);
       await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });
     } else {
-      await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });
+      // No vote by user_id — check by fingerprint (user may have voted anonymously)
+      const { data: userProfile } = await supabase
+        .from("user_profiles")
+        .select("voter_fingerprint")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const fp = userProfile?.voter_fingerprint || user.id;
+
+      const { data: existingVoteByFp } = await supabase
+        .from("votes")
+        .select("id")
+        .eq("poll_id", poll_id)
+        .eq("voter_fingerprint", fp)
+        .maybeSingle();
+
+      if (existingVoteByFp) {
+        await supabase.from("votes").update({
+          is_staked: true,
+          stake_amount: totalCost,
+          user_id: user.id,
+        }).eq("id", existingVoteByFp.id);
+        await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });
+      } else {
+        // No vote exists at all — create one with proper user_id and fingerprint
+        await supabase.from("votes").insert({
+          poll_id,
+          option_id,
+          voter_fingerprint: fp,
+          user_id: user.id,
+          is_staked: true,
+          stake_amount: totalCost,
+        });
+        await supabase.rpc("increment_vote_count", { p_option_id: option_id });
+        await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });
+      }
     }
 
     return new Response(JSON.stringify({

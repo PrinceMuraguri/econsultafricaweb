@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
           });
 
           const recipientData = await recipientRes.json();
-
+          console.log('Recipient creation response:', JSON.stringify(recipientData));
           if (!recipientData.status) {
             results.push({ payout_id: payout.id, status: 'failed', error: recipientData.message });
             await supabase.from('payouts').update({ status: 'failed' }).eq('id', payout.id);

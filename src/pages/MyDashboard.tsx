@@ -4,9 +4,13 @@ import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import {
   BarChart3, TrendingUp, Clock, CheckCircle, XCircle,
-  DollarSign, Activity, ArrowRight, User, Wallet, Plus
+  DollarSign, Activity, ArrowRight, User, Wallet, Plus, ArrowDownToLine
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +41,10 @@ const MyDashboard = () => {
   const { user, profile, wallet, refreshWallet, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [depositLoading, setDepositLoading] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawPhone, setWithdrawPhone] = useState("");
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
 
   // Auto-refresh wallet & profile on mount and after deposit return
   useEffect(() => {
@@ -258,6 +266,46 @@ const MyDashboard = () => {
     }
   };
 
+  // Pre-fill phone from profile when opening withdraw modal
+  useEffect(() => {
+    if (withdrawOpen && profile?.phone && !withdrawPhone) {
+      setWithdrawPhone(profile.phone);
+    }
+  }, [withdrawOpen, profile]);
+
+  const handleWithdraw = async () => {
+    if (!user) return;
+    const amt = parseFloat(withdrawAmount);
+    if (isNaN(amt) || amt < 1) {
+      toast({ title: "Invalid amount", description: "Minimum withdrawal is $1.00", variant: "destructive" });
+      return;
+    }
+    if (amt > (wallet?.balance_usd || 0)) {
+      toast({ title: "Insufficient balance", variant: "destructive" });
+      return;
+    }
+    if (!withdrawPhone || withdrawPhone.length < 9) {
+      toast({ title: "Enter a valid phone number", variant: "destructive" });
+      return;
+    }
+    setWithdrawLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("withdraw", {
+        body: { amount: amt, phone_number: withdrawPhone },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.detail || data.error);
+      toast({ title: "✅ Withdrawal initiated", description: `$${amt.toFixed(2)} → ~KES ${data.amount_kes?.toFixed(0) || '—'}. Check your M-Pesa shortly.` });
+      setWithdrawOpen(false);
+      setWithdrawAmount("");
+      refreshWallet();
+    } catch (err: any) {
+      toast({ title: "Withdrawal failed", description: err.message, variant: "destructive" });
+    } finally {
+      setWithdrawLoading(false);
+    }
+  };
+
   if (!user) {
     return (
       <Layout>
@@ -343,6 +391,86 @@ const MyDashboard = () => {
               ))}
             </div>
           </div>
+
+          {/* Withdraw */}
+          <div className="mb-8">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <ArrowDownToLine className="w-5 h-5 text-primary" />
+              Withdraw Funds
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={(wallet?.balance_usd || 0) < 1}
+              onClick={() => setWithdrawOpen(true)}
+            >
+              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to M-Pesa
+            </Button>
+            {(wallet?.balance_usd || 0) < 1 && (
+              <p className="text-xs text-muted-foreground mt-1">Minimum balance of $1.00 required.</p>
+            )}
+          </div>
+
+          {/* Withdraw Modal */}
+          <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Withdraw to M-Pesa</DialogTitle>
+                <DialogDescription>
+                  Send funds from your wallet to your M-Pesa account.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Available balance</p>
+                  <p className="text-2xl font-bold font-mono text-foreground">${(wallet?.balance_usd || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Amount (USD)</label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {[5, 10, 25, 50].filter(a => a <= (wallet?.balance_usd || 0)).map(a => (
+                      <button key={a} onClick={() => setWithdrawAmount(String(a))}
+                        className={`text-xs px-2 py-1 rounded border ${withdrawAmount === String(a) ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                      >${a}</button>
+                    ))}
+                    <button onClick={() => setWithdrawAmount(String(wallet?.balance_usd || 0))}
+                      className={`text-xs px-2 py-1 rounded border ${withdrawAmount === String(wallet?.balance_usd || 0) ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                    >All</button>
+                  </div>
+                  <Input
+                    type="number" min="1" step="0.01"
+                    placeholder="Enter amount"
+                    value={withdrawAmount}
+                    onChange={e => setWithdrawAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">M-Pesa phone number</label>
+                  <Input
+                    type="tel"
+                    placeholder="+254 7XX XXX XXX"
+                    value={withdrawPhone}
+                    onChange={e => setWithdrawPhone(e.target.value)}
+                  />
+                </div>
+                {withdrawAmount && parseFloat(withdrawAmount) > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    You will receive approximately <span className="font-semibold text-foreground">KES {(parseFloat(withdrawAmount) * 130).toFixed(0)}</span>
+                  </p>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  Withdrawals are sent via M-Pesa and typically arrive within a few minutes. A small Paystack transfer fee may apply.
+                </p>
+                <Button
+                  className="w-full"
+                  disabled={withdrawLoading || !withdrawAmount || parseFloat(withdrawAmount) < 1}
+                  onClick={handleWithdraw}
+                >
+                  {withdrawLoading ? "Processing…" : `Withdraw $${parseFloat(withdrawAmount || "0").toFixed(2)}`}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Share Positions (Trading) */}
           {sharePositions.length > 0 && (

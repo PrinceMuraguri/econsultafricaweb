@@ -41,6 +41,10 @@ const MyDashboard = () => {
   const { user, profile, wallet, refreshWallet, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [depositLoading, setDepositLoading] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawPhone, setWithdrawPhone] = useState("");
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
 
   // Auto-refresh wallet & profile on mount and after deposit return
   useEffect(() => {

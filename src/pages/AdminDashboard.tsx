@@ -26,6 +26,7 @@ const AdminDashboard = () => {
   const [archiving, setArchiving] = useState<string | null>(null);
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
+  const [payoutMode, setPayoutMode] = useState<'wallet' | 'mpesa'>('wallet');
 
   const handleLogin = async () => {
     const trimmedKey = keyInput.trim();

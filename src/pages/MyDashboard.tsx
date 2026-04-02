@@ -4,9 +4,13 @@ import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import {
   BarChart3, TrendingUp, Clock, CheckCircle, XCircle,
-  DollarSign, Activity, ArrowRight, User, Wallet, Plus
+  DollarSign, Activity, ArrowRight, User, Wallet, Plus, ArrowDownToLine
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";

@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import TradingPanel from "@/components/forecast/TradingPanel";
+import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
 import { usePoll } from "@/hooks/use-polls";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";

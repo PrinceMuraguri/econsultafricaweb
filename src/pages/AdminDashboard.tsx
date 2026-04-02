@@ -549,27 +549,47 @@ const AdminDashboard = () => {
 
                         {/* Payout controls for settled polls */}
                         {isSettled && (
-                          <div className="border-t border-border pt-4 flex gap-2 flex-wrap">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => { setSelectedPollId(poll.id); setActiveTab("payouts"); }}
-                            >
-                              <Eye className="w-4 h-4 mr-1" /> Preview Payouts
-                            </Button>
-                            <Button
-                              size="sm"
-                              disabled={payoutMutation.isPending}
-                              onClick={() => {
-                                if (confirm(`Credit wallets for "${poll.title}"? This will add winnings to all winners' wallets.`)) {
-                                  payoutMutation.mutate(poll.id);
-                                }
-                              }}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              {payoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4 mr-1" />}
-                              Credit Winner Wallets
-                            </Button>
+                          <div className="border-t border-border pt-4 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">Payout method:</span>
+                              <button
+                                onClick={() => setPayoutMode('wallet')}
+                                className={`text-xs px-2 py-1 rounded ${payoutMode === 'wallet' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                              >
+                                Credit Wallet
+                              </button>
+                              <button
+                                onClick={() => setPayoutMode('mpesa')}
+                                className={`text-xs px-2 py-1 rounded ${payoutMode === 'mpesa' ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground'}`}
+                              >
+                                M-Pesa Transfer
+                              </button>
+                            </div>
+                            <div className="flex gap-2 flex-wrap">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => { setSelectedPollId(poll.id); setActiveTab("payouts"); }}
+                              >
+                                <Eye className="w-4 h-4 mr-1" /> Preview Payouts
+                              </Button>
+                              <Button
+                                size="sm"
+                                disabled={payoutMutation.isPending}
+                                onClick={() => {
+                                  const msg = payoutMode === 'wallet'
+                                    ? `Credit wallets for "${poll.title}"? Winnings will be added to winners' wallets instantly.`
+                                    : `Send M-Pesa payouts for "${poll.title}"? This requires sufficient Paystack balance and will transfer funds directly to winners' phones.`;
+                                  if (confirm(msg)) {
+                                    payoutMutation.mutate(poll.id);
+                                  }
+                                }}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                {payoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4 mr-1" />}
+                                {payoutMode === 'wallet' ? 'Credit Winner Wallets' : 'Send M-Pesa Payouts'}
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </div>

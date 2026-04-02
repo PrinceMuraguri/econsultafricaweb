@@ -286,6 +286,71 @@ Deno.serve(async (req) => {
       console.log('Webhook processed successfully for:', reference);
     }
 
+    // ── TRANSFER EVENTS (withdrawals + payouts) ──
+    if (event.event === 'transfer.success' || event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
+      const { reference } = event.data;
+      const newStatus = event.event === 'transfer.success' ? 'completed' : 'failed';
+
+      // Handle user withdrawals (withdraw_ prefix)
+      if (reference?.startsWith('withdraw_')) {
+        await supabase
+          .from('wallet_transactions')
+          .update({ status: newStatus })
+          .eq('reference', reference);
+
+        if (event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
+          const { data: wtx } = await supabase
+            .from('wallet_transactions')
+            .select('user_id, amount')
+            .eq('reference', reference)
+            .maybeSingle();
+
+          if (wtx) {
+            const { data: wallet } = await supabase
+              .from('wallets')
+              .select('id, balance_usd')
+              .eq('user_id', wtx.user_id)
+              .maybeSingle();
+
+            if (wallet) {
+              await supabase.from('wallets').update({
+                balance_usd: Number(wallet.balance_usd) + Math.abs(wtx.amount),
+                updated_at: new Date().toISOString(),
+              }).eq('id', wallet.id);
+            }
+
+            await supabase.from('notifications').insert({
+              user_id: wtx.user_id,
+              type: 'withdrawal_failed',
+              title: 'Withdrawal failed — funds returned',
+              body: `Your withdrawal of $${Math.abs(wtx.amount).toFixed(2)} could not be completed. The funds have been returned to your wallet.`,
+              link: '/my-dashboard',
+            });
+          }
+        }
+
+        if (event.event === 'transfer.success') {
+          const { data: wtx } = await supabase
+            .from('wallet_transactions')
+            .select('user_id, amount')
+            .eq('reference', reference)
+            .maybeSingle();
+
+          if (wtx) {
+            await supabase.from('notifications').insert({
+              user_id: wtx.user_id,
+              type: 'withdrawal_completed',
+              title: '✅ Withdrawal sent!',
+              body: `$${Math.abs(wtx.amount).toFixed(2)} has been sent to your M-Pesa.`,
+              link: '/my-dashboard',
+            });
+          }
+        }
+
+        console.log('Withdrawal transfer event processed:', reference, newStatus);
+      }
+    }
+
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

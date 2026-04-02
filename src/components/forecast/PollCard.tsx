@@ -419,7 +419,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               const pct = totalVotes > 0 ? Math.round((option.total_votes_count / totalVotes) * 100) : 0;
               const isYes = option.label.toLowerCase() === "yes";
               const isNo = option.label.toLowerCase() === "no";
-              const barColor = isYes ? "bg-green-500" : isNo ? "bg-red-400" : "bg-primary";
+              const barColor = isYes ? "bg-green-500" : isNo ? "bg-blue-400" : "bg-primary";
 
               return (
                 <div key={option.id} className="space-y-0.5">

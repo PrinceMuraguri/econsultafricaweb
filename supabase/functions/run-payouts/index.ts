@@ -220,6 +220,7 @@ Deno.serve(async (req) => {
         });
 
         const transferData = await transferRes.json();
+        console.log('Transfer API response:', JSON.stringify(transferData));
 
         if (!transferData.status) {
           results.push({ payout_id: payout.id, status: 'failed', error: transferData.message });

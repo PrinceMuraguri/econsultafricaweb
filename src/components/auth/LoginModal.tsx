@@ -38,50 +38,58 @@ const LoginModal = ({ open, onOpenChange, onSuccess, onSwitchToRegister }: Login
 
       if (error) throw error;
 
+      // Close modal and show toast IMMEDIATELY — don't wait for fingerprint sync
+      onOpenChange(false);
+      toast({ title: "Welcome back!", description: "You're now signed in." });
+      onSuccess?.();
+
+      // Run fingerprint sync in the background (fire-and-forget)
       if (data.user) {
-        const fp = await getFingerprint();
+        const userId = data.user.id;
+        const userEmail = data.user.email || "";
+        const userMeta = data.user.user_metadata;
 
-        // Update user_profiles with current device fingerprint
-        await supabase
-          .from("user_profiles")
-          .update({ voter_fingerprint: fp })
-          .eq("user_id", data.user.id);
+        (async () => {
+          try {
+            const fp = await getFingerprint();
 
-        // Insert voter_profile for backward compat (ignore if already exists)
-        try {
-          await supabase
-            .from("voter_profiles")
-            .insert({
-              voter_fingerprint: fp,
-              email: data.user.email || "",
-              full_name: data.user.user_metadata?.full_name || "",
-              phone_number: data.user.user_metadata?.phone || "",
-              country_code: "+254",
-            });
-        } catch {
-          // Row already exists for this fingerprint — that's fine, skip
-        }
+            await supabase
+              .from("user_profiles")
+              .update({ voter_fingerprint: fp })
+              .eq("user_id", userId);
 
-        // Claim anonymous votes made on this device
-        await supabase
-          .from("votes")
-          .update({ user_id: data.user.id })
-          .eq("voter_fingerprint", fp)
-          .is("user_id", null);
+            try {
+              await supabase
+                .from("voter_profiles")
+                .insert({
+                  voter_fingerprint: fp,
+                  email: userEmail,
+                  full_name: userMeta?.full_name || "",
+                  phone_number: userMeta?.phone || "",
+                  country_code: "+254",
+                });
+            } catch {
+              // Already exists — skip
+            }
 
-        // Legacy localStorage sync
-        const meta = data.user.user_metadata;
+            await supabase
+              .from("votes")
+              .update({ user_id: userId })
+              .eq("voter_fingerprint", fp)
+              .is("user_id", null);
+          } catch (syncErr) {
+            console.error("Background fingerprint sync error:", syncErr);
+          }
+        })();
+
+        // Legacy localStorage sync (instant, no await needed)
         localStorage.setItem("forecast_participant", JSON.stringify({
-          fullName: meta?.full_name || "",
-          email: data.user.email || "",
-          phone: meta?.phone || "",
+          fullName: userMeta?.full_name || "",
+          email: userEmail,
+          phone: userMeta?.phone || "",
           countryCode: "+254",
         }));
       }
-
-      toast({ title: "Welcome back!", description: "You're now signed in." });
-      onOpenChange(false);
-      onSuccess?.();
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message || "Invalid credentials.", variant: "destructive" });
     } finally {

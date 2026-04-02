@@ -7,19 +7,23 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
   Shield, Lock, Eye, CheckCircle, DollarSign, Download,
-  AlertTriangle, Loader2, BarChart3, Users, TrendingUp
+  AlertTriangle, Loader2, BarChart3, Users, TrendingUp, RefreshCw
 } from "lucide-react";
 import PollManager from "@/components/admin/PollManager";
 import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
 import AdminTradingTab from "@/components/admin/AdminTradingTab";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
+const ADMIN_EMAILS = ['princemuraguri@gmail.com'];
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [adminKey, setAdminKey] = useState(() => localStorage.getItem(ADMIN_KEY_STORAGE)?.trim() || "");
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem(ADMIN_KEY_STORAGE));
+  const { user } = useAuth();
+  const [adminKey, setAdminKey] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [validating, setValidating] = useState(true);
   const [keyInput, setKeyInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading">("polls");
@@ -27,6 +31,40 @@ const AdminDashboard = () => {
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
   const [payoutMode, setPayoutMode] = useState<'wallet' | 'mpesa'>('wallet');
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+
+  const isAdminUser = user && ADMIN_EMAILS.includes(user.email || '');
+
+  // Validate stored admin key on mount
+  useEffect(() => {
+    const storedKey = localStorage.getItem(ADMIN_KEY_STORAGE)?.trim();
+    if (!storedKey) {
+      setValidating(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-polls", {
+          body: { admin_key: storedKey, action: "validate_admin" },
+        });
+        if (!error && !data?.error) {
+          setAdminKey(storedKey);
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem(ADMIN_KEY_STORAGE);
+        }
+      } catch {
+        localStorage.removeItem(ADMIN_KEY_STORAGE);
+      } finally {
+        setValidating(false);
+      }
+    })();
+  }, []);
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries();
+    setLastRefresh(new Date());
+  };
 
   const handleLogin = async () => {
     const trimmedKey = keyInput.trim();

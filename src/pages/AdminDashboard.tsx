@@ -456,7 +456,11 @@ const AdminDashboard = () => {
               <h1 className="font-display text-3xl font-bold text-foreground">Forecast Arena Admin</h1>
               <p className="text-sm text-muted-foreground">Manage polls, settlements, and payouts</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-muted-foreground">Updated: {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <Button variant="outline" size="sm" onClick={handleRefresh}><RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh</Button>
+              <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+            </div>
           </div>
 
           {/* Stats */}

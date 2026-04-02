@@ -326,7 +326,7 @@ const AdminDashboard = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "💰 Payouts Processing", description: `${data.summary.processing} transfers initiated, ${data.summary.failed} failed.` });
+      toast({ title: "💰 Wallets Credited", description: `${data.summary.completed || data.summary.processing} winners paid, ${data.summary.failed} failed.` });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
     },

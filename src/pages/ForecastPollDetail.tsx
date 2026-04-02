@@ -91,6 +91,12 @@ const ForecastPollDetail = () => {
         {/* The same PollCard from the homepage, centerstage */}
         <PollCard poll={poll} interactionMode="vote" />
 
+        {/* Probability over time chart */}
+        <PollPerformanceChart
+          pollId={poll.id}
+          options={(poll as any).poll_options?.map((o: any) => ({ id: o.id, label: o.label })) || []}
+        />
+
         {/* Stage 3: Position panel — only if voted + logged in + active */}
         {showTradingPanel && (
           <TradingPanel poll={poll} votedOptionId={votedOptionId} hasVoted={hasVoted} />

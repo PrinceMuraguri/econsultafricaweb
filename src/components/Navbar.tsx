@@ -87,7 +87,7 @@ const Navbar = () => {
                     location.pathname === "/my-dashboard" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}>
                   <User className="w-4 h-4" />
-                  {profile?.username || "Dashboard"}
+                  {profile?.full_name?.split(" ")[0] || profile?.username || "Dashboard"}
                 </Link>
                 <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-destructive gap-1">
                   <LogOut className="w-3.5 h-3.5" /> Sign Out

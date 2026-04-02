@@ -103,8 +103,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const handleVote = async (optionId: string) => {
     if (hasVoted || voting || isClosed) return;
-    const freeVoteCount = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
-    if (!isLoggedIn && freeVoteCount >= 3) { setPendingVoteOptionId(optionId); setRegisterOpen(true); return; }
+    if (!isLoggedIn) {
+      setPendingVoteOptionId(optionId);
+      setRegisterOpen(true);
+      return;
+    }
     setVoting(true);
     try {
       const fp = await getFingerprint();
@@ -119,10 +122,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       setHasVoted(true);
       setVotedOptionId(optionId);
       setLocalOptions(prev => prev.map(o => o.id === optionId ? { ...o, total_votes_count: o.total_votes_count + 1 } : o));
-      if (!isLoggedIn) {
-        const count = parseInt(localStorage.getItem("free_vote_count") || "0", 10);
-        localStorage.setItem("free_vote_count", String(count + 1));
-      }
       toast({ title: "🎯 Forecast recorded", description: "Your view has been added to the collective sentiment." });
     } catch {
       toast({ title: "Error", description: "Could not record forecast. Try again.", variant: "destructive" });

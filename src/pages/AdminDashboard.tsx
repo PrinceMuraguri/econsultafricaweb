@@ -921,25 +921,27 @@ const AdminDashboard = () => {
                   <Download className="w-4 h-4 mr-1" /> Export CSV
                 </Button>
               </div>
-              <div className="overflow-x-auto bg-card border border-border rounded-lg">
+               <div className="overflow-x-auto bg-card border border-border rounded-lg">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Name</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Full Name</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Username</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Phone</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Country</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Occupation</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Registered</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Fingerprint</th>
                     </tr>
                   </thead>
                   <tbody>
                     {registeredUsers?.map((u: any) => (
                       <tr key={u.id} className="border-t border-border/50">
                         <td className="px-4 py-2 font-medium text-foreground">{u.full_name}</td>
-                        <td className="px-4 py-2 text-foreground">{u.email}</td>
-                        <td className="px-4 py-2 font-mono text-foreground">{u.country_code}{u.phone_number}</td>
+                        <td className="px-4 py-2 text-foreground">{u.username}</td>
+                        <td className="px-4 py-2 font-mono text-foreground">{u.phone || "—"}</td>
+                        <td className="px-4 py-2 text-foreground">{u.country || "—"}</td>
+                        <td className="px-4 py-2 text-foreground">{u.occupation || "—"}</td>
                         <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(u.created_at).toLocaleString()}</td>
-                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{u.voter_fingerprint?.slice(0, 12)}…</td>
                       </tr>
                     ))}
                   </tbody>

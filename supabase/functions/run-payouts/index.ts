@@ -5,6 +5,22 @@ const corsHeaders = {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+const FALLBACK_USD_KES_RATE = 129;
+
+async function getUsdToKesRate(): Promise<number> {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.KES;
+      if (rate && rate > 50 && rate < 300) return rate;
+    }
+  } catch (e) {
+    console.log('FX fallback:', (e as Error).message);
+  }
+  return FALLBACK_USD_KES_RATE;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -135,8 +151,12 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Initiate transfer
-        const amountInCents = Math.round(payout.amount * 100);
+        // Convert USD payout to KES for M-Pesa transfer
+        const fxRate = await getUsdToKesRate();
+        const amountKes = payout.amount * fxRate;
+        const amountInCents = Math.round(amountKes * 100);
+
+        console.log(`Payout ${payout.id}: $${payout.amount} USD → KES ${amountKes.toFixed(2)} (rate: ${fxRate}), cents: ${amountInCents}`);
         const transferRes = await fetch('https://api.paystack.co/transfer', {
           method: 'POST',
           headers: {

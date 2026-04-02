@@ -266,6 +266,46 @@ const MyDashboard = () => {
     }
   };
 
+  // Pre-fill phone from profile when opening withdraw modal
+  useEffect(() => {
+    if (withdrawOpen && profile?.phone && !withdrawPhone) {
+      setWithdrawPhone(profile.phone);
+    }
+  }, [withdrawOpen, profile]);
+
+  const handleWithdraw = async () => {
+    if (!user) return;
+    const amt = parseFloat(withdrawAmount);
+    if (isNaN(amt) || amt < 1) {
+      toast({ title: "Invalid amount", description: "Minimum withdrawal is $1.00", variant: "destructive" });
+      return;
+    }
+    if (amt > (wallet?.balance_usd || 0)) {
+      toast({ title: "Insufficient balance", variant: "destructive" });
+      return;
+    }
+    if (!withdrawPhone || withdrawPhone.length < 9) {
+      toast({ title: "Enter a valid phone number", variant: "destructive" });
+      return;
+    }
+    setWithdrawLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("withdraw", {
+        body: { amount: amt, phone_number: withdrawPhone },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.detail || data.error);
+      toast({ title: "✅ Withdrawal initiated", description: `$${amt.toFixed(2)} → ~KES ${data.amount_kes?.toFixed(0) || '—'}. Check your M-Pesa shortly.` });
+      setWithdrawOpen(false);
+      setWithdrawAmount("");
+      refreshWallet();
+    } catch (err: any) {
+      toast({ title: "Withdrawal failed", description: err.message, variant: "destructive" });
+    } finally {
+      setWithdrawLoading(false);
+    }
+  };
+
   if (!user) {
     return (
       <Layout>

@@ -319,14 +319,14 @@ const AdminDashboard = () => {
   const payoutMutation = useMutation({
     mutationFn: async (pollId: string) => {
       const { data, error } = await supabase.functions.invoke("run-payouts", {
-        body: { poll_id: pollId, admin_key: adminKey },
+        body: { poll_id: pollId, admin_key: adminKey, payout_mode: 'wallet' },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "💰 Payouts Processing", description: `${data.summary.processing} transfers initiated, ${data.summary.failed} failed.` });
+      toast({ title: "💰 Wallets Credited", description: `${data.summary.completed || data.summary.processing} winners paid, ${data.summary.failed} failed.` });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
     },
@@ -560,14 +560,14 @@ const AdminDashboard = () => {
                               size="sm"
                               disabled={payoutMutation.isPending}
                               onClick={() => {
-                                if (confirm(`Run M-PESA payouts for "${poll.title}"? This will transfer funds to all winners.`)) {
+                                if (confirm(`Credit wallets for "${poll.title}"? This will add winnings to all winners' wallets.`)) {
                                   payoutMutation.mutate(poll.id);
                                 }
                               }}
                               className="bg-green-600 hover:bg-green-700 text-white"
                             >
                               {payoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4 mr-1" />}
-                              Run Payouts
+                              Credit Winner Wallets
                             </Button>
                           </div>
                         )}

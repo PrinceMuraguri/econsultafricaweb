@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import DualCurrency from "@/components/DualCurrency";
 
 interface Position {
   id: string;

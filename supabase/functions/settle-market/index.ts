@@ -108,10 +108,15 @@ Deno.serve(async (req) => {
       // payout = shares * $1
       const payoutAmount = sharesOwned;
 
+      const platformFeeRate = 0.035;
+      const grossPayout = Math.round(payoutAmount * 100) / 100;
+      const platformFee = Math.round(grossPayout * platformFeeRate * 100) / 100;
+      const netPayout = Math.round((grossPayout - platformFee) * 100) / 100;
+
       payoutRecords.push({
         voter_fingerprint: winner.voter_fingerprint,
         poll_id,
-        amount: Math.round(payoutAmount * 100) / 100,
+        amount: netPayout,
         status: 'pending',
         reference: `payout_${poll_id.slice(0, 8)}_${winner.voter_fingerprint.slice(0, 8)}_${Date.now()}`,
       });
@@ -156,7 +161,9 @@ Deno.serve(async (req) => {
         winner_count: winners.length,
         loser_count: losers.length,
         implied_price: impliedPrice,
-        total_payouts: payoutRecords.reduce((s, p) => s + p.amount, 0),
+        platform_fee_rate: 0.035,
+        total_fees: payoutRecords.reduce((s, p) => s + (Math.round(p.amount / (1 - 0.035) * 0.035 * 100) / 100), 0),
+        total_net_payouts: payoutRecords.reduce((s, p) => s + p.amount, 0),
       },
       performed_by: 'super_admin',
     });

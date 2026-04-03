@@ -628,7 +628,7 @@ const AdminDashboard = () => {
                                 onClick={() => setPayoutMode('mpesa')}
                                 className={`text-xs px-2 py-1 rounded ${payoutMode === 'mpesa' ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground'}`}
                               >
-                                M-Pesa Transfer
+                                Mobile Money Transfer
                               </button>
                             </div>
                             <div className="flex gap-2 flex-wrap">
@@ -645,7 +645,7 @@ const AdminDashboard = () => {
                                 onClick={() => {
                                   const msg = payoutMode === 'wallet'
                                     ? `Credit wallets for "${poll.title}"? Winnings will be added to winners' wallets instantly.`
-                                    : `Send M-Pesa payouts for "${poll.title}"? This requires sufficient Paystack balance and will transfer funds directly to winners' phones.`;
+                                    : `Send Mobile Money payouts for "${poll.title}"? This requires sufficient Paystack balance and will transfer funds directly to winners' phones.`;
                                   if (confirm(msg)) {
                                     payoutMutation.mutate(poll.id);
                                   }
@@ -653,7 +653,7 @@ const AdminDashboard = () => {
                                 className="bg-green-600 hover:bg-green-700 text-white"
                               >
                                 {payoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4 mr-1" />}
-                                {payoutMode === 'wallet' ? 'Credit Winner Wallets' : 'Send M-Pesa Payouts'}
+                                {payoutMode === 'wallet' ? 'Credit Winner Wallets' : 'Send Mobile Money Payouts'}
                               </Button>
                             </div>
                           </div>

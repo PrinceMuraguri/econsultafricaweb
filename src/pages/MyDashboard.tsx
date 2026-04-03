@@ -330,7 +330,7 @@ const MyDashboard = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.detail || data.error);
-      toast({ title: "✅ Withdrawal initiated", description: `$${amt.toFixed(2)} → ~KES ${data.amount_kes?.toFixed(0) || '—'}. Check your M-Pesa shortly.` });
+      toast({ title: "✅ Withdrawal initiated", description: `$${amt.toFixed(2)} → ~KES ${data.amount_kes?.toFixed(0) || '—'}. Check your mobile money shortly.` });
       setWithdrawOpen(false);
       setWithdrawAmount("");
       refreshWallet();
@@ -441,7 +441,7 @@ const MyDashboard = () => {
               disabled={(wallet?.balance_usd || 0) < 1}
               onClick={() => setWithdrawOpen(true)}
             >
-              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to M-Pesa
+              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Mobile Money
             </Button>
             {(wallet?.balance_usd || 0) < 1 && (
               <p className="text-xs text-muted-foreground mt-1">Minimum balance of $1.00 required.</p>
@@ -452,9 +452,9 @@ const MyDashboard = () => {
           <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
             <DialogContent className="max-w-sm">
               <DialogHeader>
-                <DialogTitle>Withdraw to M-Pesa</DialogTitle>
+                <DialogTitle>Withdraw to Mobile Money</DialogTitle>
                 <DialogDescription>
-                  Send funds from your wallet to your M-Pesa account.
+                  Send funds from your wallet to your mobile money account.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-2">
@@ -482,7 +482,7 @@ const MyDashboard = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-foreground mb-1 block">M-Pesa phone number</label>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Mobile money phone number</label>
                   <Input
                     type="tel"
                     placeholder="+254 7XX XXX XXX"
@@ -496,7 +496,7 @@ const MyDashboard = () => {
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground">
-                  Withdrawals are sent via M-Pesa and typically arrive within a few minutes. A small Paystack transfer fee may apply.
+                  Withdrawals are sent via mobile money and typically arrive within a few minutes. A small Paystack transfer fee may apply.
                 </p>
                 <Button
                   className="w-full"

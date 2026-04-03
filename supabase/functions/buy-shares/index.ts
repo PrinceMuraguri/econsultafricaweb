@@ -134,6 +134,7 @@ Deno.serve(async (req) => {
       await supabase.from("votes").update({
         is_staked: true,
         stake_amount: totalCost,
+        entry_price: currentPrice,
       }).eq("id", existingVoteByUser.id);
       await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });
     } else {
@@ -157,6 +158,7 @@ Deno.serve(async (req) => {
           is_staked: true,
           stake_amount: totalCost,
           user_id: user.id,
+          entry_price: currentPrice,
         }).eq("id", existingVoteByFp.id);
         await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });
       } else {
@@ -168,6 +170,7 @@ Deno.serve(async (req) => {
           user_id: user.id,
           is_staked: true,
           stake_amount: totalCost,
+          entry_price: currentPrice,
         });
         await supabase.rpc("increment_vote_count", { p_option_id: option_id });
         await supabase.rpc("increment_stake_amount", { p_option_id: option_id, p_amount: totalCost });

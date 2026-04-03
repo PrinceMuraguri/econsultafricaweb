@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, amount, poll_id, option_id, voter_fingerprint, phone, callback_url, user_id } = await req.json();
+    const { email, amount, poll_id, option_id, voter_fingerprint, phone, callback_url, user_id, entry_price } = await req.json();
 
     if (!email || !amount || !poll_id || !option_id || !voter_fingerprint) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -96,6 +96,7 @@ Deno.serve(async (req) => {
       amount_kes: amountKes,
       fx_rate: usdToKesRate,
       platform_fee: platformFee,
+      entry_price: entry_price || null,
     };
 
     // Initialize Paystack — allow all channels (Card, M-PESA, Airtel Money, etc.)

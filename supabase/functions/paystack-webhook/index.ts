@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
         .eq('reference', reference);
 
       if (metadata?.type === 'forecast_stake') {
-        const { poll_id, option_id, voter_fingerprint, amount_usd, user_id: metaUserId } = metadata;
+        const { poll_id, option_id, voter_fingerprint, amount_usd, user_id: metaUserId, entry_price } = metadata;
         
         let stakeAmountUsd: number;
         if (amount_usd) {
@@ -235,6 +235,7 @@ Deno.serve(async (req) => {
             is_staked: true,
             stake_amount: stakeAmountUsd,
             payment_reference: reference,
+            entry_price: entry_price ? Number(entry_price) : null,
           };
           if (!existingVote.user_id && resolvedUserId) {
             updateData.user_id = resolvedUserId;
@@ -256,6 +257,7 @@ Deno.serve(async (req) => {
                 is_staked: true,
                 stake_amount: stakeAmountUsd,
                 payment_reference: reference,
+                entry_price: entry_price ? Number(entry_price) : null,
               }).eq('id', userVote.id);
               await supabase.rpc('increment_stake_amount', { p_option_id: option_id, p_amount: stakeAmountUsd });
               foundByUserId = true;
@@ -272,6 +274,7 @@ Deno.serve(async (req) => {
               stake_amount: stakeAmountUsd,
               payment_reference: reference,
               user_id: resolvedUserId,
+              entry_price: entry_price ? Number(entry_price) : null,
             });
             if (voteError) {
               console.error('Vote insert error:', voteError);

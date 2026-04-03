@@ -100,6 +100,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           voter_fingerprint: fp,
           callback_url: callbackUrl,
           user_id: user?.id || null,
+          entry_price: sharePrice,
         },
       });
 

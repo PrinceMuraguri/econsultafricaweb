@@ -91,21 +91,20 @@ Deno.serve(async (req) => {
     
     const totalPool = votes?.reduce((s, v) => s + (v.stake_amount || 0), 0) || 0;
     const winnerPool = winners.reduce((s, v) => s + (v.stake_amount || 0), 0);
-    
-    // Polymarket model: each $1 share costs the implied probability price
-    // Winners get $1 per share, losers get nothing
-    // The total option votes determine the price at entry
+
+    // Fallback implied price for legacy votes that don't have entry_price stored
     const totalVotes = poll.poll_options.reduce((s: number, o: any) => s + o.total_votes_count, 0);
     const winningVotes = winningOption.total_votes_count;
-    const impliedPrice = totalVotes > 0 ? winningVotes / totalVotes : 0.5;
+    const fallbackImpliedPrice = totalVotes > 0 ? winningVotes / totalVotes : 0.5;
 
-    // Create payout records for winners
+    // Create payout records for winners — use EACH voter's entry_price
     const payoutRecords = [];
     for (const winner of winners) {
       const stakeAmount = winner.stake_amount || 0;
-      // shares = cost / price_per_share
-      const sharesOwned = impliedPrice > 0 ? stakeAmount / impliedPrice : stakeAmount;
-      // payout = shares * $1
+      // Use the voter's entry price; fall back to global implied price for legacy votes
+      const entryPrice = winner.entry_price || fallbackImpliedPrice;
+      // shares = cost / price_per_share; payout = shares * $1
+      const sharesOwned = entryPrice > 0 ? stakeAmount / entryPrice : stakeAmount;
       const payoutAmount = sharesOwned;
 
       const platformFeeRate = 0.035;

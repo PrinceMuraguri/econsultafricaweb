@@ -233,13 +233,47 @@ const MyDashboard = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!userProfile?.voter_fingerprint) return [];
+      // Try by voter_fingerprint first
+      if (userProfile?.voter_fingerprint) {
+        const { data, error } = await supabase
+          .from("payouts")
+          .select("*")
+          .eq("voter_fingerprint", userProfile.voter_fingerprint)
+          .order("created_at", { ascending: false });
+        if (!error && data?.length) return data;
+      }
 
+      // Fallback: find payouts via votes linked directly to this user_id
+      const { data: userVotes } = await supabase
+        .from("votes")
+        .select("voter_fingerprint")
+        .eq("user_id", user.id)
+        .eq("is_staked", true);
+
+      if (!userVotes?.length) return [];
+
+      const fingerprints = [...new Set(userVotes.map((v: any) => v.voter_fingerprint))];
       const { data, error } = await supabase
         .from("payouts")
         .select("*")
-        .eq("voter_fingerprint", userProfile.voter_fingerprint)
+        .in("voter_fingerprint", fingerprints)
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Also fetch payout wallet transactions directly by user_id (wallet-mode payouts)
+  const { data: walletPayouts } = useQuery({
+    queryKey: ["my-wallet-payouts", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("wallet_transactions")
+        .select("amount, created_at")
+        .eq("user_id", user.id)
+        .in("type", ["payout", "payout_mpesa"]);
       if (error) throw error;
       return data || [];
     },
@@ -329,7 +363,9 @@ const MyDashboard = () => {
   const activePositions = positions?.filter(p => p.outcome === "pending") || [];
   const resolvedPositions = positions?.filter(p => p.outcome !== "pending") || [];
   const totalCommitted = positions?.reduce((s, p) => s + (p.stake_amount || 0), 0) || 0;
-  const totalEarnings = payouts?.reduce((s, p) => s + p.amount, 0) || 0;
+  const earningsFromPayouts = payouts?.reduce((s, p) => s + (p.amount || 0), 0) || 0;
+  const earningsFromWallet = walletPayouts?.reduce((s, p) => s + Math.abs(p.amount || 0), 0) || 0;
+  const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = resolvedPositions.filter(p => p.outcome === "won").length;
 
   return (

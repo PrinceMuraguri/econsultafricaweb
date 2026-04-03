@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy, ArrowUpDown, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
@@ -15,6 +16,7 @@ import LoginModal from "@/components/auth/LoginModal";
 import HowItWorksPdfModal from "./HowItWorksPdfModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
+import OrderBookModal from "./OrderBookModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;

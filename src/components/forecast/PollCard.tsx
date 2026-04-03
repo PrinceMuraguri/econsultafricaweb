@@ -59,8 +59,41 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
+  const [orderBookOpen, setOrderBookOpen] = useState(false);
 
   const isLoggedIn = !!user;
+
+  // Fetch user's staked vote for this poll
+  const { data: userStake } = useQuery({
+    queryKey: ["user-stake", poll.id, user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("votes")
+        .select("stake_amount, created_at, option_id, is_staked")
+        .eq("poll_id", poll.id)
+        .eq("user_id", user.id)
+        .eq("is_staked", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch user's positions for this poll
+  const { data: userPositions = [] } = useQuery({
+    queryKey: ["positions-card", poll.id, user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from("positions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("poll_id", poll.id);
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (isLoggedIn) {

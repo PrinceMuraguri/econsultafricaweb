@@ -1045,6 +1045,7 @@ export type Database = {
       votes: {
         Row: {
           created_at: string
+          entry_price: number | null
           id: string
           ip_address: string | null
           is_staked: boolean
@@ -1057,6 +1058,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          entry_price?: number | null
           id?: string
           ip_address?: string | null
           is_staked?: boolean
@@ -1069,6 +1071,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          entry_price?: number | null
           id?: string
           ip_address?: string | null
           is_staked?: boolean

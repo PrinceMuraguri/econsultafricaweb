@@ -31,3 +31,7 @@ project_id = "iysutjnviccsgygpiqfe"
     verify_jwt = false
   [functions.withdraw]
     verify_jwt = false
+  [functions.place-order]
+    verify_jwt = false
+  [functions.cancel-order]
+    verify_jwt = false

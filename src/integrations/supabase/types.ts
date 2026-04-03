@@ -228,6 +228,69 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          filled_shares: number
+          id: string
+          option_id: string
+          order_type: string
+          poll_id: string
+          price: number
+          shares: number
+          side: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          filled_shares?: number
+          id?: string
+          option_id: string
+          order_type?: string
+          poll_id: string
+          price: number
+          shares: number
+          side: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          filled_shares?: number
+          id?: string
+          option_id?: string
+          order_type?: string
+          poll_id?: string
+          price?: number
+          shares?: number
+          side?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_transfers: {
         Row: {
           amount: number

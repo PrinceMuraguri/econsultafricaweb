@@ -616,7 +616,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         onSwitchToLogin={() => { setRegisterOpen(false); setLoginModalOpen(true); }} />
       <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} onSuccess={handleAuthSuccess}
         onSwitchToRegister={() => { setLoginModalOpen(false); setRegisterOpen(true); }} />
-      <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={poll} selectedOption={stakeOption} />
+      <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={{ ...poll, poll_options: localOptions }} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
       <OrderBookModal open={orderBookOpen} onOpenChange={setOrderBookOpen} poll={poll} />

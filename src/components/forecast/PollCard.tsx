@@ -552,6 +552,60 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         </div>
       )}
 
+      {/* Commitment info badge — shows on all polls where user has staked */}
+      {user && (userStake || userPositions.length > 0) && (() => {
+        const stakeAmount = userStake?.stake_amount || userPositions.reduce((s, p) => s + Number(p.total_cost), 0);
+        const stakeDate = userStake?.created_at || userPositions[0]?.created_at;
+        const stakedOptionId = userStake?.option_id || userPositions[0]?.option_id;
+        const stakedOption = sortedOptions.find(o => o.id === stakedOptionId);
+        const totalShares = userPositions.reduce((s, p) => s + Number(p.shares), 0);
+        const potentialGain = totalShares > 0 ? totalShares : (stakeAmount || 0);
+
+        return (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-2 pt-2 border-t border-border"
+          >
+            <div className="bg-primary/5 border border-primary/15 rounded-lg p-2.5 space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] font-bold text-foreground">Your Position</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div>
+                  <p className="text-muted-foreground">Committed</p>
+                  <p className="font-mono font-bold text-foreground">${Number(stakeAmount || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">On</p>
+                  <p className="font-semibold text-foreground">{stakedOption?.label || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">If correct</p>
+                  <p className="font-mono font-bold text-green-600">${potentialGain.toFixed(2)}</p>
+                </div>
+              </div>
+              {stakeDate && (
+                <p className="text-[9px] text-muted-foreground">
+                  Committed {new Date(stakeDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                </p>
+              )}
+              {!isClosed && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => { e.stopPropagation(); setOrderBookOpen(true); }}
+                  className="w-full text-[10px] font-bold gap-1 mt-1"
+                >
+                  <ArrowUpDown className="w-3 h-3" /> Trade your shares with other users
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        );
+      })()}
+
       {isClosed && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Lock className="w-3 h-3" />Forecasting closed
@@ -565,6 +619,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={poll} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
+      <OrderBookModal open={orderBookOpen} onOpenChange={setOrderBookOpen} poll={poll} />
     </motion.div>
   );
 };

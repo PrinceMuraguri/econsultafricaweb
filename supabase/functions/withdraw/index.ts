@@ -48,16 +48,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { amount, phone_number } = await req.json();
+    const { amount, phone_number, method = 'mobile_money', bank_code, account_number, account_name, currency = 'KES' } = await req.json();
 
-    // Validate inputs
+    // Validate amount
     if (!amount || typeof amount !== 'number' || amount < 1) {
       return new Response(JSON.stringify({ error: 'Minimum withdrawal is $1.00' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    if (!phone_number || typeof phone_number !== 'string' || phone_number.length < 9) {
-      return new Response(JSON.stringify({ error: 'Valid phone number is required' }), {
+
+    // Validate method-specific fields
+    if (method === 'mobile_money') {
+      if (!phone_number || typeof phone_number !== 'string' || phone_number.length < 9) {
+        return new Response(JSON.stringify({ error: 'Valid phone number is required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else if (method === 'bank') {
+      if (!bank_code || !account_number || !account_name) {
+        return new Response(JSON.stringify({ error: 'Bank code, account number and account name are required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      return new Response(JSON.stringify({ error: 'Invalid withdrawal method' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -78,6 +92,7 @@ Deno.serve(async (req) => {
     }
 
     const reference = 'withdraw_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const methodLabel = method === 'bank' ? 'Bank Transfer' : 'Mobile Money';
 
     // Deduct from wallet immediately
     await supabase.from('wallets').update({
@@ -90,40 +105,57 @@ Deno.serve(async (req) => {
       user_id: user.id,
       type: 'withdrawal',
       amount: -amount,
-      description: `Withdrawal to M-Pesa (${reference})`,
+      description: `Withdrawal via ${methodLabel} (${reference})`,
       reference,
       status: 'pending',
     });
 
-    // Convert USD to KES
-    const fxRate = await getUsdRate('KES');
-    const amountKes = amount * fxRate;
-    const amountInCents = Math.round(amountKes * 100);
-    console.log(`Withdrawal: $${amount} USD → KES ${amountKes.toFixed(2)} (rate: ${fxRate})`);
+    // Convert USD to target currency
+    const fxRate = await getUsdRate(currency);
+    const amountLocal = amount * fxRate;
+    const amountInCents = Math.round(amountLocal * 100);
+    console.log(`Withdrawal: $${amount} USD → ${currency} ${amountLocal.toFixed(2)} (rate: ${fxRate}), method: ${method}`);
 
-    // Format phone for Paystack M-Pesa
-    let phone = phone_number.replace(/\s+/g, '').replace(/^\+/, '');
-    if (phone.startsWith('254')) {
-      phone = '0' + phone.slice(3);
-    }
-    console.log('Formatted phone:', phone);
+    // Build recipient payload based on method
+    let recipientPayload: Record<string, string>;
 
-    // Discover M-Pesa bank code
-    let mpesaBankCode = 'MPESA';
-    try {
-      const bankRes = await fetch('https://api.paystack.co/bank?currency=KES&type=mobile_money', {
-        headers: { Authorization: `Bearer ${paystackSecretKey}` },
-      });
-      if (bankRes.ok) {
-        const bankData = await bankRes.json();
-        const mpesaBank = bankData.data?.find((b: any) =>
-          b.name.toLowerCase().includes('m-pesa') || b.slug?.toLowerCase().includes('mpesa')
-        );
-        if (mpesaBank) mpesaBankCode = mpesaBank.code;
-        console.log('M-Pesa bank code:', mpesaBankCode);
+    if (method === 'mobile_money') {
+      // Format phone for Paystack mobile money
+      let phone = phone_number.replace(/\s+/g, '').replace(/^\+/, '');
+      if (phone.startsWith('254')) phone = '0' + phone.slice(3);
+      console.log('Formatted phone:', phone);
+
+      // Discover mobile money bank code
+      let mmBankCode = 'MPESA';
+      try {
+        const bankRes = await fetch(`https://api.paystack.co/bank?currency=${currency}&type=mobile_money`, {
+          headers: { Authorization: `Bearer ${paystackSecretKey}` },
+        });
+        if (bankRes.ok) {
+          const bankData = await bankRes.json();
+          if (bankData.data?.length) mmBankCode = bankData.data[0].code;
+          console.log('Mobile money bank code:', mmBankCode);
+        }
+      } catch (e) {
+        console.log('Bank discovery fallback:', (e as Error).message);
       }
-    } catch (e) {
-      console.log('Bank discovery fallback:', (e as Error).message);
+
+      recipientPayload = {
+        type: 'mobile_money',
+        name: user.email!,
+        account_number: phone,
+        bank_code: mmBankCode,
+        currency,
+      };
+    } else {
+      // Bank transfer
+      recipientPayload = {
+        type: 'nuban',
+        name: account_name,
+        account_number,
+        bank_code,
+        currency,
+      };
     }
 
     // Create Paystack transfer recipient
@@ -133,13 +165,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${paystackSecretKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        type: 'mobile_money',
-        name: user.email,
-        account_number: phone,
-        bank_code: mpesaBankCode,
-        currency: 'KES',
-      }),
+      body: JSON.stringify(recipientPayload),
     });
     const recipientData = await recipientRes.json();
     console.log('Recipient response:', JSON.stringify(recipientData));
@@ -169,9 +195,9 @@ Deno.serve(async (req) => {
         source: 'balance',
         amount: amountInCents,
         recipient: recipientData.data.recipient_code,
-        reason: `Wallet withdrawal (${reference})`,
+        reason: `Wallet withdrawal via ${methodLabel} (${reference})`,
         reference,
-        currency: 'KES',
+        currency,
       }),
     });
     const transferData = await transferRes.json();
@@ -194,17 +220,18 @@ Deno.serve(async (req) => {
     // Update wallet transaction to processing
     await supabase.from('wallet_transactions').update({
       status: 'processing',
-      description: `Withdrawal to M-Pesa (${reference}) — KES ${amountKes.toFixed(0)} @ ${fxRate}`,
+      description: `Withdrawal via ${methodLabel} (${reference}) — ${currency} ${amountLocal.toFixed(0)} @ ${fxRate}`,
       exchange_rate: fxRate,
     }).eq('reference', reference);
 
-    console.log(`Withdrawal initiated: ${user.id} → KES ${amountKes.toFixed(2)}, ref: ${reference}`);
+    console.log(`Withdrawal initiated: ${user.id} → ${currency} ${amountLocal.toFixed(2)}, method: ${method}, ref: ${reference}`);
 
     return new Response(JSON.stringify({
       success: true,
       reference,
       amount_usd: amount,
-      amount_kes: amountKes,
+      amount_local: amountLocal,
+      currency,
       exchange_rate: fxRate,
     }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 

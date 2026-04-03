@@ -46,6 +46,15 @@ const MyDashboard = () => {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawBankOpen, setWithdrawBankOpen] = useState(false);
+  const [bankAmount, setBankAmount] = useState("");
+  const [bankCode, setBankCode] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [bankAccountName, setBankAccountName] = useState("");
+  const [bankCurrency, setBankCurrency] = useState("KES");
+  const [bankList, setBankList] = useState<{ name: string; code: string }[]>([]);
+  const [banksLoading, setBanksLoading] = useState(false);
+  const [bankWithdrawLoading, setBankWithdrawLoading] = useState(false);
 
   // Auto-refresh wallet & profile on mount and after deposit return
   useEffect(() => {
@@ -326,7 +335,7 @@ const MyDashboard = () => {
     setWithdrawLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("withdraw", {
-        body: { amount: amt, phone_number: withdrawPhone },
+        body: { amount: amt, phone_number: withdrawPhone, method: "mobile_money", currency: "KES" },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.detail || data.error);
@@ -338,6 +347,61 @@ const MyDashboard = () => {
       toast({ title: "Withdrawal failed", description: err.message, variant: "destructive" });
     } finally {
       setWithdrawLoading(false);
+    }
+  };
+
+  const fetchBanks = async (currency: string) => {
+    setBanksLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke("get-banks", { body: { currency } });
+      setBankList(data?.banks || []);
+    } catch {
+      setBankList([]);
+    } finally {
+      setBanksLoading(false);
+    }
+  };
+
+  const handleBankWithdraw = async () => {
+    if (!user) return;
+    const amt = parseFloat(bankAmount);
+    if (isNaN(amt) || amt < 1) {
+      toast({ title: "Invalid amount", description: "Minimum withdrawal is $1.00", variant: "destructive" });
+      return;
+    }
+    if (amt > (wallet?.balance_usd || 0)) {
+      toast({ title: "Insufficient balance", variant: "destructive" });
+      return;
+    }
+    if (!bankCode || !bankAccountNumber || !bankAccountName) {
+      toast({ title: "Missing details", description: "Please fill in all bank fields.", variant: "destructive" });
+      return;
+    }
+    setBankWithdrawLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("withdraw", {
+        body: {
+          amount: amt,
+          method: "bank",
+          bank_code: bankCode,
+          account_number: bankAccountNumber,
+          account_name: bankAccountName,
+          currency: bankCurrency,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.detail || data.error);
+      toast({ title: "✅ Bank transfer initiated", description: `$${amt.toFixed(2)} → ${bankCurrency} ${data.amount_local?.toFixed(0) || '—'}. Funds typically arrive within 1–2 business days.` });
+      setWithdrawBankOpen(false);
+      setBankAmount("");
+      setBankAccountNumber("");
+      setBankAccountName("");
+      setBankCode("");
+      refreshWallet();
+    } catch (err: any) {
+      toast({ title: "Bank withdrawal failed", description: err.message, variant: "destructive" });
+    } finally {
+      setBankWithdrawLoading(false);
     }
   };
 
@@ -435,14 +499,24 @@ const MyDashboard = () => {
               <ArrowDownToLine className="w-5 h-5 text-primary" />
               Withdraw Funds
             </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={(wallet?.balance_usd || 0) < 1}
-              onClick={() => setWithdrawOpen(true)}
-            >
-              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Mobile Money
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={(wallet?.balance_usd || 0) < 1}
+                onClick={() => setWithdrawOpen(true)}
+              >
+                <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Mobile Money
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={(wallet?.balance_usd || 0) < 1}
+                onClick={() => { setWithdrawBankOpen(true); fetchBanks(bankCurrency); }}
+              >
+                <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Bank
+              </Button>
+            </div>
             {(wallet?.balance_usd || 0) < 1 && (
               <p className="text-xs text-muted-foreground mt-1">Minimum balance of $1.00 required.</p>
             )}
@@ -504,6 +578,110 @@ const MyDashboard = () => {
                   onClick={handleWithdraw}
                 >
                   {withdrawLoading ? "Processing…" : `Withdraw $${parseFloat(withdrawAmount || "0").toFixed(2)}`}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Bank Withdraw Modal */}
+          <Dialog open={withdrawBankOpen} onOpenChange={setWithdrawBankOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Withdraw to Bank Account</DialogTitle>
+                <DialogDescription>
+                  Send funds from your wallet directly to your bank account.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Available balance</p>
+                  <p className="text-2xl font-bold font-mono text-foreground">${(wallet?.balance_usd || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Currency</label>
+                  <select
+                    className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background text-foreground"
+                    value={bankCurrency}
+                    onChange={e => { setBankCurrency(e.target.value); fetchBanks(e.target.value); setBankCode(""); }}
+                  >
+                    {[
+                      { code: "KES", label: "KES — Kenya Shilling" },
+                      { code: "NGN", label: "NGN — Nigerian Naira" },
+                      { code: "GHS", label: "GHS — Ghanaian Cedi" },
+                      { code: "ZAR", label: "ZAR — South African Rand" },
+                      { code: "UGX", label: "UGX — Ugandan Shilling" },
+                      { code: "TZS", label: "TZS — Tanzanian Shilling" },
+                    ].map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Amount (USD)</label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {[5, 10, 25, 50].filter(a => a <= (wallet?.balance_usd || 0)).map(a => (
+                      <button key={a} onClick={() => setBankAmount(String(a))}
+                        className={`text-xs px-2 py-1 rounded border ${bankAmount === String(a) ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                      >${a}</button>
+                    ))}
+                    <button onClick={() => setBankAmount(String(wallet?.balance_usd || 0))}
+                      className={`text-xs px-2 py-1 rounded border ${bankAmount === String(wallet?.balance_usd || 0) ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}
+                    >All</button>
+                  </div>
+                  <Input
+                    type="number" min="1" step="0.01"
+                    placeholder="Enter amount"
+                    value={bankAmount}
+                    onChange={e => setBankAmount(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Bank</label>
+                  {banksLoading ? (
+                    <p className="text-xs text-muted-foreground">Loading banks…</p>
+                  ) : (
+                    <select
+                      className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background text-foreground"
+                      value={bankCode}
+                      onChange={e => setBankCode(e.target.value)}
+                    >
+                      <option value="">Select a bank</option>
+                      {bankList.map(b => (
+                        <option key={b.code} value={b.code}>{b.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Account Number</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. 1234567890"
+                    value={bankAccountNumber}
+                    onChange={e => setBankAccountNumber(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-foreground mb-1 block">Account Name</label>
+                  <Input
+                    type="text"
+                    placeholder="Name on bank account"
+                    value={bankAccountName}
+                    onChange={e => setBankAccountName(e.target.value)}
+                  />
+                </div>
+                {bankAmount && parseFloat(bankAmount) > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    You will receive approximately <span className="font-semibold text-foreground">{bankCurrency} {(parseFloat(bankAmount) * (bankCurrency === 'KES' ? 130 : bankCurrency === 'NGN' ? 1600 : bankCurrency === 'GHS' ? 15 : bankCurrency === 'ZAR' ? 18 : bankCurrency === 'UGX' ? 3700 : 2700)).toFixed(0)}</span>
+                  </p>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  Bank transfers typically arrive within 1–2 business days. A small Paystack transfer fee may apply.
+                </p>
+                <Button
+                  className="w-full"
+                  disabled={bankWithdrawLoading || !bankAmount || parseFloat(bankAmount) < 1 || !bankCode || !bankAccountNumber || !bankAccountName}
+                  onClick={handleBankWithdraw}
+                >
+                  {bankWithdrawLoading ? "Processing…" : `Withdraw $${parseFloat(bankAmount || "0").toFixed(2)} to Bank`}
                 </Button>
               </div>
             </DialogContent>

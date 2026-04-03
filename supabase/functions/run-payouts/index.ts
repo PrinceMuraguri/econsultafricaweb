@@ -322,8 +322,35 @@ Deno.serve(async (req) => {
             }),
           });
 
-          const transferData = await transferRes.json();
-          console.log('Transfer API response:', JSON.stringify(transferData));
+          let transferData: any;
+          try {
+            transferData = await transferRes.json();
+          } catch (jsonErr) {
+            const rawText = await transferRes.text().catch(() => '(could not read body)');
+            console.error(`Paystack transfer returned non-JSON (HTTP ${transferRes.status}):`, rawText);
+            results.push({ payout_id: payout.id, status: 'failed', error: `Paystack returned HTTP ${transferRes.status} with non-JSON body` });
+            await supabase.from('payouts').update({ status: 'failed' }).eq('id', payout.id);
+            continue;
+          }
+          console.log(`Transfer API response (HTTP ${transferRes.status}):`, JSON.stringify(transferData));
+
+          if (transferRes.status !== 200 && transferRes.status !== 201) {
+            const errMsg = transferData?.message || `Paystack HTTP ${transferRes.status}`;
+            console.error('Paystack transfer failed:', errMsg, JSON.stringify(transferData));
+            results.push({ payout_id: payout.id, status: 'failed', error: errMsg });
+            await supabase.from('payouts').update({ status: 'failed' }).eq('id', payout.id);
+            await supabase.from('payout_transfers').insert({
+              payout_id: payout.id,
+              voter_fingerprint: payout.voter_fingerprint,
+              recipient_code: recipientCode,
+              amount: payout.amount,
+              currency: 'KES',
+              status: 'failed',
+              batch_id: batchId,
+              error_message: errMsg,
+            });
+            continue;
+          }
 
           if (!transferData.status) {
             results.push({ payout_id: payout.id, status: 'failed', error: transferData.message });

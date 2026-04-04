@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
         total_pool: totalPool,
         winner_count: winners.length,
         loser_count: losers.length,
-        implied_price: impliedPrice,
+        implied_price: fallbackImpliedPrice,
         platform_fee_rate: 0.035,
         total_fees: payoutRecords.reduce((s, p) => s + (Math.round(p.amount / (1 - 0.035) * 0.035 * 100) / 100), 0),
         total_net_payouts: payoutRecords.reduce((s, p) => s + p.amount, 0),

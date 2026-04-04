@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, User, LogIn, LogOut, Wallet, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,14 @@ const Navbar = () => {
   const [loginOpen, setLoginOpen] = useState(false);
 
   const isLoggedIn = !!user;
+
+  // Close modals when user becomes authenticated — prevents orphaned overlays
+  useEffect(() => {
+    if (user) {
+      setLoginOpen(false);
+      setRegisterOpen(false);
+    }
+  }, [user]);
 
   return (
     <>

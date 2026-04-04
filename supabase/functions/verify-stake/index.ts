@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     // First check our own DB — the webhook may have already processed it
     const { data: tx } = await supabase
       .from('transactions')
-      .select('id, status, poll_id, option_id, voter_fingerprint, amount')
+      .select('id, status, poll_id, option_id, voter_fingerprint, amount, reference')
       .eq('reference', reference)
       .maybeSingle();
 

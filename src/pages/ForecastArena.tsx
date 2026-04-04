@@ -207,7 +207,7 @@ const ForecastArena = () => {
       <div className="bg-muted/50 border-b border-border">
         <div className="container-page py-2">
           <p className="text-[10px] text-muted-foreground text-center">
-            Forecast Arena aggregates users' expectations on economic outcomes for research and insight purposes.
+            Forecast Arena aggregates people's expectations on economic outcomes for research and insight purposes.
             Not a betting or trading platform. Read our <a href="/terms-of-use" className="text-primary underline">Terms of Use</a>.
           </p>
         </div>

@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     // First check our own DB — the webhook may have already processed it
     const { data: tx } = await supabase
       .from('transactions')
-      .select('id, status, poll_id, option_id, voter_fingerprint, amount')
+      .select('id, status, poll_id, option_id, voter_fingerprint, amount, reference')
       .eq('reference', reference)
       .maybeSingle();
 
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Verify stake error:', error.message);
+    console.error('Verify stake error:', (error as Error).message);
     return new Response(JSON.stringify({ error: 'Verification failed. Please try again.' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -167,7 +167,7 @@ async function verifyWithPaystack(secretKey: string, reference: string) {
     });
     return await verifyRes.json();
   } catch (e) {
-    console.error('Paystack verify API error:', e.message);
+    console.error('Paystack verify API error:', (e as Error).message);
     return null;
   }
 }

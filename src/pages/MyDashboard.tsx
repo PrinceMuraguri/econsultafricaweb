@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,7 @@ const DEPOSIT_AMOUNTS = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
 const MyDashboard = () => {
   const { user, profile, wallet, refreshWallet, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [depositLoading, setDepositLoading] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -61,16 +62,51 @@ const MyDashboard = () => {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
     const isDepositReturn = params.get("deposit") === "success";
-    
+
     refreshWallet();
     refreshProfile();
-    
+
     if (isDepositReturn) {
       toast({ title: "💰 Deposit processing", description: "Your wallet balance will update shortly." });
       const interval = setInterval(() => refreshWallet(), 3000);
       setTimeout(() => clearInterval(interval), 30000);
       window.history.replaceState({}, "", window.location.pathname);
     }
+  }, [user]);
+
+  // Realtime subscriptions — push updates instantly when DB changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`dashboard-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, () => {
+        refreshWallet();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-wallet-transactions', user.id] });
+        queryClient.invalidateQueries({ queryKey: ['my-wallet-payouts', user.id] });
+        refreshWallet();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payouts' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-payouts', user.id] });
+        queryClient.invalidateQueries({ queryKey: ['my-wallet-payouts', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'positions', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-share-positions', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-trades', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   // Fetch user's votes — match by BOTH voter_fingerprint AND email to capture all historical positions
@@ -178,6 +214,7 @@ const MyDashboard = () => {
       return data || [];
     },
     enabled: !!user,
+    refetchInterval: 15000,
   });
 
   // Fetch wallet transactions
@@ -271,6 +308,7 @@ const MyDashboard = () => {
       return data || [];
     },
     enabled: !!user,
+    refetchInterval: 15000,
   });
 
   // Also fetch payout wallet transactions directly by user_id (wallet-mode payouts)
@@ -287,6 +325,7 @@ const MyDashboard = () => {
       return data || [];
     },
     enabled: !!user,
+    refetchInterval: 15000,
   });
 
   const handleDeposit = async (amount: number) => {

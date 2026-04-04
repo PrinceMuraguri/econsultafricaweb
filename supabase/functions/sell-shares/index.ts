@@ -64,15 +64,26 @@ Deno.serve(async (req) => {
 
     // Update position
     const newShares = position.shares - shares;
+    const newTotalCost = newShares > 0
+      ? parseFloat((position.total_cost * (newShares / position.shares)).toFixed(2))
+      : 0;
     if (newShares <= 0) {
       await supabase.from("positions").delete().eq("id", position.id);
     } else {
       await supabase.from("positions").update({
         shares: newShares,
-        total_cost: parseFloat((position.total_cost * (newShares / position.shares)).toFixed(2)),
+        total_cost: newTotalCost,
         updated_at: new Date().toISOString(),
       }).eq("id", position.id);
     }
+
+    // Keep votes.stake_amount in sync so settlement never double-pays sold shares
+    await supabase
+      .from("votes")
+      .update({ stake_amount: newTotalCost, is_staked: newShares > 0 })
+      .eq("poll_id", poll_id)
+      .eq("option_id", option_id)
+      .eq("user_id", user.id);
 
     // Record trade
     await supabase.from("trades").insert({

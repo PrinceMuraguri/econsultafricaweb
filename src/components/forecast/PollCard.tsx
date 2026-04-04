@@ -16,7 +16,6 @@ import LoginModal from "@/components/auth/LoginModal";
 import HowItWorksPdfModal from "./HowItWorksPdfModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
-import OrderBookModal from "./OrderBookModal";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const PARTICIPATION_ENABLED = true;
@@ -59,7 +58,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
-  const [orderBookOpen, setOrderBookOpen] = useState(false);
 
   const isLoggedIn = !!user;
 
@@ -591,14 +589,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   Committed {new Date(stakeDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                 </p>
               )}
-              {!isClosed && (
-                <Button
-                  size="sm"
-                  onClick={(e) => { e.stopPropagation(); setOrderBookOpen(true); }}
-                  className="w-full text-[10px] font-bold gap-1 mt-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              {!isClosed && poll.slug && (
+                <Link
+                  to={`/forecast-arena/${poll.slug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full mt-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-3 rounded-md bg-accent hover:bg-accent/90 text-accent-foreground transition-colors"
                 >
-                  <ArrowUpDown className="w-3 h-3" /> Trade your shares with other users
-                </Button>
+                  <ArrowUpDown className="w-3 h-3" /> Buy more · Sell position
+                </Link>
               )}
             </div>
           </motion.div>
@@ -618,7 +616,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={{ ...poll, poll_options: localOptions }} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
-      <OrderBookModal open={orderBookOpen} onOpenChange={setOrderBookOpen} poll={poll} />
     </motion.div>
   );
 };

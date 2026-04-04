@@ -79,9 +79,9 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 {wallet && (
-                  <span className="flex items-center gap-1 text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">
+                  <Link to="/my-dashboard" className="flex items-center gap-1 text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full hover:bg-primary/20 transition-colors">
                     <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}
-                  </span>
+                  </Link>
                 )}
                 <NotificationBell />
                 <Link to="/watchlist"

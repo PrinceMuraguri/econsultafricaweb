@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'create_poll') {
-      const { poll, options } = body;
+      const { poll, options } = body as { poll: Record<string, any>; options: string[] };
       if (!poll?.title || !options?.length) {
         return jsonResponse({ error: 'poll and options required' }, 400);
       }

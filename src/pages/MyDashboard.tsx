@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   BarChart3, TrendingUp, Clock, CheckCircle, XCircle,
-  DollarSign, Activity, ArrowRight, User, Wallet, Plus, ArrowDownToLine
+  DollarSign, Activity, ArrowRight, User, Wallet, Plus, ArrowDownToLine,
+  ChevronDown, ChevronUp, History, Receipt, CreditCard
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +57,14 @@ const MyDashboard = () => {
   const [bankList, setBankList] = useState<{ name: string; code: string }[]>([]);
   const [banksLoading, setBanksLoading] = useState(false);
   const [bankWithdrawLoading, setBankWithdrawLoading] = useState(false);
+
+  // Section expand/collapse state (default: collapsed to 5 items)
+  const [showAllActivity, setShowAllActivity] = useState(false);
+  const [showAllActive, setShowAllActive] = useState(false);
+  const [showAllClosed, setShowAllClosed] = useState(false);
+  const [showAllWalletTxns, setShowAllWalletTxns] = useState(false);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [showAllPayouts, setShowAllPayouts] = useState(false);
 
   // Auto-refresh wallet & profile on mount and after deposit return
   useEffect(() => {
@@ -634,6 +643,24 @@ const MyDashboard = () => {
             ))}
           </div>
 
+          {/* Section Quick-Nav */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {[
+              { label: "Recent Activity", href: "#recent-activity", icon: Activity },
+              { label: "Active Forecasts", href: "#active-forecasts", icon: BarChart3 },
+              { label: "Closed Forecasts", href: "#closed-forecasts", icon: History },
+              { label: "Wallet Activity", href: "#wallet-activity", icon: Wallet },
+              { label: "Transactions", href: "#transactions", icon: Receipt },
+              { label: "Payouts", href: "#payouts", icon: CreditCard },
+            ].map(({ label, href, icon: Icon }) => (
+              <a key={href} href={href} onClick={e => { e.preventDefault(); document.getElementById(href.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+                <Button variant="outline" size="sm" className="flex items-center gap-1.5 text-xs">
+                  <Icon className="w-3.5 h-3.5" />{label}
+                </Button>
+              </a>
+            ))}
+          </div>
+
           {/* Wallet Deposit */}
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -872,7 +899,7 @@ const MyDashboard = () => {
           )}
 
           {/* Recent Activity — unified feed */}
-          <div className="mb-8">
+          <div id="recent-activity" className="mb-8 scroll-mt-20">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <Activity className="w-5 h-5 text-primary" />
               Recent Activity
@@ -886,7 +913,7 @@ const MyDashboard = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {activityFeed.map(item => {
+                {(showAllActivity ? activityFeed : activityFeed.slice(0, 5)).map(item => {
                   const kindConfig: Record<string, { badge: string; color: string }> = {
                     vote:                 { badge: "Voted",       color: "bg-blue-500/10 text-blue-600" },
                     stake:                { badge: "Committed",   color: "bg-orange-500/10 text-orange-600" },
@@ -934,11 +961,23 @@ const MyDashboard = () => {
                     <div key={item.id}>{inner}</div>
                   );
                 })}
+                {activityFeed.length > 5 && (
+                  <button
+                    onClick={() => setShowAllActivity(v => !v)}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors"
+                  >
+                    {showAllActivity ? (
+                      <><ChevronUp className="w-3.5 h-3.5" /> Show less</>
+                    ) : (
+                      <><ChevronDown className="w-3.5 h-3.5" /> Show {activityFeed.length - 5} more</>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          <div className="mb-8">
+          <div id="active-forecasts" className="mb-8 scroll-mt-20">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
               My Active Forecasts ({activePositions.length})
@@ -952,7 +991,7 @@ const MyDashboard = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {activePositions.map(pos => {
+                {(showAllActive ? activePositions : activePositions.slice(0, 5)).map(pos => {
                   const consensusPct = pos.total_votes > 0 ? Math.round((pos.option_votes / pos.total_votes) * 100) : 50;
                   const isYes = pos.option_label.toLowerCase() === "yes";
                   return (
@@ -978,22 +1017,31 @@ const MyDashboard = () => {
                     </Link>
                   );
                 })}
+                {activePositions.length > 5 && (
+                  <button
+                    onClick={() => setShowAllActive(v => !v)}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors"
+                  >
+                    {showAllActive ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {activePositions.length - 5} more</>}
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* Resolved Positions */}
-          <div className="mb-8">
-            <h2 className="font-display text-xl font-bold text-foreground mb-4">
-              Forecast History ({resolvedPositions.length})
+          {/* Closed Forecasts */}
+          <div id="closed-forecasts" className="mb-8 scroll-mt-20">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <History className="w-5 h-5 text-primary" />
+              Closed Forecasts ({resolvedPositions.length})
             </h2>
             {resolvedPositions.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">
-                <p className="text-sm text-muted-foreground">No resolved positions yet.</p>
+                <p className="text-sm text-muted-foreground">No closed forecasts yet.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {resolvedPositions.map(pos => (
+                {(showAllClosed ? resolvedPositions : resolvedPositions.slice(0, 5)).map(pos => (
                   <div key={pos.id} className="bg-card border border-border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="text-sm font-semibold text-foreground leading-snug flex-1 mr-4">{pos.poll_title}</h3>
@@ -1006,7 +1054,7 @@ const MyDashboard = () => {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>Position: {pos.option_label}</span>
-                       <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
+                      <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
                       {pos.is_staked && <span>Conviction: ${pos.stake_amount?.toFixed(2)}</span>}
                       {pos.outcome === "won" && pos.is_staked && (
                         <span className="text-green-600 font-semibold">Earned: ${pos.potential_payout.toFixed(2)}</span>
@@ -1015,14 +1063,25 @@ const MyDashboard = () => {
                     </div>
                   </div>
                 ))}
+                {resolvedPositions.length > 5 && (
+                  <button
+                    onClick={() => setShowAllClosed(v => !v)}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors"
+                  >
+                    {showAllClosed ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {resolvedPositions.length - 5} more</>}
+                  </button>
+                )}
               </div>
             )}
           </div>
 
           {/* Wallet Transactions */}
           {walletTxns && walletTxns.length > 0 && (
-            <div className="mb-8">
-              <h2 className="font-display text-xl font-bold text-foreground mb-4">Wallet Activity</h2>
+            <div id="wallet-activity" className="mb-8 scroll-mt-20">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <Wallet className="w-5 h-5 text-primary" />
+                Wallet Activity ({walletTxns.length})
+              </h2>
               <div className="bg-card border border-border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -1035,27 +1094,38 @@ const MyDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {walletTxns.map((tx: any) => (
+                      {(showAllWalletTxns ? walletTxns : walletTxns.slice(0, 5)).map((tx: any) => (
                         <tr key={tx.id} className="border-t border-border">
                           <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
-                          <td className="px-4 py-2 capitalize text-muted-foreground">{tx.type}</td>
+                          <td className="px-4 py-2 capitalize text-muted-foreground">{tx.type.replace(/_/g, ' ')}</td>
                           <td className={`px-4 py-2 font-mono font-semibold ${tx.amount > 0 ? "text-green-600" : "text-red-500"}`}>
                             {tx.amount > 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
                           </td>
-                          <td className="px-4 py-2 text-muted-foreground">{tx.description || "—"}</td>
+                          <td className="px-4 py-2 text-muted-foreground max-w-[200px] truncate">{tx.description || "—"}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
+              {walletTxns.length > 5 && (
+                <button
+                  onClick={() => setShowAllWalletTxns(v => !v)}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors mt-2"
+                >
+                  {showAllWalletTxns ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {walletTxns.length - 5} more</>}
+                </button>
+              )}
             </div>
           )}
 
-          {/* Recent Transactions */}
+          {/* Paystack Transactions */}
           {transactions && transactions.length > 0 && (
-            <div className="mb-8">
-              <h2 className="font-display text-xl font-bold text-foreground mb-4">Transaction History</h2>
+            <div id="transactions" className="mb-8 scroll-mt-20">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-primary" />
+                Transaction History ({transactions.length})
+              </h2>
               <div className="bg-card border border-border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -1069,14 +1139,14 @@ const MyDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map((tx: any) => (
+                      {(showAllTransactions ? transactions : transactions.slice(0, 5)).map((tx: any) => (
                         <tr key={tx.id} className="border-t border-border">
                           <td className="px-4 py-2 text-foreground">{new Date(tx.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
                           <td className="px-4 py-2 font-mono font-semibold text-foreground">${tx.amount.toFixed(2)}</td>
                           <td className="px-4 py-2 text-muted-foreground capitalize">{tx.channel}</td>
                           <td className="px-4 py-2">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                              tx.status === "completed" ? "bg-green-100 text-green-700" :
+                              tx.status === "success" || tx.status === "completed" ? "bg-green-100 text-green-700" :
                               tx.status === "pending" ? "bg-yellow-100 text-yellow-700" :
                               "bg-red-100 text-red-700"
                             }`}>{tx.status}</span>
@@ -1088,45 +1158,70 @@ const MyDashboard = () => {
                   </table>
                 </div>
               </div>
+              {transactions.length > 5 && (
+                <button
+                  onClick={() => setShowAllTransactions(v => !v)}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors mt-2"
+                >
+                  {showAllTransactions ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {transactions.length - 5} more</>}
+                </button>
+              )}
             </div>
           )}
 
           {/* Payouts */}
-          {payouts && payouts.length > 0 && (
-            <div>
-              <h2 className="font-display text-xl font-bold text-foreground mb-4">Payouts</h2>
-              <div className="bg-card border border-border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Date</th>
-                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Amount</th>
-                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Status</th>
-                        <th className="text-left px-4 py-2 font-medium text-muted-foreground">Method</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payouts.map((p: any) => (
-                        <tr key={p.id} className="border-t border-border">
-                          <td className="px-4 py-2 text-foreground">{new Date(p.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
-                          <td className="px-4 py-2 font-mono font-semibold text-green-600">${p.amount.toFixed(2)}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                              p.status === "completed" ? "bg-green-100 text-green-700" :
-                              p.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                              "bg-red-100 text-red-700"
-                            }`}>{p.status}</span>
-                          </td>
-                          <td className="px-4 py-2 text-muted-foreground capitalize">{p.payout_method || "mpesa"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+          <div id="payouts" className="mb-8 scroll-mt-20">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              Payouts {payouts && payouts.length > 0 && `(${payouts.length})`}
+            </h2>
+            {!payouts || payouts.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <p className="text-sm text-muted-foreground">No payouts yet. Win a forecast to earn a payout.</p>
               </div>
-            </div>
-          )}
+            ) : (
+              <>
+                <div className="bg-card border border-border rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Date</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Amount</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Status</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Method</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(showAllPayouts ? payouts : payouts.slice(0, 5)).map((p: any) => (
+                          <tr key={p.id} className="border-t border-border">
+                            <td className="px-4 py-2 text-foreground">{new Date(p.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</td>
+                            <td className="px-4 py-2 font-mono font-semibold text-green-600">${p.amount.toFixed(2)}</td>
+                            <td className="px-4 py-2">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                p.status === "completed" ? "bg-green-100 text-green-700" :
+                                p.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                                "bg-red-100 text-red-700"
+                              }`}>{p.status}</span>
+                            </td>
+                            <td className="px-4 py-2 text-muted-foreground capitalize">{p.payout_method || "mpesa"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                {payouts.length > 5 && (
+                  <button
+                    onClick={() => setShowAllPayouts(v => !v)}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors mt-2"
+                  >
+                    {showAllPayouts ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {payouts.length - 5} more</>}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </section>
     </Layout>

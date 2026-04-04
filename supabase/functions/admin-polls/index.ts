@@ -91,13 +91,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'create_poll') {
-      const { poll, options } = body;
+      const { poll, options } = body as { poll: Record<string, any>; options: string[] };
       if (!poll?.title || !options?.length) {
         return jsonResponse({ error: 'poll and options required' }, 400);
       }
 
       // Ensure unique slug by appending timestamp if needed
-      let finalPoll = { ...poll };
+      let finalPoll: Record<string, any> = { ...poll };
       if (finalPoll.slug) {
         const { data: existing } = await supabase
           .from('polls')

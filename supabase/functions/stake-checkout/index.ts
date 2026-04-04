@@ -16,7 +16,7 @@ async function getUsdToKesRate(): Promise<number> {
       if (rate && rate > 50 && rate < 300) return rate;
     }
   } catch (e) {
-    console.log('FX fallback:', e.message);
+    console.log('FX fallback:', (e as Error).message);
   }
   return FALLBACK_USD_KES_RATE;
 }
@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Stake checkout error:', error.message, error.stack);
+    console.error('Stake checkout error:', (error as Error).message, (error as Error).stack);
     return new Response(JSON.stringify({ error: 'Something went wrong. Please try again.' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

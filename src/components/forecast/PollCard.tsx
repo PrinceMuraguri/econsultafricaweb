@@ -594,9 +594,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               {!isClosed && (
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={(e) => { e.stopPropagation(); setOrderBookOpen(true); }}
-                  className="w-full text-[10px] font-bold gap-1 mt-1"
+                  className="w-full text-[10px] font-bold gap-1 mt-1 bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                   <ArrowUpDown className="w-3 h-3" /> Trade your shares with other users
                 </Button>

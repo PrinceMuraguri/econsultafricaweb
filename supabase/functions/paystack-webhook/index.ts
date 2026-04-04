@@ -286,6 +286,87 @@ Deno.serve(async (req) => {
         }
       }
 
+      // ── SEND VOTE CONFIRMATION EMAIL ──
+      if (metadata?.type === 'forecast_stake') {
+        const { poll_id, option_id, amount_usd, user_id: metaUserId, voter_fingerprint } = metadata;
+        try {
+          // Resolve user email
+          let userEmail: string | null = null;
+          let userName: string | null = null;
+          const resolvedUid = metaUserId || (() => {
+            // already resolved above, but we may not have it in scope — re-derive
+            return null;
+          })();
+          if (resolvedUid) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('full_name, username')
+              .eq('user_id', resolvedUid)
+              .maybeSingle();
+            userName = profile?.full_name?.split(' ')[0] || profile?.username || null;
+            const { data: authUser } = await supabase.auth.admin.getUserById(resolvedUid);
+            userEmail = authUser?.user?.email || null;
+          }
+          if (!userEmail && voter_fingerprint) {
+            const { data: vProfile } = await supabase
+              .from('user_profiles')
+              .select('user_id, full_name, username')
+              .eq('voter_fingerprint', voter_fingerprint)
+              .maybeSingle();
+            if (vProfile?.user_id) {
+              const { data: authUser } = await supabase.auth.admin.getUserById(vProfile.user_id);
+              userEmail = authUser?.user?.email || null;
+              userName = vProfile.full_name?.split(' ')[0] || vProfile.username || null;
+            }
+          }
+
+          if (userEmail) {
+            // Fetch poll + option details
+            const { data: pollData } = await supabase
+              .from('polls')
+              .select('question, close_at')
+              .eq('id', poll_id)
+              .maybeSingle();
+            const { data: optionData } = await supabase
+              .from('poll_options')
+              .select('text')
+              .eq('id', option_id)
+              .maybeSingle();
+
+            const stakeUsd = amount_usd ? Number(amount_usd) : 0;
+            const resDate = pollData?.close_at
+              ? new Date(pollData.close_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+              : 'TBD';
+            // Rough expected return: stake / 0.5 * (1 - 0.035) — simplified, uses 50% implied price
+            const expectedReturn = stakeUsd > 0 ? `~$${(stakeUsd / 0.5 * 0.965).toFixed(2)}` : undefined;
+
+            await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseKey}`,
+              },
+              body: JSON.stringify({
+                templateName: 'forecast-vote-confirmation',
+                recipientEmail: userEmail,
+                templateData: {
+                  pollTitle: pollData?.question || 'Forecast Question',
+                  selectedOption: optionData?.text || 'Your choice',
+                  resolutionDate: resDate,
+                  capitalCommitted: stakeUsd > 0 ? `$${stakeUsd.toFixed(2)}` : undefined,
+                  expectedReturn,
+                  pollUrl: `${Deno.env.get('SITE_URL') || 'https://econsult.africa'}/forecast-arena`,
+                  userName,
+                  isStaked: stakeUsd > 0,
+                },
+              }),
+            }).catch(e => console.log('Vote confirmation email failed (non-blocking):', e.message));
+          }
+        } catch (emailErr) {
+          console.log('Vote confirmation email error (non-blocking):', (emailErr as Error).message);
+        }
+      }
+
       console.log('Webhook processed successfully for:', reference);
     }
 

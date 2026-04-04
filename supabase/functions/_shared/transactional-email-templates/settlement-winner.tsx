@@ -45,7 +45,7 @@ const SettlementWinnerEmail = ({
         </Section>
         <Text style={text}>
           The payout has been credited to your Econsult Africa wallet.
-          You can use it to participate in more forecasts or withdraw to M-Pesa.
+          You can use it to participate in more forecasts or withdraw via mobile money or bank transfer.
         </Text>
         {pollUrl && (
           <Button style={button} href={pollUrl}>

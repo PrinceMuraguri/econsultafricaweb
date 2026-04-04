@@ -177,6 +177,42 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Send vote confirmation email (fire-and-forget)
+    try {
+      const { data: pollData } = await supabase.from("polls").select("question, close_at").eq("id", poll_id).maybeSingle();
+      const { data: optionData } = await supabase.from("poll_options").select("text").eq("id", option_id).maybeSingle();
+      const { data: authUser } = await supabase.auth.admin.getUserById(user.id);
+      const { data: userProfile } = await supabase.from("user_profiles").select("full_name, username").eq("user_id", user.id).maybeSingle();
+      const userEmail = authUser?.user?.email;
+      if (userEmail) {
+        const userName = userProfile?.full_name?.split(" ")[0] || userProfile?.username || undefined;
+        const resDate = pollData?.close_at
+          ? new Date(pollData.close_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+          : "TBD";
+        const expectedReturn = `~$${(totalCost / currentPrice * 0.965).toFixed(2)}`;
+        await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
+          body: JSON.stringify({
+            templateName: "forecast-vote-confirmation",
+            recipientEmail: userEmail,
+            templateData: {
+              pollTitle: pollData?.question || "Forecast Question",
+              selectedOption: optionData?.text || "Your choice",
+              resolutionDate: resDate,
+              capitalCommitted: `$${totalCost.toFixed(2)}`,
+              expectedReturn,
+              pollUrl: `${Deno.env.get("SITE_URL") || "https://econsult.africa"}/forecast-arena`,
+              userName,
+              isStaked: true,
+            },
+          }),
+        }).catch(e => console.log("Vote confirmation email failed (non-blocking):", e.message));
+      }
+    } catch (emailErr) {
+      console.log("Vote confirmation email error (non-blocking):", (emailErr as Error).message);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       shares_bought: shares,

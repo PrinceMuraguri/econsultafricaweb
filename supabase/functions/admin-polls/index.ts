@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       }
 
       // Ensure unique slug by appending timestamp if needed
-      let finalPoll = { ...poll };
+      let finalPoll: Record<string, any> = { ...poll };
       if (finalPoll.slug) {
         const { data: existing } = await supabase
           .from('polls')

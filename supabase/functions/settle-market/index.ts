@@ -317,8 +317,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Settlement error:', error.message);
-    return new Response(JSON.stringify({ error: 'Settlement failed: ' + error.message }), {
+    console.error('Settlement error:', (error as Error).message);
+    return new Response(JSON.stringify({ error: 'Settlement failed: ' + (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

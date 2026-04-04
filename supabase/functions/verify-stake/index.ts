@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Verify stake error:', error.message);
+    console.error('Verify stake error:', (error as Error).message);
     return new Response(JSON.stringify({ error: 'Verification failed. Please try again.' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -146,7 +146,7 @@ const ForecastArena = () => {
                 <span className="block sm:inline">Forecast</span>{" "}
                 <span className="block sm:inline">Arena</span>
               </h1>
-              <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's Economic Sentiment Aggregator</p>
+              <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's First Economic Sentiment Aggregator</p>
               <p className="text-xs text-background/50 tracking-wide mt-0.5">Collective intelligence for the public good</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Your Voice. <span className="text-accent">Africa's Future.</span>

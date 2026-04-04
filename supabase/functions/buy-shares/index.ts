@@ -181,9 +181,8 @@ Deno.serve(async (req) => {
     try {
       const { data: pollData } = await supabase.from("polls").select("question, close_at").eq("id", poll_id).maybeSingle();
       const { data: optionData } = await supabase.from("poll_options").select("text").eq("id", option_id).maybeSingle();
-      const { data: authUser } = await supabase.auth.admin.getUserById(user.id);
       const { data: userProfile } = await supabase.from("user_profiles").select("full_name, username").eq("user_id", user.id).maybeSingle();
-      const userEmail = authUser?.user?.email;
+      const userEmail = user.email;
       if (userEmail) {
         const userName = userProfile?.full_name?.split(" ")[0] || userProfile?.username || undefined;
         const resDate = pollData?.close_at

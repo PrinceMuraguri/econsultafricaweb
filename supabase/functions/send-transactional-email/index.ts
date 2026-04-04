@@ -349,6 +349,17 @@ Deno.serve(async (req) => {
 
   console.log('Transactional email enqueued', { templateName, effectiveRecipient })
 
+  // Immediately trigger queue processor (fire-and-forget) so emails are
+  // sent in the same request cycle rather than waiting for a cron job.
+  fetch(`${supabaseUrl}/functions/v1/process-email-queue`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseServiceKey}`,
+    },
+    body: '{}',
+  }).catch((e: Error) => console.log('Queue processor trigger failed (non-blocking):', e.message))
+
   await supabase.from('sales_funnel_events').insert({
     event_type: 'email_sent',
     product_title: typeof templateData.productTitle === 'string' ? templateData.productTitle : null,

@@ -1,7 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Container, Head, Heading, Html, Img, Preview, Text, Hr, Section,
+  Body, Button, Container, Head, Heading, Html, Img, Preview, Text, Hr,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -41,64 +41,58 @@ const ForecastVoteConfirmationEmail = ({
           {userName ? `${userName}, your forecast is locked in` : 'Your forecast is locked in'}
         </Heading>
         <Text style={text}>
-          You've submitted a forecast on the Econsult Africa Forecast Arena.
-          Here's a summary of your position:
+          You've submitted a forecast on the Econsult Africa Forecast Arena. Here's a summary of your position:
         </Text>
 
-        <Section style={summaryBox}>
-          <Text style={summaryRow}>
-            <span style={summaryLabel}>Question</span>
-            <span style={summaryValue}>{pollTitle}</span>
-          </Text>
-          <Text style={summaryRow}>
-            <span style={summaryLabel}>Your forecast</span>
-            <span style={summaryValue}>{selectedOption}</span>
-          </Text>
-          <Text style={summaryRow}>
-            <span style={summaryLabel}>Resolution date</span>
-            <span style={summaryValue}>{resolutionDate}</span>
-          </Text>
-          {isStaked && capitalCommitted && (
-            <Text style={summaryRow}>
-              <span style={summaryLabel}>Capital committed</span>
-              <span style={summaryValue}>{capitalCommitted}</span>
-            </Text>
-          )}
-          {isStaked && expectedReturn && (
-            <Text style={summaryRow}>
-              <span style={summaryLabel}>Expected payout if correct</span>
-              <span style={summaryValueGreen}>{expectedReturn}</span>
-            </Text>
-          )}
-        </Section>
+        <table width="100%" cellPadding="0" cellSpacing="0" style={table}>
+          <tbody>
+            <tr>
+              <td style={tdLabel}>Question</td>
+              <td style={tdValue}>{pollTitle}</td>
+            </tr>
+            <tr>
+              <td style={tdLabel}>Your forecast</td>
+              <td style={tdValue}>{selectedOption}</td>
+            </tr>
+            <tr>
+              <td style={tdLabel}>Resolution date</td>
+              <td style={tdValue}>{resolutionDate}</td>
+            </tr>
+            {isStaked && capitalCommitted ? (
+              <tr>
+                <td style={tdLabel}>Capital committed</td>
+                <td style={tdValue}>{capitalCommitted}</td>
+              </tr>
+            ) : null}
+            {isStaked && expectedReturn ? (
+              <tr>
+                <td style={tdLabel}>Expected payout if correct</td>
+                <td style={tdValueGreen}>{expectedReturn}</td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
 
         {isStaked ? (
           <Text style={text}>
-            Your capital is now committed. If <strong>{selectedOption}</strong> is the correct outcome,
+            Your capital is now committed. If <strong>{selectedOption}</strong> resolves correctly,
             you'll receive your payout automatically — credited to your wallet within minutes of settlement.
-            The platform deducts a 3.5% fee on winnings.
+            A 3.5% platform fee applies on winnings.
           </Text>
         ) : (
           <Text style={text}>
-            You can strengthen your position by committing capital to your forecast.
-            If <strong>{selectedOption}</strong> resolves correctly, you earn a payout proportional to your stake.
+            You can strengthen your position by committing capital. If <strong>{selectedOption}</strong> resolves correctly,
+            you earn a payout proportional to your stake.
           </Text>
         )}
 
         <Text style={text}>
-          You can also trade your position on the order book before resolution — buy more shares or
-          sell your position if the market moves in your favour.
+          You can also trade your position on the order book before resolution — buy more shares or sell if the market moves in your favour.
         </Text>
 
-        {pollUrl ? (
-          <Button style={button} href={pollUrl}>
-            View Your Forecast
-          </Button>
-        ) : (
-          <Button style={button} href={arenaUrl}>
-            Browse Active Forecasts
-          </Button>
-        )}
+        <Button style={button} href={pollUrl || arenaUrl}>
+          {pollUrl ? 'View Your Forecast' : 'Browse Active Forecasts'}
+        </Button>
 
         <Hr style={hr} />
         <Text style={footer}>
@@ -115,12 +109,12 @@ export const template = {
     `Forecast confirmed: "${data.pollTitle || 'Question'}" → ${data.selectedOption || 'submitted'}`,
   displayName: 'Forecast vote confirmation',
   previewData: {
-    pollTitle: 'Will Kenya\'s inflation breach 5% in Q2 2026?',
+    pollTitle: "Will Kenya's inflation breach 5% in Q2 2026?",
     selectedOption: 'Yes',
     resolutionDate: 'June 30, 2026',
     capitalCommitted: '$5.00',
     expectedReturn: '~$9.66',
-    pollUrl: 'https://econsult.africa/forecast-arena/test-poll',
+    pollUrl: 'https://econsult.africa/forecast-arena',
     userName: 'Jane',
     isStaked: true,
   },
@@ -131,11 +125,10 @@ const container = { padding: '30px 25px' }
 const logo = { margin: '0 0 24px' }
 const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1a2744', margin: '0 0 20px' }
 const text = { fontSize: '14px', color: '#636b7a', lineHeight: '1.6', margin: '0 0 20px' }
-const summaryBox = { backgroundColor: '#f8f9fc', borderRadius: '8px', padding: '20px', margin: '0 0 24px', borderLeft: '4px solid #3660be' }
-const summaryRow = { fontSize: '14px', margin: '0 0 10px', display: 'block' as const }
-const summaryLabel = { color: '#9ca3af', fontSize: '12px', display: 'block' as const, marginBottom: '2px', textTransform: 'uppercase' as const, letterSpacing: '0.5px' }
-const summaryValue = { color: '#1a2744', fontWeight: 'bold' as const, fontSize: '14px' }
-const summaryValueGreen = { color: '#16a34a', fontWeight: 'bold' as const, fontSize: '14px' }
+const table = { borderCollapse: 'collapse' as const, backgroundColor: '#f8f9fc', borderRadius: '8px', marginBottom: '24px' }
+const tdLabel = { fontSize: '12px', color: '#9ca3af', padding: '8px 16px 4px', textTransform: 'uppercase' as const, letterSpacing: '0.5px', width: '45%', verticalAlign: 'top' as const }
+const tdValue = { fontSize: '14px', color: '#1a2744', fontWeight: 'bold' as const, padding: '8px 16px 4px', verticalAlign: 'top' as const }
+const tdValueGreen = { fontSize: '14px', color: '#16a34a', fontWeight: 'bold' as const, padding: '8px 16px 4px', verticalAlign: 'top' as const }
 const button = { backgroundColor: '#3660be', color: '#ffffff', fontSize: '14px', borderRadius: '4px', padding: '12px 24px', textDecoration: 'none' }
 const hr = { borderColor: '#e5e7eb', margin: '30px 0' }
 const footer = { fontSize: '12px', color: '#999999', margin: '0 0 8px' }

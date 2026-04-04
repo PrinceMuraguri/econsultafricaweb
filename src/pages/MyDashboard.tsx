@@ -12,7 +12,7 @@ import {
   BarChart3, TrendingUp, Clock, CheckCircle, XCircle,
   DollarSign, Activity, ArrowRight, User, Wallet, Plus, ArrowDownToLine
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DualCurrency from "@/components/DualCurrency";
 
@@ -100,6 +100,9 @@ const MyDashboard = () => {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-trades', user.id] });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-notifications', user.id] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
@@ -328,6 +331,24 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
+  // Fetch notifications for activity feed
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["my-notifications", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
   const handleDeposit = async (amount: number) => {
     if (!user) return;
     setDepositLoading(true);
@@ -470,6 +491,104 @@ const MyDashboard = () => {
   const earningsFromWallet = walletPayouts?.reduce((s, p) => s + Math.abs(p.amount || 0), 0) || 0;
   const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = resolvedPositions.filter(p => p.outcome === "won").length;
+
+  // Unified activity feed — merges votes, stakes, wallet events, and notifications
+  const activityFeed = useMemo(() => {
+    type ActivityItem = {
+      id: string;
+      kind: string;
+      label: string;
+      description?: string;
+      amount?: number;
+      amountSign?: '+' | '-';
+      link?: string;
+      timestamp: string;
+    };
+    const items: ActivityItem[] = [];
+
+    // Forecast votes & conviction stakes from positions
+    positions?.forEach(pos => {
+      items.push({
+        id: `vote-${pos.id}`,
+        kind: 'vote',
+        label: `Voted ${pos.option_label}`,
+        description: pos.poll_title,
+        timestamp: pos.created_at,
+        link: pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : undefined,
+      });
+      if (pos.is_staked && pos.stake_amount) {
+        items.push({
+          id: `stake-${pos.id}`,
+          kind: 'stake',
+          label: `Committed $${pos.stake_amount.toFixed(2)} capital`,
+          description: pos.poll_title,
+          amount: pos.stake_amount,
+          amountSign: '-',
+          timestamp: pos.created_at,
+          link: pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : undefined,
+        });
+      }
+    });
+
+    // Wallet events — deposits, withdrawals; skip buy_shares (shown via votes)
+    walletTxns?.forEach((tx: any) => {
+      if (tx.type === 'deposit') {
+        items.push({
+          id: `wtx-${tx.id}`,
+          kind: 'deposit',
+          label: 'Wallet funded',
+          description: tx.description || undefined,
+          amount: Math.abs(tx.amount),
+          amountSign: '+',
+          timestamp: tx.created_at,
+        });
+      } else if (tx.type === 'withdrawal') {
+        items.push({
+          id: `wtx-${tx.id}`,
+          kind: 'withdrawal',
+          label: 'Withdrawal initiated',
+          description: tx.description || undefined,
+          amount: Math.abs(tx.amount),
+          amountSign: '-',
+          timestamp: tx.created_at,
+        });
+      } else if (tx.type === 'payout' || tx.type === 'payout_mpesa') {
+        items.push({
+          id: `wtx-${tx.id}`,
+          kind: 'payout',
+          label: 'Payout received',
+          description: tx.description || undefined,
+          amount: Math.abs(tx.amount),
+          amountSign: '+',
+          timestamp: tx.created_at,
+        });
+      }
+    });
+
+    // Notifications — position outcomes, payouts, withdrawal results, comment replies
+    const notifKinds = new Set([
+      'position_won', 'position_lost',
+      'payout_completed', 'withdrawal_completed', 'withdrawal_failed',
+      'comment_reply',
+    ]);
+    notifications?.forEach((notif: any) => {
+      if (!notifKinds.has(notif.type)) return;
+      items.push({
+        id: `notif-${notif.id}`,
+        kind: notif.type,
+        label: notif.title,
+        description: notif.body || undefined,
+        timestamp: notif.created_at,
+        link: notif.link || undefined,
+      });
+    });
+
+    // Sort newest first, cap at 40
+    items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    // Deduplicate by id
+    const seen = new Set<string>();
+    return items.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 40);
+  }, [positions, walletTxns, notifications]);
 
   return (
     <Layout>
@@ -752,33 +871,72 @@ const MyDashboard = () => {
             </div>
           )}
 
-          {/* Recent Trades */}
-          {tradeHistory.length > 0 && (
-            <div className="mb-8">
-              <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
-                Recent Activity ({tradeHistory.length})
-              </h2>
-              <div className="space-y-2">
-                {tradeHistory.slice(0, 20).map((trade: any) => (
-                  <div key={trade.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                       <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${trade.side === "buy" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
-                        {trade.side === "buy" ? "Committed" : "Released"}
-                      </span>
-                      <span className="text-xs text-foreground">{Number(trade.shares)} shares @ ${Number(trade.price).toFixed(2)}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-xs font-semibold">${Number(trade.total_amount).toFixed(2)}</span>
-                      <span className="text-[9px] text-muted-foreground ml-1">
-                        {new Date(trade.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+          {/* Recent Activity — unified feed */}
+          <div className="mb-8">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary" />
+              Recent Activity
+              {activityFeed.length > 0 && (
+                <span className="text-sm font-normal text-muted-foreground ml-1">({activityFeed.length})</span>
+              )}
+            </h2>
+            {activityFeed.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <p className="text-sm text-muted-foreground">No activity yet. Make your first forecast to get started.</p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-2">
+                {activityFeed.map(item => {
+                  const kindConfig: Record<string, { badge: string; color: string }> = {
+                    vote:                 { badge: "Voted",       color: "bg-blue-500/10 text-blue-600" },
+                    stake:                { badge: "Committed",   color: "bg-orange-500/10 text-orange-600" },
+                    deposit:              { badge: "Deposit",     color: "bg-green-500/10 text-green-600" },
+                    withdrawal:           { badge: "Withdrawal",  color: "bg-red-500/10 text-red-500" },
+                    payout:               { badge: "Payout",      color: "bg-emerald-500/10 text-emerald-600" },
+                    position_won:         { badge: "✓ Won",       color: "bg-green-500/10 text-green-600" },
+                    position_lost:        { badge: "✗ Lost",      color: "bg-red-500/10 text-red-500" },
+                    payout_completed:     { badge: "Payout",      color: "bg-emerald-500/10 text-emerald-600" },
+                    withdrawal_completed: { badge: "Sent",        color: "bg-green-500/10 text-green-600" },
+                    withdrawal_failed:    { badge: "Failed",      color: "bg-red-500/10 text-red-500" },
+                    comment_reply:        { badge: "Reply",       color: "bg-purple-500/10 text-purple-600" },
+                  };
+                  const cfg = kindConfig[item.kind] ?? { badge: item.kind, color: "bg-muted text-muted-foreground" };
+
+                  const inner = (
+                    <div className="bg-card border border-border rounded-lg p-3 flex items-center justify-between gap-3 hover:border-primary/40 transition-colors">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0 ${cfg.color}`}>
+                          {cfg.badge}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs text-foreground truncate">{item.label}</p>
+                          {item.description && (
+                            <p className="text-[10px] text-muted-foreground truncate">{item.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {item.amount != null && (
+                          <p className={`font-mono text-xs font-semibold ${item.amountSign === '+' ? 'text-green-600' : 'text-red-500'}`}>
+                            {item.amountSign}${item.amount.toFixed(2)}
+                          </p>
+                        )}
+                        <p className="text-[9px] text-muted-foreground">
+                          {new Date(item.timestamp).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+
+                  return item.link ? (
+                    <Link key={item.id} to={item.link}>{inner}</Link>
+                  ) : (
+                    <div key={item.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">

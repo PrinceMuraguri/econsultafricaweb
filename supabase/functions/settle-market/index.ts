@@ -97,29 +97,40 @@ Deno.serve(async (req) => {
     const winningVotes = winningOption.total_votes_count;
     const fallbackImpliedPrice = totalVotes > 0 ? winningVotes / totalVotes : 0.5;
 
-    // Create payout records for winners — use EACH voter's entry_price
-    const payoutRecords = [];
-    for (const winner of winners) {
+    const platformFeeRate = 0.035;
+
+    // Step 1: Calculate each winner's gross payout (shares × $1).
+    // shares = stake / entry_price at the time they bought in.
+    const winnerGross = winners.map(winner => {
       const stakeAmount = winner.stake_amount || 0;
-      // Use the voter's entry price; fall back to global implied price for legacy votes
       const entryPrice = winner.entry_price || fallbackImpliedPrice;
-      // shares = cost / price_per_share; payout = shares * $1
-      const sharesOwned = entryPrice > 0 ? stakeAmount / entryPrice : stakeAmount;
-      const payoutAmount = sharesOwned;
+      const gross = entryPrice > 0 ? stakeAmount / entryPrice : stakeAmount;
+      return { winner, gross: Math.round(gross * 100) / 100 };
+    });
 
-      const platformFeeRate = 0.035;
-      const grossPayout = Math.round(payoutAmount * 100) / 100;
-      const platformFee = Math.round(grossPayout * platformFeeRate * 100) / 100;
-      const netPayout = Math.round((grossPayout - platformFee) * 100) / 100;
+    const totalGross = winnerGross.reduce((s, w) => s + w.gross, 0);
 
-      payoutRecords.push({
+    // Step 2: Cap total gross payouts to the actual pool.
+    // Without this, a solo winner (no counterparties) would receive more than
+    // what was staked, forcing Econsult Africa to cover the shortfall.
+    // scaleFactor < 1 only when losers' stakes can't fully fund winners.
+    const scaleFactor = totalGross > totalPool && totalGross > 0
+      ? totalPool / totalGross
+      : 1;
+
+    // Step 3: Build payout records — apply scale then deduct platform fee.
+    const payoutRecords = winnerGross.map(({ winner, gross }) => {
+      const scaledGross = Math.round(gross * scaleFactor * 100) / 100;
+      const platformFee = Math.round(scaledGross * platformFeeRate * 100) / 100;
+      const netPayout = Math.round((scaledGross - platformFee) * 100) / 100;
+      return {
         voter_fingerprint: winner.voter_fingerprint,
         poll_id,
         amount: netPayout,
         status: 'pending',
         reference: `payout_${poll_id.slice(0, 8)}_${winner.voter_fingerprint.slice(0, 8)}_${Date.now()}`,
-      });
-    }
+      };
+    });
 
     // Insert payouts
     if (payoutRecords.length > 0) {
@@ -160,8 +171,11 @@ Deno.serve(async (req) => {
         winner_count: winners.length,
         loser_count: losers.length,
         implied_price: fallbackImpliedPrice,
-        platform_fee_rate: 0.035,
-        total_fees: payoutRecords.reduce((s, p) => s + (Math.round(p.amount / (1 - 0.035) * 0.035 * 100) / 100), 0),
+        platform_fee_rate: platformFeeRate,
+        scale_factor: scaleFactor,
+        pool_funded: scaleFactor === 1 ? 'full' : 'partial',
+        total_gross_before_scale: Math.round(totalGross * 100) / 100,
+        total_fees: payoutRecords.reduce((s, p) => s + (Math.round(p.amount / (1 - platformFeeRate) * platformFeeRate * 100) / 100), 0),
         total_net_payouts: payoutRecords.reduce((s, p) => s + p.amount, 0),
       },
       performed_by: 'super_admin',

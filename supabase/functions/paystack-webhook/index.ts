@@ -324,21 +324,24 @@ Deno.serve(async (req) => {
             // Fetch poll + option details
             const { data: pollData } = await supabase
               .from('polls')
-              .select('question, close_at')
+              .select('title, close_at')
               .eq('id', poll_id)
               .maybeSingle();
             const { data: optionData } = await supabase
               .from('poll_options')
-              .select('text')
+              .select('label')
               .eq('id', option_id)
               .maybeSingle();
 
             const stakeUsd = amount_usd ? Number(amount_usd) : 0;
+            const ep = entry_price ? Number(entry_price) : null;
             const resDate = pollData?.close_at
               ? new Date(pollData.close_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
               : 'TBD';
-            // Rough expected return: stake / 0.5 * (1 - 0.035) — simplified, uses 50% implied price
-            const expectedReturn = stakeUsd > 0 ? `~$${(stakeUsd / 0.5 * 0.965).toFixed(2)}` : undefined;
+            // Expected return = stake / entry_price * (1 - 0.035)
+            const expectedReturn = stakeUsd > 0 && ep && ep > 0
+              ? `~$${(stakeUsd / ep * 0.965).toFixed(2)}`
+              : undefined;
 
             await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
               method: 'POST',
@@ -350,8 +353,8 @@ Deno.serve(async (req) => {
                 templateName: 'forecast-vote-confirmation',
                 recipientEmail: userEmail,
                 templateData: {
-                  pollTitle: pollData?.question || 'Forecast Question',
-                  selectedOption: optionData?.text || 'Your choice',
+                  pollTitle: pollData?.title || 'Forecast Question',
+                  selectedOption: optionData?.label || 'Your choice',
                   resolutionDate: resDate,
                   capitalCommitted: stakeUsd > 0 ? `$${stakeUsd.toFixed(2)}` : undefined,
                   expectedReturn,

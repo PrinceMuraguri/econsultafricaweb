@@ -17,6 +17,7 @@ const ForecastPollDetail = () => {
   const { user } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
+  const [isPaystackStaked, setIsPaystackStaked] = useState(false);
 
   // Check if user has voted on this poll
   useEffect(() => {
@@ -25,32 +26,35 @@ const ForecastPollDetail = () => {
       if (user) {
         const { data } = await supabase
           .from("votes")
-          .select("option_id")
+          .select("option_id, is_staked")
           .eq("poll_id", poll.id)
           .eq("user_id", user.id)
           .maybeSingle();
         if (data) {
           setHasVoted(true);
           setVotedOptionId(data.option_id);
+          setIsPaystackStaked(!!data.is_staked);
           return;
         }
       }
       const fp = await getFingerprint();
       const { data } = await supabase
         .from("votes")
-        .select("option_id")
+        .select("option_id, is_staked")
         .eq("poll_id", poll.id)
         .eq("voter_fingerprint", fp)
         .maybeSingle();
       if (data) {
         setHasVoted(true);
         setVotedOptionId(data.option_id);
+        setIsPaystackStaked(!!data.is_staked);
       }
     })();
   }, [poll?.id, user]);
 
   const isClosed = poll ? (poll.status !== "active" || new Date(poll.close_at) < new Date()) : true;
-  const showTradingPanel = hasVoted && !!user && !isClosed;
+  // Show TradingPanel (wallet-based share trading) only if user hasn't already staked via Paystack
+  const showTradingPanel = hasVoted && !!user && !isClosed && !isPaystackStaked;
 
   if (isLoading) {
     return (

@@ -485,8 +485,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         </div>
       </div>
 
-      {/* Stage 2: Post-vote nudge — commit capital (full width) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
+      {/* Stage 2: Post-vote nudge — commit capital (full width, hidden if already staked) */}
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !userStake?.is_staked && userPositions.length === 0 && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;

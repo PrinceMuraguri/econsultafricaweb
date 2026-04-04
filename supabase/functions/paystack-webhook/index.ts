@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
 
       // ── SEND VOTE CONFIRMATION EMAIL ──
       if (metadata?.type === 'forecast_stake') {
-        const { poll_id, option_id, amount_usd, user_id: metaUserId, voter_fingerprint } = metadata;
+        const { poll_id, option_id, amount_usd, user_id: metaUserId, voter_fingerprint, entry_price } = metadata;
         try {
           // Resolve user email
           let userEmail: string | null = null;

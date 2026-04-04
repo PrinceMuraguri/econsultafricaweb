@@ -167,7 +167,7 @@ async function verifyWithPaystack(secretKey: string, reference: string) {
     });
     return await verifyRes.json();
   } catch (e) {
-    console.error('Paystack verify API error:', e.message);
+    console.error('Paystack verify API error:', (e as Error).message);
     return null;
   }
 }

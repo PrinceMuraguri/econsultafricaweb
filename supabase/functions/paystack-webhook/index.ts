@@ -284,47 +284,44 @@ Deno.serve(async (req) => {
             }
           }
         }
-      }
 
-      // ── SYNC TO POSITIONS TABLE (unified AMM ledger) ──
-      // Writing to positions lets Paystack stakers sell via the AMM (sell-shares).
-      // Settlement still reads votes.is_staked, which remains the source of truth for payouts.
-      if (metadata?.type === 'forecast_stake' && resolvedUserId) {
-        const { poll_id: pId, option_id: oId, entry_price: ep } = metadata;
-        const entryPriceNum = ep ? Number(ep) : 0;
-        const sharesFromStake = entryPriceNum > 0
-          ? parseFloat((stakeAmountUsd / entryPriceNum).toFixed(4))
-          : parseFloat((stakeAmountUsd / 0.5).toFixed(4));
+        // ── SYNC TO POSITIONS TABLE (unified AMM ledger) ──
+        if (resolvedUserId) {
+          const entryPriceNum = entry_price ? Number(entry_price) : 0;
+          const sharesFromStake = entryPriceNum > 0
+            ? parseFloat((stakeAmountUsd / entryPriceNum).toFixed(4))
+            : parseFloat((stakeAmountUsd / 0.5).toFixed(4));
 
-        if (sharesFromStake > 0) {
-          const { data: existingPos } = await supabase
-            .from('positions')
-            .select('id, shares, total_cost')
-            .eq('user_id', resolvedUserId)
-            .eq('poll_id', pId)
-            .eq('option_id', oId)
-            .maybeSingle();
+          if (sharesFromStake > 0) {
+            const { data: existingPos } = await supabase
+              .from('positions')
+              .select('id, shares, total_cost')
+              .eq('user_id', resolvedUserId)
+              .eq('poll_id', poll_id)
+              .eq('option_id', option_id)
+              .maybeSingle();
 
-          if (existingPos) {
-            const newShares = parseFloat((Number(existingPos.shares) + sharesFromStake).toFixed(4));
-            const newTotalCost = parseFloat((Number(existingPos.total_cost) + stakeAmountUsd).toFixed(2));
-            await supabase.from('positions').update({
-              shares: newShares,
-              avg_price: parseFloat((newTotalCost / newShares).toFixed(4)),
-              total_cost: newTotalCost,
-              updated_at: new Date().toISOString(),
-            }).eq('id', existingPos.id);
-          } else {
-            await supabase.from('positions').insert({
-              user_id: resolvedUserId,
-              poll_id: pId,
-              option_id: oId,
-              shares: sharesFromStake,
-              avg_price: entryPriceNum > 0 ? entryPriceNum : parseFloat((stakeAmountUsd / sharesFromStake).toFixed(4)),
-              total_cost: parseFloat(stakeAmountUsd.toFixed(2)),
-            });
+            if (existingPos) {
+              const newShares = parseFloat((Number(existingPos.shares) + sharesFromStake).toFixed(4));
+              const newTotalCost = parseFloat((Number(existingPos.total_cost) + stakeAmountUsd).toFixed(2));
+              await supabase.from('positions').update({
+                shares: newShares,
+                avg_price: parseFloat((newTotalCost / newShares).toFixed(4)),
+                total_cost: newTotalCost,
+                updated_at: new Date().toISOString(),
+              }).eq('id', existingPos.id);
+            } else {
+              await supabase.from('positions').insert({
+                user_id: resolvedUserId,
+                poll_id: poll_id,
+                option_id: option_id,
+                shares: sharesFromStake,
+                avg_price: entryPriceNum > 0 ? entryPriceNum : parseFloat((stakeAmountUsd / sharesFromStake).toFixed(4)),
+                total_cost: parseFloat(stakeAmountUsd.toFixed(2)),
+              });
+            }
+            console.log(`Positions synced: user=${resolvedUserId} shares=${sharesFromStake} poll=${poll_id}`);
           }
-          console.log(`Positions synced: user=${resolvedUserId} shares=${sharesFromStake} poll=${pId}`);
         }
       }
 

@@ -9,7 +9,7 @@ import { Minus, Plus, Wallet, TrendingUp, Loader2, Shield, AlertTriangle, HelpCi
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
-import HowItWorksPdfModal from "@/components/forecast/HowItWorksPdfModal";
+
 
 interface TradingPanelProps {
   poll: Poll;
@@ -27,7 +27,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  
   const [partialSellOpen, setPartialSellOpen] = useState(false);
   const [sellShares, setSellShares] = useState(1);
 
@@ -436,7 +436,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
         onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen}
         onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />
-      <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
+      
     </div>
   );
 };

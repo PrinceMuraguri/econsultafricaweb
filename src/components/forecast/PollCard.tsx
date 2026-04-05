@@ -13,7 +13,7 @@ import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
-import HowItWorksPdfModal from "./HowItWorksPdfModal";
+
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";
@@ -56,7 +56,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;
@@ -524,9 +524,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   className="flex-1 text-xs font-bold">
                   Commit capital
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
+                <Button size="sm" variant="outline" asChild
                   className="text-xs font-medium gap-1 shrink-0">
-                  <HelpCircle className="w-3 h-3" /> How it works
+                  <Link to="/how-it-works"><HelpCircle className="w-3 h-3" /> How it works</Link>
                 </Button>
               </div>
               <p className="text-[9px] text-muted-foreground text-center">
@@ -615,7 +615,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         onSwitchToRegister={() => { setLoginModalOpen(false); setRegisterOpen(true); }} />
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={{ ...poll, poll_options: localOptions }} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
-      <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
+      
     </motion.div>
   );
 };

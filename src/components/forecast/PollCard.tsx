@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy, ArrowUpDown, DollarSign } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
+import ExitPositionModal from "./ExitPositionModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 
@@ -56,7 +57,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
-  
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const [exitModalOpen, setExitModalOpen] = useState(false);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;
@@ -559,6 +561,12 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         const totalShares = userPositions.reduce((s, p) => s + Number(p.shares), 0);
         const potentialGain = totalShares > 0 ? totalShares : (stakeAmount || 0);
 
+        // Current consensus price for the staked option (for exit calculation)
+        const stakedOptionData = sortedOptions.find(o => o.id === stakedOptionId);
+        const currentConsensusPrice = stakedOptionData && totalVotes > 0
+          ? Math.max(0.05, Math.min(0.95, stakedOptionData.total_votes_count / totalVotes))
+          : 0.5;
+
         return (
           <motion.div
             initial={{ opacity: 0 }}
@@ -589,16 +597,41 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   Committed {new Date(stakeDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                 </p>
               )}
-              {!isClosed && poll.slug && (
-                <Link
-                  to={`/forecast-arena/${poll.slug}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full mt-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-3 rounded-md bg-accent hover:bg-accent/90 text-accent-foreground transition-colors"
-                >
-                  <ArrowUpDown className="w-3 h-3" /> Buy more · Sell position
-                </Link>
+              {!isClosed && (
+                <div className="flex gap-2 mt-1">
+                  {poll.slug && (
+                    <Link
+                      to={`/forecast-arena/${poll.slug}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md bg-accent hover:bg-accent/90 text-accent-foreground transition-colors"
+                    >
+                      Buy more shares
+                    </Link>
+                  )}
+                  {totalShares > 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExitModalOpen(true); }}
+                      className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-foreground"
+                    >
+                      Exit position early
+                    </button>
+                  )}
+                </div>
               )}
             </div>
+
+            {stakedOptionId && totalShares > 0 && (
+              <ExitPositionModal
+                open={exitModalOpen}
+                onOpenChange={setExitModalOpen}
+                poll={{ id: poll.id, title: poll.title }}
+                optionId={stakedOptionId}
+                optionLabel={stakedOption?.label || ""}
+                shares={totalShares}
+                currentPrice={currentConsensusPrice}
+                potentialPayoutIfCorrect={potentialGain}
+              />
+            )}
           </motion.div>
         );
       })()}

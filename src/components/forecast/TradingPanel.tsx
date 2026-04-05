@@ -436,7 +436,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
         onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen}
         onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />
-      <HowItWorksPdfModal open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
+      
     </div>
   );
 };

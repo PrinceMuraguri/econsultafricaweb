@@ -524,9 +524,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   className="flex-1 text-xs font-bold">
                   Commit capital
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setHowItWorksOpen(true)}
+                <Button size="sm" variant="outline" asChild
                   className="text-xs font-medium gap-1 shrink-0">
-                  <HelpCircle className="w-3 h-3" /> How it works
+                  <Link to="/how-it-works"><HelpCircle className="w-3 h-3" /> How it works</Link>
                 </Button>
               </div>
               <p className="text-[9px] text-muted-foreground text-center">

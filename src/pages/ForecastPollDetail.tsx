@@ -17,6 +17,7 @@ const ForecastPollDetail = () => {
   const { user } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
+  const [isAlreadyStaked, setIsAlreadyStaked] = useState(false);
 
   // Check if user has voted on this poll
   useEffect(() => {
@@ -25,13 +26,14 @@ const ForecastPollDetail = () => {
       if (user) {
         const { data } = await supabase
           .from("votes")
-          .select("option_id")
+          .select("option_id, is_staked")
           .eq("poll_id", poll.id)
           .eq("user_id", user.id)
           .maybeSingle();
         if (data) {
           setHasVoted(true);
           setVotedOptionId(data.option_id);
+          if (data.is_staked) setIsAlreadyStaked(true);
           return;
         }
       }
@@ -50,8 +52,8 @@ const ForecastPollDetail = () => {
   }, [poll?.id, user]);
 
   const isClosed = poll ? (poll.status !== "active" || new Date(poll.close_at) < new Date()) : true;
-  // Show TradingPanel for all voted + logged-in users (Paystack stakers now have positions records)
-  const showTradingPanel = hasVoted && !!user && !isClosed;
+  // Hide TradingPanel if user already has an active stake — they use the PollCard exit/buy-more buttons instead
+  const showTradingPanel = hasVoted && !!user && !isClosed && !isAlreadyStaked;
 
   if (isLoading) {
     return (

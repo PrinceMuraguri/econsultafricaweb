@@ -142,7 +142,7 @@ async function sendPurchaseEmail(supabase: any, customerEmail: string, productTi
       console.log('Purchase confirmation email enqueued for:', normalizedEmail)
     }
   } catch (err) {
-    console.error('Email send error:', err.message)
+    console.error('Email send error:', (err as Error).message)
   }
 }
 

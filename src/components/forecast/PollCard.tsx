@@ -56,7 +56,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingVoteOptionId, setPendingVoteOptionId] = useState<string | null>(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;

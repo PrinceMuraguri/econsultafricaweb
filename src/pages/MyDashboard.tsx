@@ -1012,20 +1012,30 @@ const MyDashboard = () => {
                 {(showAllActive ? activePositions : activePositions.slice(0, 5)).map(pos => {
                   const consensusPct = pos.total_votes > 0 ? Math.round((pos.option_votes / pos.total_votes) * 100) : 50;
                   const isYes = pos.option_label.toLowerCase() === "yes";
+                  // Check if user has shares in escrow (listed) for this poll
+                  const activeListing = myActiveListings.find((l: any) => l.poll_id === pos.poll_id);
+                  const hasCapital = pos.is_staked || !!activeListing;
+                  const capitalAmount = pos.is_staked ? pos.stake_amount : (activeListing ? Number(activeListing.cost_basis) : 0);
                   return (
                     <Link key={pos.id} to={`/forecast-arena/${pos.poll_slug}`} className="block">
-                      <div className="bg-card border border-border rounded-lg p-4 hover:border-primary/40 transition-colors">
+                      <div className={`bg-card border rounded-lg p-4 hover:border-primary/40 transition-colors ${activeListing ? "border-amber-500/30" : "border-border"}`}>
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="text-sm font-semibold text-foreground leading-snug flex-1 mr-4">{pos.poll_title}</h3>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${isYes ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
-                            {pos.option_label}
-                          </span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {activeListing && (
+                              <span className="text-[10px] bg-amber-500/10 text-amber-700 border border-amber-500/20 px-1.5 py-0.5 rounded-full font-medium">Listed</span>
+                            )}
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded ${isYes ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"}`}>
+                              {pos.option_label}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                           <span>Backed at: ${pos.entry_price.toFixed(2)}</span>
                           <span>Consensus: {consensusPct}%</span>
-                          {pos.is_staked && <span className="text-primary font-semibold">Conviction: ${pos.stake_amount?.toFixed(2)}</span>}
-                          {pos.is_staked && <span className="text-green-600 font-semibold">If correct: ${pos.potential_payout.toFixed(2)}</span>}
+                          {hasCapital && <span className="text-primary font-semibold">Capital: ${Number(capitalAmount || 0).toFixed(2)}</span>}
+                          {pos.is_staked && !activeListing && <span className="text-green-600 font-semibold">If correct: ${pos.potential_payout.toFixed(2)}</span>}
+                          {activeListing && <span className="text-amber-700 font-semibold">Listed at ${Number(activeListing.total_ask).toFixed(2)}</span>}
                           <span className="flex items-center gap-1 ml-auto">
                             <Clock className="w-3 h-3" />
                             {new Date(pos.close_at) > new Date() ? "Open" : "Closing..."}

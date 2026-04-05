@@ -61,6 +61,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const [exitModalOpen, setExitModalOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
+  // savedListInfo captures option/shares/price at the moment the button is clicked,
+  // so the modal never depends on live query state (prevents unmount during success screen)
+  const [savedListInfo, setSavedListInfo] = useState<{ optionId: string; optionLabel: string; shares: number; price: number } | null>(null);
+  // hasCommitted stays true once the user has committed capital — prevents panel flicker during refetch
+  const [hasCommitted, setHasCommitted] = useState(false);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;
@@ -121,6 +126,13 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   }, [isLoggedIn]);
 
   useEffect(() => { setLocalOptions(poll.poll_options); }, [poll.poll_options]);
+
+  // Once capital is committed, never hide the position panel within this session
+  useEffect(() => {
+    if (userStake?.is_staked || userPositions.length > 0) {
+      setHasCommitted(true);
+    }
+  }, [userStake, userPositions]);
 
   useEffect(() => {
     (async () => {
@@ -571,7 +583,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       )}
 
       {/* Commitment info badge — shows on all polls where user has staked */}
-      {user && (userStake || userPositions.length > 0 || userListings.length > 0) && (() => {
+      {user && (userStake?.is_staked || userPositions.length > 0 || userListings.length > 0 || hasCommitted) && (() => {
         // Primary position: prefer voted/staked option; fall back to first position or first active listing
         const stakedOptionId = userStake?.option_id || userPositions[0]?.option_id || userListings[0]?.option_id;
         const stakedOption = sortedOptions.find(o => o.id === stakedOptionId);
@@ -659,7 +671,16 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   )}
                   {totalShares > 0 && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); setListOpen(true); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSavedListInfo({
+                          optionId: stakedOptionId!,
+                          optionLabel: stakedOption?.label || "",
+                          shares: totalShares,
+                          price: currentConsensusPrice,
+                        });
+                        setListOpen(true);
+                      }}
                       className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md border border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary transition-colors"
                     >
                       List for sale
@@ -690,17 +711,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 potentialPayoutIfCorrect={potentialGain}
               />
             )}
-            {stakedOptionId && (
-              <ListSharesModal
-                open={listOpen}
-                onOpenChange={setListOpen}
-                poll={{ id: poll.id, title: poll.title }}
-                optionId={stakedOptionId}
-                optionLabel={stakedOption?.label || ""}
-                availableShares={totalShares}
-                suggestedPrice={currentConsensusPrice}
-              />
-            )}
+{/* ListSharesModal moved to bottom of component to decouple from query state */}
           </motion.div>
         );
       })()}
@@ -717,6 +728,18 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         onSwitchToRegister={() => { setLoginModalOpen(false); setRegisterOpen(true); }} />
       <StakeModal open={stakeOpen} onOpenChange={setStakeOpen} poll={{ ...poll, poll_options: localOptions }} selectedOption={stakeOption} />
       <TradingWaitlistModal open={waitlistOpen} onOpenChange={setWaitlistOpen} />
+      {/* ListSharesModal uses savedListInfo captured at button-click time — never unmounts due to query state changes */}
+      {savedListInfo && (
+        <ListSharesModal
+          open={listOpen}
+          onOpenChange={(open) => { setListOpen(open); if (!open) setSavedListInfo(null); }}
+          poll={{ id: poll.id, title: poll.title }}
+          optionId={savedListInfo.optionId}
+          optionLabel={savedListInfo.optionLabel}
+          availableShares={savedListInfo.shares}
+          suggestedPrice={savedListInfo.price}
+        />
+      )}
       
     </motion.div>
   );

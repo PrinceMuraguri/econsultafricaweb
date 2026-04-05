@@ -36,7 +36,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
   const { data: listings = [], isLoading } = useQuery<ListingRow[]>({
     queryKey: ["listings", poll.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("listings")
         .select("*, poll_options(label)")
         .eq("poll_id", poll.id)

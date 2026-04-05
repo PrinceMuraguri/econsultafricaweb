@@ -62,8 +62,10 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
     enabled: !!user,
   });
 
-  // Realtime: refresh listings when anything changes
+  // Realtime: refresh listings on any change + on reconnect after network gap
   useEffect(() => {
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
+
     const channel = supabase
       .channel(`listings-panel-${poll.id}`)
       .on("postgres_changes", {
@@ -71,10 +73,13 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
         schema: "public",
         table: "listings",
         filter: `poll_id=eq.${poll.id}`,
-      }, () => {
-        queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
-      })
-      .subscribe();
+      }, invalidate)
+      .subscribe((status) => {
+        // Re-fetch when the subscription reconnects after a network gap
+        // so stale listings (bought/cancelled while offline) are cleared
+        if (status === "SUBSCRIBED") invalidate();
+      });
+
     return () => { supabase.removeChannel(channel); };
   }, [poll.id, queryClient]);
 
@@ -93,6 +98,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
       });
       queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
       queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
       setConfirming(null);

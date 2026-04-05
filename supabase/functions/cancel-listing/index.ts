@@ -15,88 +15,55 @@ Deno.serve(async (req) => {
     );
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "No auth" }), { status: 401, headers: corsHeaders });
-
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (authErr || !user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No auth header" }), { status: 401, headers: corsHeaders });
+    }
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
 
     const { listing_id } = await req.json();
-    if (!listing_id) return new Response(JSON.stringify({ error: "listing_id required" }), { status: 400, headers: corsHeaders });
-
-    // Get and validate the listing
-    const { data: listing } = await supabase
-      .from("listings")
-      .select("*")
-      .eq("id", listing_id)
-      .eq("seller_id", user.id)
-      .eq("status", "active")
-      .single();
-
-    if (!listing) {
-      return new Response(JSON.stringify({ error: "Listing not found or already completed" }), { status: 404, headers: corsHeaders });
+    if (!listing_id) {
+      return new Response(JSON.stringify({ error: "listing_id is required" }), { status: 400, headers: corsHeaders });
     }
 
-    // Cancel the listing
-    await supabase.from("listings").update({
-      status: "cancelled",
-      updated_at: new Date().toISOString(),
-    }).eq("id", listing_id);
-
-    // Return shares to seller's position
-    const listingShares = Number(listing.shares);
-    const listingPrice = Number(listing.price_per_share);
-    const returnedCost = parseFloat((listingShares * listingPrice).toFixed(2));
-
-    const { data: position } = await supabase
-      .from("positions")
-      .select("id, shares, total_cost")
-      .eq("user_id", user.id)
-      .eq("poll_id", listing.poll_id)
-      .eq("option_id", listing.option_id)
-      .maybeSingle();
-
-    if (position) {
-      const newShares = parseFloat((Number(position.shares) + listingShares).toFixed(4));
-      const newCost = parseFloat((Number(position.total_cost) + returnedCost).toFixed(2));
-      await supabase.from("positions").update({
-        shares: newShares,
-        avg_price: parseFloat((newCost / newShares).toFixed(4)),
-        total_cost: newCost,
-        updated_at: new Date().toISOString(),
-      }).eq("id", position.id);
-    } else {
-      await supabase.from("positions").insert({
-        user_id: user.id,
-        poll_id: listing.poll_id,
-        option_id: listing.option_id,
-        shares: parseFloat(listingShares.toFixed(4)),
-        avg_price: parseFloat(listingPrice.toFixed(4)),
-        total_cost: returnedCost,
-      });
-    }
-
-    // Restore votes.stake_amount
-    const { data: vote } = await supabase
-      .from("votes")
-      .select("stake_amount")
-      .eq("poll_id", listing.poll_id)
-      .eq("option_id", listing.option_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const currentStake = Number(vote?.stake_amount || 0);
-    await supabase.from("votes")
-      .update({ stake_amount: parseFloat((currentStake + returnedCost).toFixed(2)), is_staked: true })
-      .eq("poll_id", listing.poll_id)
-      .eq("option_id", listing.option_id)
-      .eq("user_id", user.id);
-
-    return new Response(JSON.stringify({ success: true, shares_returned: listingShares }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Delegate to Postgres RPC.
+    // The RPC uses SELECT FOR UPDATE on the listing row — if a buyer has already
+    // locked the same row, this waits. After acquiring the lock it re-checks status,
+    // so a cancel arriving just after a buy completes gets a clean "no longer active" error.
+    // Shares are restored using cost_basis (the exact amount deducted at listing time),
+    // not listing price × shares, which fixes the incorrect cost restoration bug.
+    const { data, error } = await supabase.rpc("cancel_listing_atomic", {
+      p_listing_id: listing_id,
+      p_seller_id:  user.id,
     });
 
+    if (error) {
+      console.error("cancel_listing_atomic RPC error:", error.message);
+      return new Response(
+        JSON.stringify({ error: error.message || "Cancellation failed" }),
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    if (data?.error) {
+      const status = data.error.includes("not found") ? 404 : 422;
+      return new Response(JSON.stringify({ error: data.error }), { status, headers: corsHeaders });
+    }
+
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
   } catch (err) {
-    console.error("cancel-listing error:", err);
-    return new Response(JSON.stringify({ error: "Internal error" }), { status: 500, headers: corsHeaders });
+    console.error("cancel-listing unhandled error:", (err as Error).message);
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: corsHeaders }
+    );
   }
 });

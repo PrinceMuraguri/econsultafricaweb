@@ -556,14 +556,20 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
       {/* Commitment info badge — shows on all polls where user has staked */}
       {user && (userStake || userPositions.length > 0) && (() => {
-        const stakeAmount = userStake?.stake_amount || userPositions.reduce((s, p) => s + Number(p.total_cost), 0);
-        const stakeDate = userStake?.created_at || userPositions[0]?.created_at;
+        // Primary position: prefer the voted/staked option; fall back to first position
         const stakedOptionId = userStake?.option_id || userPositions[0]?.option_id;
         const stakedOption = sortedOptions.find(o => o.id === stakedOptionId);
-        const totalShares = userPositions.reduce((s, p) => s + Number(p.shares), 0);
+
+        // Per-option position (fixes E-6: don't aggregate shares across different options)
+        const stakedPosition = userPositions.find(p => p.option_id === stakedOptionId);
+        const totalShares  = stakedPosition ? Number(stakedPosition.shares) : 0;
+        const stakeAmount  = stakedPosition
+          ? Number(stakedPosition.total_cost)
+          : (userStake?.stake_amount || 0);
+        const stakeDate    = userStake?.created_at || stakedPosition?.created_at;
         const potentialGain = totalShares > 0 ? totalShares : (stakeAmount || 0);
 
-        // Current consensus price for the staked option (for exit calculation)
+        // Consensus price for the staked option (display + exit modal)
         const stakedOptionData = sortedOptions.find(o => o.id === stakedOptionId);
         const currentConsensusPrice = stakedOptionData && totalVotes > 0
           ? Math.max(0.05, Math.min(0.95, stakedOptionData.total_votes_count / totalVotes))

@@ -142,7 +142,7 @@ async function sendPurchaseEmail(supabase: any, customerEmail: string, productTi
       console.log('Purchase confirmation email enqueued for:', normalizedEmail)
     }
   } catch (err) {
-    console.error('Email send error:', err.message)
+    console.error('Email send error:', (err as Error).message)
   }
 }
 
@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Download error:', error.message);
+    console.error('Download error:', (error as Error).message);
     return new Response(JSON.stringify({ error: 'Something went wrong' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

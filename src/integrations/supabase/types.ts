@@ -1248,6 +1248,24 @@ export type Database = {
       }
     }
     Functions: {
+      buy_listing_atomic: {
+        Args: { p_buyer_id: string; p_listing_id: string }
+        Returns: Json
+      }
+      cancel_listing_atomic: {
+        Args: { p_listing_id: string; p_seller_id: string }
+        Returns: Json
+      }
+      create_listing_atomic: {
+        Args: {
+          p_option_id: string
+          p_poll_id: string
+          p_price_per_share: number
+          p_seller_id: string
+          p_shares: number
+        }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

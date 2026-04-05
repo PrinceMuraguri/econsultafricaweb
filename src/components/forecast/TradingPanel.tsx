@@ -27,7 +27,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  
   const [partialSellOpen, setPartialSellOpen] = useState(false);
   const [sellShares, setSellShares] = useState(1);
 

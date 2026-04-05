@@ -13,7 +13,7 @@ import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
-import HowItWorksPdfModal from "./HowItWorksPdfModal";
+
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";

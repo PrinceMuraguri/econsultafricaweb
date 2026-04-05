@@ -9,7 +9,7 @@ import { Minus, Plus, Wallet, TrendingUp, Loader2, Shield, AlertTriangle, HelpCi
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
-import HowItWorksPdfModal from "@/components/forecast/HowItWorksPdfModal";
+
 
 interface TradingPanelProps {
   poll: Poll;

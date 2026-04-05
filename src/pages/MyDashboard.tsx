@@ -11,7 +11,7 @@ import {
 import {
   BarChart3, TrendingUp, Clock, CheckCircle, XCircle,
   DollarSign, Activity, ArrowRight, User, Wallet, Plus, ArrowDownToLine,
-  ChevronDown, ChevronUp, History, Receipt, CreditCard
+  ChevronDown, ChevronUp, History, Receipt, CreditCard, Tag
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -260,6 +260,23 @@ const MyDashboard = () => {
     },
     enabled: !!user,
     refetchInterval: 15000,
+  });
+
+  // Fetch user's active P2P listings across all polls
+  const { data: myActiveListings = [] } = useQuery({
+    queryKey: ["my-active-listings", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await (supabase as any)
+        .from("listings")
+        .select("*, polls(title, slug), poll_options(label)")
+        .eq("seller_id", user.id)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+      return (data || []) as any[];
+    },
+    enabled: !!user,
+    refetchInterval: 30000,
   });
 
   // Fetch trade history
@@ -648,6 +665,7 @@ const MyDashboard = () => {
             {[
               { label: "Recent Activity", href: "#recent-activity", icon: Activity },
               { label: "Active Forecasts", href: "#active-forecasts", icon: BarChart3 },
+              { label: "My Listings", href: "#my-listings", icon: Tag },
               { label: "Closed Forecasts", href: "#closed-forecasts", icon: History },
               { label: "Wallet Activity", href: "#wallet-activity", icon: Wallet },
               { label: "Transactions", href: "#transactions", icon: Receipt },
@@ -1025,6 +1043,57 @@ const MyDashboard = () => {
                     {showAllActive ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {activePositions.length - 5} more</>}
                   </button>
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* My Active P2P Listings */}
+          <div id="my-listings" className="mb-8 scroll-mt-20">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-primary" />
+              My Active Listings ({myActiveListings.length})
+            </h2>
+            {myActiveListings.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-center">
+                <p className="text-sm text-muted-foreground mb-1">No active listings.</p>
+                <p className="text-xs text-muted-foreground">When you list shares for sale on a poll, they appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myActiveListings.map((listing) => (
+                  <Link key={listing.id} to={`/forecast-arena/${listing.polls?.slug}`} className="block">
+                    <div className="bg-card border border-amber-500/30 rounded-lg p-4 hover:border-amber-500/60 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 mr-4">
+                          <h3 className="text-sm font-semibold text-foreground leading-snug">{listing.polls?.title}</h3>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Your forecast: <span className="font-semibold text-foreground">{listing.poll_options?.label}</span>
+                          </p>
+                        </div>
+                        <span className="text-[10px] bg-amber-500/10 text-amber-700 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold shrink-0">
+                          Listed
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <p className="text-muted-foreground text-[10px]">Shares listed</p>
+                          <p className="font-mono font-bold text-foreground">{Number(listing.shares).toFixed(4)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-[10px]">Price / share</p>
+                          <p className="font-mono font-bold text-foreground">${Number(listing.price_per_share).toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-[10px]">You receive if sold</p>
+                          <p className="font-mono font-bold text-green-600">${(Number(listing.total_ask) * 0.965).toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-2">
+                        Listed {new Date(listing.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · Cancel from the poll page
+                      </p>
+                    </div>
+                  </Link>
+                ))}
               </div>
             )}
           </div>

@@ -55,6 +55,7 @@ export default function ListSharesModal({
       queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
       setStep("success");
     } catch (err: any) {
       toast({ title: "Failed to list shares", description: err.message, variant: "destructive" });

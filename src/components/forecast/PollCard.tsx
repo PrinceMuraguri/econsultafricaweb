@@ -97,6 +97,22 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     enabled: !!user,
   });
 
+  // Fetch user's own active listings for this poll (so position panel stays visible while shares are in escrow)
+  const { data: userListings = [] } = useQuery({
+    queryKey: ["user-listings", poll.id, user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await (supabase as any)
+        .from("listings")
+        .select("id, option_id, shares, price_per_share, total_ask, cost_basis, created_at, poll_options(label)")
+        .eq("poll_id", poll.id)
+        .eq("seller_id", user.id)
+        .eq("status", "active");
+      return (data || []) as any[];
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (isLoggedIn) {
       setRegisterOpen(false);
@@ -488,7 +504,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       </div>
 
       {/* Stage 2: Post-vote nudge — commit capital (full width, hidden if already staked) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !userStake?.is_staked && userPositions.length === 0 && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !userStake?.is_staked && userPositions.length === 0 && userListings.length === 0 && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
@@ -555,9 +571,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       )}
 
       {/* Commitment info badge — shows on all polls where user has staked */}
-      {user && (userStake || userPositions.length > 0) && (() => {
-        // Primary position: prefer the voted/staked option; fall back to first position
-        const stakedOptionId = userStake?.option_id || userPositions[0]?.option_id;
+      {user && (userStake || userPositions.length > 0 || userListings.length > 0) && (() => {
+        // Primary position: prefer voted/staked option; fall back to first position or first active listing
+        const stakedOptionId = userStake?.option_id || userPositions[0]?.option_id || userListings[0]?.option_id;
         const stakedOption = sortedOptions.find(o => o.id === stakedOptionId);
 
         // Per-option position (fixes E-6: don't aggregate shares across different options)
@@ -565,9 +581,13 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         const totalShares  = stakedPosition ? Number(stakedPosition.shares) : 0;
         const stakeAmount  = stakedPosition
           ? Number(stakedPosition.total_cost)
-          : (userStake?.stake_amount || 0);
+          : userListings.length > 0
+            ? userListings.reduce((s, l) => s + Number(l.cost_basis || 0), 0)
+            : (userStake?.stake_amount || 0);
         const stakeDate    = userStake?.created_at || stakedPosition?.created_at;
-        const potentialGain = totalShares > 0 ? totalShares : (stakeAmount || 0);
+        const listedShares = userListings.reduce((s, l) => s + Number(l.shares), 0);
+        const totalActive  = totalShares + listedShares;
+        const potentialGain = totalActive > 0 ? totalActive : (stakeAmount || 0);
 
         // Consensus price for the staked option (display + exit modal)
         const stakedOptionData = sortedOptions.find(o => o.id === stakedOptionId);
@@ -600,6 +620,28 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   <p className="font-mono font-bold text-green-600">${potentialGain.toFixed(2)}</p>
                 </div>
               </div>
+
+              {/* Active listings tracker — shown whenever user has shares in escrow */}
+              {userListings.length > 0 && (
+                <div className="mt-1 space-y-1.5">
+                  <p className="text-[9px] uppercase tracking-wider text-amber-600 font-semibold">
+                    📋 Active listing{userListings.length > 1 ? "s" : ""} — shares in escrow
+                  </p>
+                  {userListings.map((listing) => (
+                    <div key={listing.id} className="bg-amber-500/5 border border-amber-500/20 rounded-md px-2.5 py-2 space-y-0.5">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-semibold text-foreground">
+                          {Number(listing.shares).toFixed(4)} shares @ ${Number(listing.price_per_share).toFixed(2)}/share
+                        </span>
+                        <span className="font-mono font-bold text-foreground">${Number(listing.total_ask).toFixed(2)}</span>
+                      </div>
+                      <p className="text-[9px] text-amber-700">
+                        Visible to all users · You receive ${(Number(listing.total_ask) * 0.965).toFixed(2)} when sold (after 3.5% fee)
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
               {stakeDate && (
                 <p className="text-[9px] text-muted-foreground">
                   Committed {new Date(stakeDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
@@ -648,7 +690,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 potentialPayoutIfCorrect={potentialGain}
               />
             )}
-            {stakedOptionId && totalShares > 0 && (
+            {stakedOptionId && (
               <ListSharesModal
                 open={listOpen}
                 onOpenChange={setListOpen}

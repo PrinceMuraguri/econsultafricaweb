@@ -122,6 +122,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
       queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
     } catch (err: any) {
       toast({ title: "Cancellation failed", description: err.message, variant: "destructive" });
     } finally {

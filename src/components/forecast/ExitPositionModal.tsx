@@ -13,7 +13,8 @@ interface ExitPositionModalProps {
   optionId: string;
   optionLabel: string;
   shares: number;
-  currentPrice: number; // consensus price 0–1
+  stakeAmount: number;        // original committed capital — refund basis
+  currentPrice: number;       // consensus price (display only)
   potentialPayoutIfCorrect: number;
 }
 
@@ -26,6 +27,7 @@ export default function ExitPositionModal({
   optionId,
   optionLabel,
   shares,
+  stakeAmount,
   currentPrice,
   potentialPayoutIfCorrect,
 }: ExitPositionModalProps) {
@@ -34,7 +36,9 @@ export default function ExitPositionModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const gross = parseFloat((shares * currentPrice).toFixed(2));
+  // Early exit returns original stake minus fee — never more than committed
+  // Price appreciation is only realised at resolution, funded by losing stakers
+  const gross = parseFloat(stakeAmount.toFixed(2));
   const fee = parseFloat((gross * PLATFORM_FEE).toFixed(2));
   const net = parseFloat((gross - fee).toFixed(2));
 
@@ -77,7 +81,7 @@ export default function ExitPositionModal({
                 Exit your position early
               </DialogTitle>
               <DialogDescription>
-                The platform buys back your position at the current crowd consensus price.
+                You receive your committed capital back, minus the 3.5% platform fee. Any upside is only realised at resolution.
               </DialogDescription>
             </DialogHeader>
 
@@ -96,15 +100,11 @@ export default function ExitPositionModal({
               {/* Payout breakdown */}
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-muted-foreground">Crowd consensus price</span>
-                  <span className="font-mono text-foreground">${currentPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-[10px]">
-                  <span className="text-muted-foreground">Gross proceeds ({shares.toFixed(2)} × ${currentPrice.toFixed(2)})</span>
+                  <span className="text-muted-foreground">Your committed capital</span>
                   <span className="font-mono text-foreground">${gross.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
-                  <span className="text-muted-foreground">Platform fee (3.5%)</span>
+                  <span className="text-muted-foreground">Early exit fee (3.5%)</span>
                   <span className="font-mono text-red-500">−${fee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs font-bold border-t border-border pt-1 mt-1">

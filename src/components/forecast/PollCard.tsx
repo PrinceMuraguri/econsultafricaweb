@@ -599,14 +599,13 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               )}
               {!isClosed && (
                 <div className="flex gap-2 mt-1">
-                  {poll.slug && (
-                    <Link
-                      to={`/forecast-arena/${poll.slug}`}
-                      onClick={(e) => e.stopPropagation()}
+                  {stakedOption && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setStakeOption(stakedOption); setStakeOpen(true); }}
                       className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md bg-accent hover:bg-accent/90 text-accent-foreground transition-colors"
                     >
                       Buy more shares
-                    </Link>
+                    </button>
                   )}
                   {totalShares > 0 && (
                     <button
@@ -628,6 +627,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 optionId={stakedOptionId}
                 optionLabel={stakedOption?.label || ""}
                 shares={totalShares}
+                stakeAmount={Number(stakeAmount || 0)}
                 currentPrice={currentConsensusPrice}
                 potentialPayoutIfCorrect={potentialGain}
               />

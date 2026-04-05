@@ -58,7 +58,10 @@ Deno.serve(async (req) => {
       : 0.50;
 
     const fee = 0.035;
-    const grossAmount = shares * currentPrice;
+    // Refund is based on original committed capital, not AMM price.
+    // Price appreciation is only realised at settlement funded by losing stakers —
+    // the pool never has surplus cash to fund above-stake early payouts.
+    const grossAmount = parseFloat(position.total_cost.toFixed(2));
     const feeAmount = parseFloat((grossAmount * fee).toFixed(2));
     const netAmount = parseFloat((grossAmount - feeAmount).toFixed(2));
 

@@ -35,3 +35,9 @@ project_id = "iysutjnviccsgygpiqfe"
     verify_jwt = false
   [functions.cancel-order]
     verify_jwt = false
+  [functions.create-listing]
+    verify_jwt = false
+  [functions.buy-listing]
+    verify_jwt = false
+  [functions.cancel-listing]
+    verify_jwt = false

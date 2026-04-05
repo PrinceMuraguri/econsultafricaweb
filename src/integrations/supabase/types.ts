@@ -184,6 +184,48 @@ export type Database = {
           },
         ]
       }
+      listings: {
+        Row: {
+          buyer_id: string | null
+          created_at: string | null
+          id: string
+          option_id: string
+          poll_id: string
+          price_per_share: number
+          seller_id: string
+          shares: number
+          status: string
+          total_ask: number
+          updated_at: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string | null
+          id?: string
+          option_id: string
+          poll_id: string
+          price_per_share: number
+          seller_id: string
+          shares: number
+          status?: string
+          total_ask: number
+          updated_at?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string | null
+          id?: string
+          option_id?: string
+          poll_id?: string
+          price_per_share?: number
+          seller_id?: string
+          shares?: number
+          status?: string
+          total_ask?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null

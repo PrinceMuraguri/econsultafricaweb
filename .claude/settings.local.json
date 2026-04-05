@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -l \"positions\\\\|trades\" supabase/migrations/*.sql)",
+      "Bash(git config:*)",
+      "Bash(git -C \"C:\\\\Users\\\\usuario\\\\econsultafricaweb\" status)",
+      "Bash(git -C /c/Users/usuario/econsultafricaweb status)",
+      "Bash(dir)",
+      "Bash(git add:*)",
+      "Bash(git -C \"C:/Users/usuario/econsultafricaweb\" status)",
+      "Bash(git -C C:/Users/usuario/econsultafricaweb status)",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\usuario\\\\econsultafricaweb && git status\")",
+      "Bash(powershell -Command \"Set-Location ''C:\\\\Users\\\\usuario\\\\econsultafricaweb''; git status; git log --oneline -5\")",
+      "Bash(powershell -Command \"Set-Location ''C:\\\\Users\\\\usuario\\\\econsultafricaweb''; git status 2>&1; git log --oneline -5 2>&1\")",
+      "Bash(powershell.exe -NoProfile -Command \"cd ''C:\\\\Users\\\\usuario\\\\econsultafricaweb''; git status; exit 0\")",
+      "Bash(grep -E \"\\\\.\\(ts|sql|tsx\\)$\")",
+      "Bash(python -c \":*)",
+      "Bash(powershell.exe -NoProfile -Command \"python --version; python -c \"\"from pypdf import PdfReader; r = PdfReader\\(r''C:\\\\Users\\\\usuario\\\\Dropbox\\\\PC\\\\Downloads\\\\terms-of-use.pdf''\\); print\\(len\\(r.pages\\)\\)\"\" 2>&1\")",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Date -Format ''MMMM dd, yyyy''\")",
+      "Bash(dir C:/Users/usuario/econsultafricaweb)"
+    ]
+  }
+}

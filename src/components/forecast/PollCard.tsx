@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import TradingWaitlistModal from "./TradingWaitlistModal";
 import StakeModal from "./StakeModal";
 import ExitPositionModal from "./ExitPositionModal";
+import ListSharesModal from "./ListSharesModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 
@@ -59,6 +60,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const [exitModalOpen, setExitModalOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;
@@ -598,13 +600,21 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 </p>
               )}
               {!isClosed && (
-                <div className="flex gap-2 mt-1">
+                <div className="flex gap-1.5 mt-1 flex-wrap">
                   {stakedOption && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setStakeOption(stakedOption); setStakeOpen(true); }}
                       className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md bg-accent hover:bg-accent/90 text-accent-foreground transition-colors"
                     >
-                      Buy more shares
+                      Buy more
+                    </button>
+                  )}
+                  {totalShares > 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setListOpen(true); }}
+                      className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md border border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary transition-colors"
+                    >
+                      List for sale
                     </button>
                   )}
                   {totalShares > 0 && (
@@ -612,7 +622,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                       onClick={(e) => { e.stopPropagation(); setExitModalOpen(true); }}
                       className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold py-1.5 px-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-foreground"
                     >
-                      Exit position early
+                      Exit early
                     </button>
                   )}
                 </div>
@@ -630,6 +640,17 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                 stakeAmount={Number(stakeAmount || 0)}
                 currentPrice={currentConsensusPrice}
                 potentialPayoutIfCorrect={potentialGain}
+              />
+            )}
+            {stakedOptionId && totalShares > 0 && (
+              <ListSharesModal
+                open={listOpen}
+                onOpenChange={setListOpen}
+                poll={{ id: poll.id, title: poll.title }}
+                optionId={stakedOptionId}
+                optionLabel={stakedOption?.label || ""}
+                availableShares={totalShares}
+                suggestedPrice={currentConsensusPrice}
               />
             )}
           </motion.div>

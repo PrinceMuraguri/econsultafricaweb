@@ -187,6 +187,7 @@ export type Database = {
       listings: {
         Row: {
           buyer_id: string | null
+          cost_basis: number
           created_at: string | null
           id: string
           option_id: string
@@ -200,6 +201,7 @@ export type Database = {
         }
         Insert: {
           buyer_id?: string | null
+          cost_basis?: number
           created_at?: string | null
           id?: string
           option_id: string
@@ -213,6 +215,7 @@ export type Database = {
         }
         Update: {
           buyer_id?: string | null
+          cost_basis?: number
           created_at?: string | null
           id?: string
           option_id?: string

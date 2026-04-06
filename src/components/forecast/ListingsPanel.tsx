@@ -99,6 +99,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
       queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
       queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
       setConfirming(null);

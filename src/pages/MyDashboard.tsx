@@ -267,13 +267,31 @@ const MyDashboard = () => {
     queryKey: ["my-active-listings", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("listings")
-        .select("*, polls(title, slug), poll_options(label)")
+        .select("*")
         .eq("seller_id", user.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
-      return (data || []) as any[];
+      if (error) {
+        console.error("[Dashboard] myActiveListings query error:", error);
+        return [];
+      }
+      // Fetch poll details separately to avoid FK join issues
+      if (!data || data.length === 0) return [];
+      const pollIds = [...new Set(data.map((l: any) => l.poll_id))];
+      const optionIds = [...new Set(data.map((l: any) => l.option_id))];
+      const [pollsRes, optionsRes] = await Promise.all([
+        supabase.from("polls").select("id, title, slug").in("id", pollIds),
+        supabase.from("poll_options").select("id, label").in("id", optionIds),
+      ]);
+      const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
+      const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
+      return data.map((l: any) => ({
+        ...l,
+        polls: pollMap.get(l.poll_id) || null,
+        poll_options: optionMap.get(l.option_id) || null,
+      }));
     },
     enabled: !!user,
     refetchInterval: 30000,

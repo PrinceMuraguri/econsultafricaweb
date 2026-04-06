@@ -27,14 +27,18 @@ const ForecastPollDetail = () => {
       if (user) {
         const { data } = await supabase
           .from("votes")
-          .select("option_id, is_staked")
+          .select("option_id, is_staked, stake_amount")
           .eq("poll_id", poll.id)
           .eq("user_id", user.id)
           .maybeSingle();
         if (data) {
           setHasVoted(true);
           setVotedOptionId(data.option_id);
-          if (data.is_staked) setIsAlreadyStaked(true);
+          // Check stake_amount > 0 (not just is_staked) because is_staked becomes false
+          // when all shares are listed in the P2P marketplace
+          if (data.is_staked || (data.stake_amount && Number(data.stake_amount) > 0)) {
+            setIsAlreadyStaked(true);
+          }
           return;
         }
       }

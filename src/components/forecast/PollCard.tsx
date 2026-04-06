@@ -70,7 +70,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const isLoggedIn = !!user;
 
-  // Fetch user's staked vote for this poll
+  // Fetch user's vote for this poll (even if is_staked has been set to false by a listing)
+  // We need option_id and stake_amount even when shares are in escrow
   const { data: userStake } = useQuery({
     queryKey: ["user-stake", poll.id, user?.id],
     queryFn: async () => {
@@ -80,7 +81,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         .select("stake_amount, created_at, option_id, is_staked")
         .eq("poll_id", poll.id)
         .eq("user_id", user.id)
-        .eq("is_staked", true)
         .maybeSingle();
       return data;
     },
@@ -107,12 +107,17 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     queryKey: ["user-listings", poll.id, user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("listings")
-        .select("id, option_id, shares, price_per_share, total_ask, cost_basis, created_at, poll_options(label)")
+        .select("id, option_id, shares, price_per_share, total_ask, cost_basis, created_at")
         .eq("poll_id", poll.id)
         .eq("seller_id", user.id)
         .eq("status", "active");
+      if (error) {
+        console.error("[PollCard] userListings query error:", error);
+        return [];
+      }
+      console.log("[PollCard] userListings result:", data?.length, "rows for poll", poll.id);
       return (data || []) as any[];
     },
     enabled: !!user,
@@ -129,7 +134,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   // Once capital is committed, never hide the position panel within this session
   useEffect(() => {
-    if (userStake?.is_staked || userPositions.length > 0) {
+    if ((userStake?.stake_amount && Number(userStake.stake_amount) > 0) || userPositions.length > 0) {
       setHasCommitted(true);
     }
   }, [userStake, userPositions]);
@@ -516,7 +521,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       </div>
 
       {/* Stage 2: Post-vote nudge — commit capital (full width, hidden if already staked) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !userStake?.is_staked && userPositions.length === 0 && userListings.length === 0 && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !hasCommitted && userPositions.length === 0 && userListings.length === 0 && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
@@ -583,19 +588,21 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       )}
 
       {/* Commitment info badge — shows on all polls where user has staked */}
-      {user && (userStake?.is_staked || userPositions.length > 0 || userListings.length > 0 || hasCommitted) && (() => {
+      {user && (hasCommitted || userPositions.length > 0 || userListings.length > 0) && (() => {
         // Primary position: prefer voted/staked option; fall back to first position or first active listing
         const stakedOptionId = userStake?.option_id || userPositions[0]?.option_id || userListings[0]?.option_id;
+        if (!stakedOptionId) return null; // Safety: nothing to show if we can't determine the option
         const stakedOption = sortedOptions.find(o => o.id === stakedOptionId);
 
         // Per-option position (fixes E-6: don't aggregate shares across different options)
         const stakedPosition = userPositions.find(p => p.option_id === stakedOptionId);
         const totalShares  = stakedPosition ? Number(stakedPosition.shares) : 0;
+        // stakeAmount: prefer position total_cost, then listed cost_basis, then original vote stake_amount
         const stakeAmount  = stakedPosition
           ? Number(stakedPosition.total_cost)
           : userListings.length > 0
-            ? userListings.reduce((s, l) => s + Number(l.cost_basis || 0), 0)
-            : (userStake?.stake_amount || 0);
+            ? userListings.reduce((s: number, l: any) => s + Number(l.cost_basis || 0), 0)
+            : Number(userStake?.stake_amount || 0);
         const stakeDate    = userStake?.created_at || stakedPosition?.created_at;
         const listedShares = userListings.reduce((s, l) => s + Number(l.shares), 0);
         const totalActive  = totalShares + listedShares;

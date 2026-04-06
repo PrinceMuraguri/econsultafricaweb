@@ -279,8 +279,8 @@ const MyDashboard = () => {
       }
       // Fetch poll details separately to avoid FK join issues
       if (!data || data.length === 0) return [];
-      const pollIds = [...new Set(data.map((l: any) => l.poll_id))];
-      const optionIds = [...new Set(data.map((l: any) => l.option_id))];
+      const pollIds = [...new Set(data.map((l: any) => l.poll_id))] as string[];
+      const optionIds = [...new Set(data.map((l: any) => l.option_id))] as string[];
       const [pollsRes, optionsRes] = await Promise.all([
         supabase.from("polls").select("id, title, slug").in("id", pollIds),
         supabase.from("poll_options").select("id, label").in("id", optionIds),

@@ -521,11 +521,30 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       </div>
 
       {/* Stage 2: Post-vote nudge — commit capital (full width, hidden if already staked) */}
-      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !hasCommitted && userPositions.length === 0 && userListings.length === 0 && (interactionMode === "vote" || !localStorage.getItem(`nudge_dismissed_${poll.id}`)) && (() => {
+      {!isClosed && PARTICIPATION_ENABLED && hasVoted && !hasCommitted && userPositions.length === 0 && userListings.length === 0 && (() => {
         const votedOption = sortedOptions.find(o => o.id === votedOptionId);
         if (!votedOption) return null;
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
         const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
+        const isDismissed = interactionMode !== "vote" && !!localStorage.getItem(`nudge_dismissed_${poll.id}`);
+        
+        // If dismissed on homepage, show a compact "Commit Capital" button instead of the full nudge
+        if (isDismissed) {
+          return (
+            <div className="mt-2 pt-2 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={() => handleAllocate(votedOption)}
+                  className="flex-1 text-xs font-bold gap-1">
+                  <DollarSign className="w-3 h-3" /> Commit capital — back your forecast
+                </Button>
+                <Button size="sm" variant="outline" asChild className="text-xs font-medium gap-1 shrink-0">
+                  <Link to="/how-it-works"><HelpCircle className="w-3 h-3" /> How it works</Link>
+                </Button>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <motion.div
             initial={{ opacity: 0, height: 0 }}

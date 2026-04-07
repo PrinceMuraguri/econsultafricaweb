@@ -46,6 +46,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);

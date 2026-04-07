@@ -66,6 +66,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const [savedListInfo, setSavedListInfo] = useState<{ optionId: string; optionLabel: string; shares: number; price: number } | null>(null);
   // hasCommitted stays true once the user has committed capital — prevents panel flicker during refetch
   const [hasCommitted, setHasCommitted] = useState(false);
+  const [peerOffersOpen, setPeerOffersOpen] = useState(false);
+  const [inlineBuyingId, setInlineBuyingId] = useState<string | null>(null);
+  const [inlineConfirming, setInlineConfirming] = useState<string | null>(null);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
 
   const isLoggedIn = !!user;

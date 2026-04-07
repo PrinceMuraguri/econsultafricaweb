@@ -509,6 +509,19 @@ const MyDashboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <section className="section-padding">
+          <div className="container-page max-w-md mx-auto text-center py-20">
+            <Activity className="w-10 h-10 text-muted-foreground mx-auto mb-4 animate-spin" />
+            <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
   if (!user) {
     return (
       <Layout>

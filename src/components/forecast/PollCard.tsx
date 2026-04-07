@@ -893,6 +893,24 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         );
       })()}
 
+      {/* Standalone Browse peer offers — visible to ALL users on active polls, outside the nudge card */}
+      {!isClosed && PARTICIPATION_ENABLED && (
+        // Only show standalone button when the nudge card's "Browse peer offers" is NOT already visible
+        // i.e. when user has committed capital, or hasn't voted yet
+        (hasCommitted || userPositions.length > 0 || userListings.length > 0 || !hasVoted) && (
+          <div className="mt-2 pt-2 border-t border-border">
+            <Button size="sm" variant="outline" onClick={() => setPeerOffersOpen(!peerOffersOpen)}
+              className="w-full text-xs font-medium gap-1 border-amber-500 text-amber-600 hover:bg-amber-50">
+              <Tag className="w-3 h-3 text-amber-500" /> Browse peer offers
+              {pollListings.length > 0 && (
+                <span className="ml-0.5 text-[8px] bg-amber-100 text-amber-700 px-1 rounded-full">{pollListings.length}</span>
+              )}
+            </Button>
+            {inlineListingsPanel}
+          </div>
+        )
+      )}
+
       {isClosed && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Lock className="w-3 h-3" />Forecasting closed

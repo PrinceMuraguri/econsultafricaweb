@@ -130,12 +130,12 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   const { data: pollListings = [], error: peerListingsError } = useQuery<any[]>({
     queryKey: ["peer-listings", poll.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("listings")
         .select("*, poll_options(label)")
         .eq("poll_id", poll.id)
         .eq("status", "active")
-        .order("created_at", { ascending: false });
+        .order("price_per_share", { ascending: true });
       if (error) {
         console.error("Peer listings query error:", error);
         throw error;

@@ -1,64 +1,16 @@
-import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
-import TradingPanel from "@/components/forecast/TradingPanel";
 import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
 import ListingsPanel from "@/components/forecast/ListingsPanel";
 import { usePoll } from "@/hooks/use-polls";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { getFingerprint } from "@/lib/fingerprint";
 import { ArrowLeft, Scale, BarChart3 } from "lucide-react";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: poll, isLoading, error } = usePoll(slug || "");
-  const { user } = useAuth();
-  const [hasVoted, setHasVoted] = useState(false);
-  const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
-  const [isAlreadyStaked, setIsAlreadyStaked] = useState(false);
 
-  // Check if user has voted on this poll
-  useEffect(() => {
-    if (!poll) return;
-    (async () => {
-      if (user) {
-        const { data } = await supabase
-          .from("votes")
-          .select("option_id, is_staked, stake_amount")
-          .eq("poll_id", poll.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (data) {
-          setHasVoted(true);
-          setVotedOptionId(data.option_id);
-          // Check stake_amount > 0 (not just is_staked) because is_staked becomes false
-          // when all shares are listed in the P2P marketplace
-          if (data.is_staked || (data.stake_amount && Number(data.stake_amount) > 0)) {
-            setIsAlreadyStaked(true);
-          }
-          return;
-        }
-      }
-      const fp = await getFingerprint();
-      const { data } = await supabase
-        .from("votes")
-        .select("option_id")
-        .eq("poll_id", poll.id)
-        .eq("voter_fingerprint", fp)
-        .maybeSingle();
-      if (data) {
-        setHasVoted(true);
-        setVotedOptionId(data.option_id);
-      }
-    })();
-  }, [poll?.id, user]);
-
-  const isClosed = poll ? (poll.status !== "active" || new Date(poll.close_at) < new Date()) : true;
-  // Hide TradingPanel if user already has an active stake — they use the PollCard exit/buy-more buttons instead
-  const showTradingPanel = hasVoted && !!user && !isClosed && !isAlreadyStaked;
 
   if (isLoading) {
     return (
@@ -107,11 +59,6 @@ const ForecastPollDetail = () => {
           pollId={poll.id}
           options={(poll as any).poll_options?.map((o: any) => ({ id: o.id, label: o.label })) || []}
         />
-
-        {/* Stage 3: Position panel — only if voted + logged in + active */}
-        {showTradingPanel && (
-          <TradingPanel poll={poll} votedOptionId={votedOptionId} hasVoted={hasVoted} />
-        )}
 
         {/* Economic Context */}
         {poll.context && (

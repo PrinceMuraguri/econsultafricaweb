@@ -40,7 +40,7 @@ interface Position {
 const DEPOSIT_AMOUNTS = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
 
 const MyDashboard = () => {
-  const { user, profile, wallet, refreshWallet, refreshProfile } = useAuth();
+  const { user, profile, wallet, loading, refreshWallet, refreshProfile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [depositLoading, setDepositLoading] = useState(false);
@@ -509,25 +509,6 @@ const MyDashboard = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <Layout>
-        <section className="section-padding">
-          <div className="container-page max-w-md mx-auto text-center">
-            <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="font-display text-2xl font-bold text-foreground mb-2">My Dashboard</h1>
-            <p className="text-sm text-muted-foreground mb-6">
-              Sign in or create an account to view your dashboard.
-            </p>
-            <Link to="/">
-              <Button>Go to Forecast Arena</Button>
-            </Link>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
-
   const activePositions = positions?.filter(p => p.outcome === "pending") || [];
   const resolvedPositions = positions?.filter(p => p.outcome !== "pending") || [];
   const totalCommitted = positions?.reduce((s, p) => s + (p.stake_amount || 0), 0) || 0;
@@ -633,6 +614,38 @@ const MyDashboard = () => {
     const seen = new Set<string>();
     return items.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 40);
   }, [positions, walletTxns, notifications]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <section className="section-padding">
+          <div className="container-page max-w-md mx-auto text-center py-20">
+            <Activity className="w-10 h-10 text-muted-foreground mx-auto mb-4 animate-spin" />
+            <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Layout>
+        <section className="section-padding">
+          <div className="container-page max-w-md mx-auto text-center">
+            <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h1 className="font-display text-2xl font-bold text-foreground mb-2">My Dashboard</h1>
+            <p className="text-sm text-muted-foreground mb-6">
+              Sign in or create an account to view your dashboard.
+            </p>
+            <Link to="/">
+              <Button>Go to Forecast Arena</Button>
+            </Link>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

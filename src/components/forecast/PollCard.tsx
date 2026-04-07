@@ -152,7 +152,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     enabled: !!user,
   });
 
-
+  useEffect(() => {
     if (isLoggedIn) {
       setRegisterOpen(false);
       setLoginModalOpen(false);

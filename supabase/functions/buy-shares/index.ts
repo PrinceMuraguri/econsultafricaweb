@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     // Record wallet transaction
     await supabase.from("wallet_transactions").insert({
       user_id: user.id,
-      type: "buy_shares",
+      type: "share_purchase",
       amount: -totalDebit,
       description: `Bought ${shares} shares`,
       reference: `buy_${poll_id}_${Date.now()}`,

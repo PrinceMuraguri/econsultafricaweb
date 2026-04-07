@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getFingerprint } from "@/lib/fingerprint";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, TrendingUp, HelpCircle, Minus, Plus } from "lucide-react";
+import { Shield, TrendingUp, HelpCircle, Minus, Plus, Wallet } from "lucide-react";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface StakeModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface StakeModalProps {
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
   const { user, profile: authProfile } = useAuth();
+  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -52,6 +54,17 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     }
   }, [open, user, authProfile]);
 
+  const { data: wallet } = useQuery({
+    queryKey: ["wallet-balance", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("wallets").select("balance_usd").eq("user_id", user.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+  const walletBalance = Number(wallet?.balance_usd || 0);
+
   const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
 
   const sharePrice = useMemo(() => {
@@ -64,6 +77,30 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const platformFee = parseFloat((totalCost * 0.035).toFixed(2));
   const potentialPayout = shares;
   const potentialProfit = parseFloat((potentialPayout - totalCost).toFixed(2));
+  const totalDebit = parseFloat((totalCost + platformFee).toFixed(2));
+  const hasEnoughInWallet = walletBalance >= totalDebit;
+
+  const handleWalletPay = async () => {
+    if (!selectedOption || shares < 1) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("buy-shares", {
+        body: { poll_id: poll.id, option_id: selectedOption.id, shares },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast({ title: "Shares purchased! 🎉", description: `You bought ${shares} shares of "${selectedOption.label}" from your wallet.` });
+      queryClient.invalidateQueries({ queryKey: ["wallet-balance", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["my-positions"] });
+      onOpenChange(false);
+    } catch (err: any) {
+      toast({ title: "Purchase failed", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleStake = async () => {
     if (!selectedOption || !email || !fullName || !phoneNumber || shares < 1) {
@@ -205,7 +242,49 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             </p>
           </div>
 
-          {/* Single CTA button */}
+          {/* Wallet pay option — logged-in users only */}
+          {!!user && (
+            <>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <Wallet className="w-3.5 h-3.5" /> Pay from wallet
+                  </p>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    Balance: <span className="font-semibold text-foreground">${walletBalance.toFixed(2)}</span>
+                  </p>
+                </div>
+                <Button
+                  onClick={handleWalletPay}
+                  disabled={!hasEnoughInWallet || loading || shares < 1}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-display font-semibold"
+                  size="lg"
+                >
+                  {loading
+                    ? "Processing..."
+                    : <>
+                        <Wallet className="w-4 h-4 mr-2" />
+                        Pay ${totalDebit.toFixed(2)} from Wallet
+                      </>
+                  }
+                </Button>
+                {!hasEnoughInWallet && (
+                  <p className="text-[10px] text-destructive text-center">
+                    Insufficient balance — <Link to="/my-dashboard" className="underline hover:text-destructive/80" onClick={() => onOpenChange(false)}>add funds on your Dashboard</Link>
+                  </p>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </>
+          )}
+
+          {/* Paystack CTA button */}
           <Button
             onClick={handleStake}
             disabled={loading || !email || !fullName || !phoneNumber || shares < 1}

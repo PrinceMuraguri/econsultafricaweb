@@ -683,10 +683,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   <DollarSign className="w-3 h-3" /> Buy instantly
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setPeerOffersOpen(!peerOffersOpen)}
-                  className="flex-1 text-xs font-medium gap-1">
-                  <Tag className="w-3 h-3" /> Browse peer offers
+                  className="flex-1 text-xs font-medium gap-1 border-amber-500 text-amber-600 hover:bg-amber-50">
+                  <Tag className="w-3 h-3 text-amber-500" /> Browse peer offers
                   {pollListings.length > 0 && (
-                    <span className="ml-0.5 text-[8px] bg-primary/10 text-primary px-1 rounded-full">{pollListings.length}</span>
+                    <span className="ml-0.5 text-[8px] bg-amber-100 text-amber-700 px-1 rounded-full">{pollListings.length}</span>
                   )}
                 </Button>
               </div>
@@ -731,10 +731,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   <DollarSign className="w-3 h-3" /> Buy instantly
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setPeerOffersOpen(!peerOffersOpen)}
-                  className="flex-1 text-xs font-medium gap-1">
-                  <Tag className="w-3 h-3" /> Browse peer offers
+                  className="flex-1 text-xs font-medium gap-1 border-amber-500 text-amber-600 hover:bg-amber-50">
+                  <Tag className="w-3 h-3 text-amber-500" /> Browse peer offers
                   {pollListings.length > 0 && (
-                    <span className="ml-0.5 text-[8px] bg-primary/10 text-primary px-1 rounded-full">{pollListings.length}</span>
+                    <span className="ml-0.5 text-[8px] bg-amber-100 text-amber-700 px-1 rounded-full">{pollListings.length}</span>
                   )}
                 </Button>
               </div>

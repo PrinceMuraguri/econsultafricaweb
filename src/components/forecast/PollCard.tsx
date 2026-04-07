@@ -610,7 +610,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                       Your wallet: <span className="font-mono font-semibold text-foreground">${nudgeWalletBalance.toFixed(2)}</span>
                     </p>
                   )}
-                  {pollListings.length === 0 ? (
+                  {peerListingsError ? (
+                    <p className="text-[10px] text-destructive text-center py-2">Could not load listings. Please refresh.</p>
+                  ) : pollListings.length === 0 ? (
                     <p className="text-[10px] text-muted-foreground text-center py-2">No listings available right now</p>
                   ) : (
                     <div className="space-y-1.5">

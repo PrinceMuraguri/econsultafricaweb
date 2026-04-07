@@ -621,8 +621,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
-            queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
-            queryClient.invalidateQueries({ queryKey: ["my-positions"] });
+            queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["my-positions", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["my-share-positions", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["my-trades", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["my-active-listings", user.id] });
             setInlineConfirming(null);
             setPeerOffersOpen(false);
             setHasRequestedPeerListings(false);

@@ -113,6 +113,9 @@ const MyDashboard = () => {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-notifications', user.id] });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'listings', filter: `seller_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-active-listings', user.id] });
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
       })
@@ -555,7 +558,7 @@ const MyDashboard = () => {
       }
     });
 
-    // Wallet events — deposits, withdrawals; skip buy_shares (shown via votes)
+    // Wallet events — deposits, withdrawals, P2P trades
     walletTxns?.forEach((tx: any) => {
       if (tx.type === 'deposit') {
         items.push({
@@ -587,6 +590,26 @@ const MyDashboard = () => {
           amountSign: '+',
           timestamp: tx.created_at,
         });
+      } else if (tx.type === 'share_purchase') {
+        items.push({
+          id: `wtx-${tx.id}`,
+          kind: 'share_purchase',
+          label: 'Bought shares (P2P)',
+          description: tx.description || undefined,
+          amount: Math.abs(tx.amount),
+          amountSign: '-',
+          timestamp: tx.created_at,
+        });
+      } else if (tx.type === 'share_sale') {
+        items.push({
+          id: `wtx-${tx.id}`,
+          kind: 'share_sale',
+          label: 'Sold shares (P2P)',
+          description: tx.description || undefined,
+          amount: Math.abs(tx.amount),
+          amountSign: '+',
+          timestamp: tx.created_at,
+        });
       }
     });
 
@@ -594,7 +617,7 @@ const MyDashboard = () => {
     const notifKinds = new Set([
       'position_won', 'position_lost',
       'payout_completed', 'withdrawal_completed', 'withdrawal_failed',
-      'comment_reply',
+      'comment_reply', 'listing_sold',
     ]);
     notifications?.forEach((notif: any) => {
       if (!notifKinds.has(notif.type)) return;
@@ -969,12 +992,15 @@ const MyDashboard = () => {
                     deposit:              { badge: "Deposit",     color: "bg-green-500/10 text-green-600" },
                     withdrawal:           { badge: "Withdrawal",  color: "bg-red-500/10 text-red-500" },
                     payout:               { badge: "Payout",      color: "bg-emerald-500/10 text-emerald-600" },
+                    share_purchase:       { badge: "Bought Shares", color: "bg-indigo-500/10 text-indigo-600" },
+                    share_sale:           { badge: "Sold Shares",   color: "bg-teal-500/10 text-teal-600" },
                     position_won:         { badge: "✓ Won",       color: "bg-green-500/10 text-green-600" },
                     position_lost:        { badge: "✗ Lost",      color: "bg-red-500/10 text-red-500" },
                     payout_completed:     { badge: "Payout",      color: "bg-emerald-500/10 text-emerald-600" },
                     withdrawal_completed: { badge: "Sent",        color: "bg-green-500/10 text-green-600" },
                     withdrawal_failed:    { badge: "Failed",      color: "bg-red-500/10 text-red-500" },
                     comment_reply:        { badge: "Reply",       color: "bg-purple-500/10 text-purple-600" },
+                    listing_sold:         { badge: "Listing Sold", color: "bg-amber-500/10 text-amber-600" },
                   };
                   const cfg = kindConfig[item.kind] ?? { badge: item.kind, color: "bg-muted text-muted-foreground" };
 

@@ -40,7 +40,7 @@ interface Position {
 const DEPOSIT_AMOUNTS = [1, 5, 10, 20, 50, 100, 250, 500, 1000];
 
 const MyDashboard = () => {
-  const { user, profile, wallet, refreshWallet, refreshProfile } = useAuth();
+  const { user, profile, wallet, loading, refreshWallet, refreshProfile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [depositLoading, setDepositLoading] = useState(false);

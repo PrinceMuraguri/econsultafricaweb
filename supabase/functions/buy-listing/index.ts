@@ -57,6 +57,39 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: data.error }), { status, headers: corsHeaders });
     }
 
+    // Notify the seller that their listing was bought
+    if (data?.success) {
+      try {
+        // Fetch listing details to get seller_id, poll_id, etc.
+        const { data: listing } = await supabase
+          .from("listings")
+          .select("seller_id, poll_id, shares, total_ask")
+          .eq("id", listing_id)
+          .single();
+
+        if (listing && listing.seller_id) {
+          // Get poll slug for the notification link
+          const { data: poll } = await supabase
+            .from("polls")
+            .select("slug")
+            .eq("id", listing.poll_id)
+            .single();
+
+          await supabase.from("notifications").insert({
+            user_id: listing.seller_id,
+            type: "listing_sold",
+            title: "Your listing was bought!",
+            body: `Someone purchased ${Number(listing.shares).toFixed(4)} shares for $${Number(listing.total_ask).toFixed(2)}`,
+            poll_id: listing.poll_id,
+            link: poll?.slug ? `/forecast-arena/${poll.slug}` : null,
+          });
+        }
+      } catch (notifErr) {
+        // Non-critical — don't fail the trade if notification fails
+        console.error("Failed to send seller notification:", (notifErr as Error).message);
+      }
+    }
+
     return new Response(
       JSON.stringify(data),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

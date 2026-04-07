@@ -42,6 +42,18 @@ interface PollCardProps {
   interactionMode?: "navigate" | "vote";
 }
 
+interface PeerListing {
+  id: string;
+  seller_id: string;
+  poll_id: string;
+  option_id: string;
+  shares: number;
+  price_per_share: number;
+  total_ask: number;
+  status: string;
+  created_at: string | null;
+}
+
 const PollCard = ({ poll, compact = false, isTrending = false, interactionMode = "navigate" }: PollCardProps) => {
   const { toast } = useToast();
   const { user, profile } = useAuth();
@@ -68,6 +80,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
   // hasCommitted stays true once the user has committed capital — prevents panel flicker during refetch
   const [hasCommitted, setHasCommitted] = useState(false);
   const [peerOffersOpen, setPeerOffersOpen] = useState(false);
+  const [hasRequestedPeerListings, setHasRequestedPeerListings] = useState(false);
   const [inlineBuyingId, setInlineBuyingId] = useState<string | null>(null);
   const [inlineConfirming, setInlineConfirming] = useState<string | null>(null);
   const activationRef = useRef<{ optionId: string; timestamp: number } | null>(null);
@@ -127,12 +140,17 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     enabled: !!user,
   });
   // All active listings for this poll (for inline P2P panel in nudge card)
-  const { data: pollListings = [], error: peerListingsError } = useQuery<any[]>({
+  const {
+    data: pollListings = [],
+    error: peerListingsError,
+    isFetching: loadingPeerListings,
+    refetch: refetchPeerListings,
+  } = useQuery<PeerListing[]>({
     queryKey: ["peer-listings", poll.id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("listings")
-        .select("*, poll_options(label)")
+        .select("id, seller_id, poll_id, option_id, shares, price_per_share, total_ask, status, created_at")
         .eq("poll_id", poll.id)
         .eq("status", "active")
         .order("price_per_share", { ascending: true });
@@ -140,9 +158,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         console.error("Peer listings query error:", error);
         throw error;
       }
-      return data || [];
+      return (data || []) as PeerListing[];
     },
-    enabled: peerOffersOpen,
+    enabled: false,
   });
 
   // Fetch buyer's wallet balance for inline buy
@@ -155,6 +173,23 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     },
     enabled: !!user,
   });
+
+  const handleTogglePeerOffers = () => {
+    if (peerOffersOpen) {
+      setPeerOffersOpen(false);
+      setHasRequestedPeerListings(false);
+      setInlineConfirming(null);
+      return;
+    }
+
+    setPeerOffersOpen(true);
+  };
+
+  const handleLoadPeerListings = async () => {
+    setHasRequestedPeerListings(true);
+    setInlineConfirming(null);
+    await refetchPeerListings();
+  };
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -326,6 +361,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     const rank = (l: string) => l === "yes" ? 0 : l === "no" ? 2 : 1;
     return rank(a.label.toLowerCase()) - rank(b.label.toLowerCase());
   }), [localOptions]);
+
+  const optionLabels = useMemo(
+    () => new Map(localOptions.map((option) => [option.id, option.label])),
+    [localOptions]
+  );
 
   const isYesNo = sortedOptions.length === 2 && sortedOptions.some(o => o.label.toLowerCase() === "yes") && sortedOptions.some(o => o.label.toLowerCase() === "no");
 
@@ -571,7 +611,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               body: { listing_id: listing.id },
             });
             if (error || data?.error) throw new Error(data?.error || error?.message);
-            const optLabel = listing.poll_options?.label || "Unknown";
+            const optLabel = optionLabels.get(listing.option_id) || "Unknown";
             toast({
               title: "Purchase complete! 🎉",
               description: `You acquired ${Number(listing.shares).toFixed(4)} shares of "${optLabel}"`,
@@ -585,6 +625,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             queryClient.invalidateQueries({ queryKey: ["my-positions"] });
             setInlineConfirming(null);
             setPeerOffersOpen(false);
+            setHasRequestedPeerListings(false);
           } catch (err: any) {
             toast({ title: "Purchase failed", description: err.message, variant: "destructive" });
           } finally {
@@ -610,18 +651,33 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                       Your wallet: <span className="font-mono font-semibold text-foreground">${nudgeWalletBalance.toFixed(2)}</span>
                     </p>
                   )}
-                  {peerListingsError ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-[10px] h-7"
+                    onClick={() => void handleLoadPeerListings()}
+                    disabled={loadingPeerListings}
+                  >
+                    {loadingPeerListings ? (
+                      <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Loading current listings…</>
+                    ) : (
+                      hasRequestedPeerListings ? "Reload current listings" : "Load current listings"
+                    )}
+                  </Button>
+                  {hasRequestedPeerListings ? peerListingsError ? (
                     <p className="text-[10px] text-destructive text-center py-2">Could not load listings. Please refresh.</p>
+                  ) : loadingPeerListings && pollListings.length === 0 ? (
+                    <p className="text-[10px] text-muted-foreground text-center py-2">Loading current listings…</p>
                   ) : pollListings.length === 0 ? (
                     <p className="text-[10px] text-muted-foreground text-center py-2">No listings available right now</p>
                   ) : (
                     <div className="space-y-1.5">
-                      {pollListings.map((listing: any) => {
+                      {pollListings.map((listing) => {
                         const isOwn = user?.id === listing.seller_id;
                         const canAfford = nudgeWalletBalance >= Number(listing.total_ask);
                         const isConfirmingThis = inlineConfirming === listing.id;
                         const isBuyingThis = inlineBuyingId === listing.id;
-                        const optLabel = listing.poll_options?.label || "Unknown";
+                        const optLabel = optionLabels.get(listing.option_id) || "Unknown";
 
                         return (
                           <div
@@ -675,7 +731,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                         );
                       })}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </motion.div>
             )}
@@ -691,10 +747,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   className="flex-1 text-xs font-bold gap-1">
                   <DollarSign className="w-3 h-3" /> Buy instantly
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setPeerOffersOpen(!peerOffersOpen)}
+                <Button size="sm" variant="outline" onClick={handleTogglePeerOffers}
                   className="flex-1 text-xs font-medium gap-1 border-amber-500 text-amber-600 hover:bg-amber-50">
                   <Tag className="w-3 h-3 text-amber-500" /> Browse peer offers
-                  {pollListings.length > 0 && (
+                  {hasRequestedPeerListings && pollListings.length > 0 && (
                     <span className="ml-0.5 text-[8px] bg-amber-100 text-amber-700 px-1 rounded-full">{pollListings.length}</span>
                   )}
                 </Button>
@@ -739,10 +795,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   className="flex-1 text-xs font-bold gap-1">
                   <DollarSign className="w-3 h-3" /> Buy instantly
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setPeerOffersOpen(!peerOffersOpen)}
+                <Button size="sm" variant="outline" onClick={handleTogglePeerOffers}
                   className="flex-1 text-xs font-medium gap-1 border-amber-500 text-amber-600 hover:bg-amber-50">
                   <Tag className="w-3 h-3 text-amber-500" /> Browse peer offers
-                  {pollListings.length > 0 && (
+                  {hasRequestedPeerListings && pollListings.length > 0 && (
                     <span className="ml-0.5 text-[8px] bg-amber-100 text-amber-700 px-1 rounded-full">{pollListings.length}</span>
                   )}
                 </Button>

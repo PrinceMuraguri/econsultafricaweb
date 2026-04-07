@@ -648,7 +648,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                               isConfirmingThis ? (
                                 <div className="space-y-1">
                                   <p className="text-[9px] text-foreground font-medium text-center">
-                                    Pay <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from wallet?
+                                    Buy {Number(listing.shares).toFixed(4)} shares of "<span className="font-semibold">{optLabel}</span>" for <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from your wallet?
                                   </p>
                                   <div className="flex gap-1.5">
                                     <Button size="sm" className="flex-1 text-[9px] h-6 bg-green-600 hover:bg-green-700"

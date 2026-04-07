@@ -41,7 +41,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
         .select("*, poll_options(label)")
         .eq("poll_id", poll.id)
         .eq("status", "active")
-        .order("created_at", { ascending: false });
+        .order("price_per_share", { ascending: true });
       if (error) throw error;
       return (data || []) as ListingRow[];
     },

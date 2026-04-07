@@ -21,17 +21,4 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["react", "react-dom", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-charts': ['recharts'],
-          'vendor-query': ['@tanstack/react-query'],
-        },
-      },
-    },
-  },
 }));

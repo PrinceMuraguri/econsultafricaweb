@@ -127,18 +127,22 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     enabled: !!user,
   });
   // All active listings for this poll (for inline P2P panel in nudge card)
-  const { data: pollListings = [] } = useQuery<any[]>({
-    queryKey: ["listings", poll.id],
+  const { data: pollListings = [], error: peerListingsError } = useQuery<any[]>({
+    queryKey: ["peer-listings", poll.id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("listings")
         .select("*, poll_options(label)")
         .eq("poll_id", poll.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data || []) as any[];
+      if (error) {
+        console.error("Peer listings query error:", error);
+        throw error;
+      }
+      return data || [];
     },
+    enabled: peerOffersOpen,
   });
 
   // Fetch buyer's wallet balance for inline buy

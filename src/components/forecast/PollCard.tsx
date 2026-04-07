@@ -571,15 +571,18 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               body: { listing_id: listing.id },
             });
             if (error || data?.error) throw new Error(data?.error || error?.message);
+            const optLabel = listing.poll_options?.label || "Unknown";
             toast({
               title: "Purchase complete! 🎉",
-              description: `You acquired ${Number(listing.shares).toFixed(4)} shares at $${Number(listing.price_per_share).toFixed(2)}/share`,
+              description: `You acquired ${Number(listing.shares).toFixed(4)} shares of "${optLabel}"`,
             });
-            queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
+            queryClient.invalidateQueries({ queryKey: ["peer-listings", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["my-positions"] });
             setInlineConfirming(null);
             setPeerOffersOpen(false);
           } catch (err: any) {

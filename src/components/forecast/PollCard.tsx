@@ -126,8 +126,33 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     },
     enabled: !!user,
   });
+  // All active listings for this poll (for inline P2P panel in nudge card)
+  const { data: pollListings = [] } = useQuery<any[]>({
+    queryKey: ["listings", poll.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("listings")
+        .select("*, poll_options(label)")
+        .eq("poll_id", poll.id)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
 
-  useEffect(() => {
+  // Fetch buyer's wallet balance for inline buy
+  const { data: nudgeWallet } = useQuery({
+    queryKey: ["wallet-balance", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("wallets").select("balance_usd").eq("user_id", user.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+
     if (isLoggedIn) {
       setRegisterOpen(false);
       setLoginModalOpen(false);

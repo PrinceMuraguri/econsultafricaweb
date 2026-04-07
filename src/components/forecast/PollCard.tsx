@@ -127,18 +127,22 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     enabled: !!user,
   });
   // All active listings for this poll (for inline P2P panel in nudge card)
-  const { data: pollListings = [] } = useQuery<any[]>({
-    queryKey: ["listings", poll.id],
+  const { data: pollListings = [], error: peerListingsError } = useQuery<any[]>({
+    queryKey: ["peer-listings", poll.id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("listings")
         .select("*, poll_options(label)")
         .eq("poll_id", poll.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data || []) as any[];
+      if (error) {
+        console.error("Peer listings query error:", error);
+        throw error;
+      }
+      return data || [];
     },
+    enabled: peerOffersOpen,
   });
 
   // Fetch buyer's wallet balance for inline buy
@@ -567,15 +571,18 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               body: { listing_id: listing.id },
             });
             if (error || data?.error) throw new Error(data?.error || error?.message);
+            const optLabel = listing.poll_options?.label || "Unknown";
             toast({
               title: "Purchase complete! 🎉",
-              description: `You acquired ${Number(listing.shares).toFixed(4)} shares at $${Number(listing.price_per_share).toFixed(2)}/share`,
+              description: `You acquired ${Number(listing.shares).toFixed(4)} shares of "${optLabel}"`,
             });
-            queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
+            queryClient.invalidateQueries({ queryKey: ["peer-listings", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
             queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["my-positions"] });
             setInlineConfirming(null);
             setPeerOffersOpen(false);
           } catch (err: any) {
@@ -603,7 +610,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                       Your wallet: <span className="font-mono font-semibold text-foreground">${nudgeWalletBalance.toFixed(2)}</span>
                     </p>
                   )}
-                  {pollListings.length === 0 ? (
+                  {peerListingsError ? (
+                    <p className="text-[10px] text-destructive text-center py-2">Could not load listings. Please refresh.</p>
+                  ) : pollListings.length === 0 ? (
                     <p className="text-[10px] text-muted-foreground text-center py-2">No listings available right now</p>
                   ) : (
                     <div className="space-y-1.5">
@@ -639,7 +648,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                               isConfirmingThis ? (
                                 <div className="space-y-1">
                                   <p className="text-[9px] text-foreground font-medium text-center">
-                                    Pay <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from wallet?
+                                    Buy {Number(listing.shares).toFixed(4)} shares of "<span className="font-semibold">{optLabel}</span>" for <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from your wallet?
                                   </p>
                                   <div className="flex gap-1.5">
                                     <Button size="sm" className="flex-1 text-[9px] h-6 bg-green-600 hover:bg-green-700"

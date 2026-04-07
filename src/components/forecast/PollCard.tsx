@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy, DollarSign, Tag, ShoppingBag, CheckCircle } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, HelpCircle, Copy, DollarSign, Tag, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,6 +238,115 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     setStakeOption(option);
     setStakeOpen(true);
   };
+
+  const nudgeWalletBalance = Number(nudgeWallet?.balance_usd || 0);
+
+  const handleInlineBuy = async (listing: any) => {
+    if (!user) { toast({ title: "Sign in to buy", variant: "destructive" }); return; }
+    setInlineBuyingId(listing.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("buy-listing", {
+        body: { listing_id: listing.id },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      const optLabel = listing.poll_options?.label || "Unknown";
+      toast({
+        title: "Purchase complete! 🎉",
+        description: `You acquired ${Number(listing.shares).toFixed(4)} shares of "${optLabel}"`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["peer-listings", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["my-positions"] });
+      setInlineConfirming(null);
+      setPeerOffersOpen(false);
+    } catch (err: any) {
+      toast({ title: "Purchase failed", description: err.message, variant: "destructive" });
+    } finally {
+      setInlineBuyingId(null);
+    }
+  };
+
+  const inlineListingsPanel = (
+    <AnimatePresence>
+      {peerOffersOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="overflow-hidden"
+        >
+          <div className="bg-muted/40 border border-border rounded-md p-2 mt-2 space-y-1.5">
+            {user && (
+              <p className="text-[9px] text-muted-foreground">
+                Your wallet: <span className="font-mono font-semibold text-foreground">${nudgeWalletBalance.toFixed(2)}</span>
+              </p>
+            )}
+            {peerListingsError ? (
+              <p className="text-[10px] text-destructive text-center py-2">Could not load listings. Please refresh.</p>
+            ) : pollListings.length === 0 ? (
+              <p className="text-[10px] text-muted-foreground text-center py-2">No listings available right now</p>
+            ) : (
+              <div className="space-y-1.5">
+                {pollListings.map((listing: any) => {
+                  const isOwn = user?.id === listing.seller_id;
+                  const canAfford = nudgeWalletBalance >= Number(listing.total_ask);
+                  const optLabel = listing.poll_options?.label || "Unknown";
+                  const isBuyingThis = inlineBuyingId === listing.id;
+                  const isConfirmingThis = inlineConfirming === listing.id;
+
+                  return (
+                    <div key={listing.id} className={`rounded-md border px-2 py-1.5 space-y-1 ${isOwn ? "border-amber-500/40 bg-amber-500/5" : "border-border bg-background"}`}>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-medium text-foreground">{optLabel}</span>
+                        {isOwn && <span className="text-[8px] bg-amber-100 text-amber-700 px-1 rounded">Your listing</span>}
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] text-muted-foreground">
+                        <span>{Number(listing.shares).toFixed(4)} shares @ ${Number(listing.price_per_share).toFixed(2)}</span>
+                        <span className="font-mono font-bold text-foreground">${Number(listing.total_ask).toFixed(2)}</span>
+                      </div>
+                      {!isOwn && (
+                        user ? (
+                          isConfirmingThis ? (
+                            <div className="space-y-1 pt-0.5">
+                              <p className="text-[9px] text-foreground font-medium text-center">
+                                Buy {Number(listing.shares).toFixed(4)} shares of "<span className="font-semibold">{optLabel}</span>" for <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from your wallet?
+                              </p>
+                              <div className="flex gap-1.5">
+                                <Button size="sm" className="flex-1 text-[9px] h-6 bg-green-600 hover:bg-green-700"
+                                  disabled={isBuyingThis || !canAfford}
+                                  onClick={() => handleInlineBuy(listing)}>
+                                  {isBuyingThis ? <><Loader2 className="w-2.5 h-2.5 animate-spin" />Buying…</> : <><CheckCircle className="w-2.5 h-2.5" />Confirm</>}
+                                </Button>
+                                <Button size="sm" variant="outline" className="flex-1 text-[9px] h-6"
+                                  onClick={() => setInlineConfirming(null)} disabled={isBuyingThis}>
+                                  Back
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button size="sm" className="w-full text-[9px] h-6" disabled={!canAfford}
+                              onClick={() => setInlineConfirming(listing.id)}>
+                              {canAfford ? "Buy" : `Need $${Number(listing.total_ask).toFixed(2)}`}
+                            </Button>
+                          )
+                        ) : (
+                          <p className="text-[9px] text-muted-foreground text-center">Sign in to buy</p>
+                        )
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   const activateOption = (optionId: string) => {
     const now = Date.now();
@@ -560,127 +669,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         const consensusPct = totalVotes > 0 ? (votedOption.total_votes_count / totalVotes) : 0.50;
         const price = Math.max(0.05, Math.min(0.95, Math.round(consensusPct * 100) / 100));
         const isDismissed = interactionMode !== "vote" && !!localStorage.getItem(`nudge_dismissed_${poll.id}`);
-        
-        const nudgeWalletBalance = Number(nudgeWallet?.balance_usd || 0);
-
-        const handleInlineBuy = async (listing: any) => {
-          if (!user) { toast({ title: "Sign in to buy", variant: "destructive" }); return; }
-          setInlineBuyingId(listing.id);
-          try {
-            const { data, error } = await supabase.functions.invoke("buy-listing", {
-              body: { listing_id: listing.id },
-            });
-            if (error || data?.error) throw new Error(data?.error || error?.message);
-            const optLabel = listing.poll_options?.label || "Unknown";
-            toast({
-              title: "Purchase complete! 🎉",
-              description: `You acquired ${Number(listing.shares).toFixed(4)} shares of "${optLabel}"`,
-            });
-            queryClient.invalidateQueries({ queryKey: ["peer-listings", poll.id] });
-            queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
-            queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
-            queryClient.invalidateQueries({ queryKey: ["user-listings", poll.id] });
-            queryClient.invalidateQueries({ queryKey: ["wallet-balance", user.id] });
-            queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
-            queryClient.invalidateQueries({ queryKey: ["my-positions"] });
-            setInlineConfirming(null);
-            setPeerOffersOpen(false);
-          } catch (err: any) {
-            toast({ title: "Purchase failed", description: err.message, variant: "destructive" });
-          } finally {
-            setInlineBuyingId(null);
-          }
-        };
-
-        const inlineListingsPanel = (
-          <AnimatePresence>
-            {peerOffersOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="bg-muted/40 border border-border rounded-md p-2.5 space-y-2 mt-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
-                    <ShoppingBag className="w-3 h-3" /> Shares listed by other forecasters
-                  </p>
-                  {user && (
-                    <p className="text-[9px] text-muted-foreground">
-                      Your wallet: <span className="font-mono font-semibold text-foreground">${nudgeWalletBalance.toFixed(2)}</span>
-                    </p>
-                  )}
-                  {peerListingsError ? (
-                    <p className="text-[10px] text-destructive text-center py-2">Could not load listings. Please refresh.</p>
-                  ) : pollListings.length === 0 ? (
-                    <p className="text-[10px] text-muted-foreground text-center py-2">No listings available right now</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {pollListings.map((listing: any) => {
-                        const isOwn = user?.id === listing.seller_id;
-                        const canAfford = nudgeWalletBalance >= Number(listing.total_ask);
-                        const isConfirmingThis = inlineConfirming === listing.id;
-                        const isBuyingThis = inlineBuyingId === listing.id;
-                        const optLabel = listing.poll_options?.label || "Unknown";
-
-                        return (
-                          <div
-                            key={listing.id}
-                            className={`border rounded-md p-2 space-y-1 ${
-                              isOwn ? "border-amber-500/40 bg-amber-500/5" : "border-border"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className="flex items-center gap-1">
-                                <Tag className="w-2.5 h-2.5 text-muted-foreground" />
-                                <span className="font-semibold text-foreground">{optLabel}</span>
-                                {isOwn && (
-                                  <span className="text-[8px] bg-amber-500/15 text-amber-700 px-1 py-0.5 rounded font-medium">Your listing</span>
-                                )}
-                              </span>
-                              <span className="font-mono font-bold text-foreground">${Number(listing.total_ask).toFixed(2)}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
-                              <span>{Number(listing.shares).toFixed(4)} shares</span>
-                              <span>${Number(listing.price_per_share).toFixed(2)}/share</span>
-                            </div>
-                            {isOwn ? null : user ? (
-                              isConfirmingThis ? (
-                                <div className="space-y-1">
-                                  <p className="text-[9px] text-foreground font-medium text-center">
-                                    Buy {Number(listing.shares).toFixed(4)} shares of "<span className="font-semibold">{optLabel}</span>" for <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from your wallet?
-                                  </p>
-                                  <div className="flex gap-1.5">
-                                    <Button size="sm" className="flex-1 text-[9px] h-6 bg-green-600 hover:bg-green-700"
-                                      disabled={isBuyingThis || !canAfford}
-                                      onClick={() => handleInlineBuy(listing)}>
-                                      {isBuyingThis ? <><Loader2 className="w-2.5 h-2.5 animate-spin" />Buying…</> : <><CheckCircle className="w-2.5 h-2.5" />Confirm</>}
-                                    </Button>
-                                    <Button size="sm" variant="outline" className="flex-1 text-[9px] h-6"
-                                      onClick={() => setInlineConfirming(null)} disabled={isBuyingThis}>
-                                      Back
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <Button size="sm" className="w-full text-[9px] h-6" disabled={!canAfford}
-                                  onClick={() => setInlineConfirming(listing.id)}>
-                                  {canAfford ? "Buy" : `Need $${Number(listing.total_ask).toFixed(2)}`}
-                                </Button>
-                              )
-                            ) : (
-                              <p className="text-[9px] text-muted-foreground text-center">Sign in to buy</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        );
 
         // If dismissed on homepage, show compact dual buttons
         if (isDismissed) {
@@ -904,6 +892,24 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
           </motion.div>
         );
       })()}
+
+      {/* Standalone Browse peer offers — visible to ALL users on active polls, outside the nudge card */}
+      {!isClosed && PARTICIPATION_ENABLED && (
+        // Only show standalone button when the nudge card's "Browse peer offers" is NOT already visible
+        // i.e. when user has committed capital, or hasn't voted yet
+        (hasCommitted || userPositions.length > 0 || userListings.length > 0 || !hasVoted) && (
+          <div className="mt-2 pt-2 border-t border-border">
+            <Button size="sm" variant="outline" onClick={() => setPeerOffersOpen(!peerOffersOpen)}
+              className="w-full text-xs font-medium gap-1 border-amber-500 text-amber-600 hover:bg-amber-50">
+              <Tag className="w-3 h-3 text-amber-500" /> Browse peer offers
+              {pollListings.length > 0 && (
+                <span className="ml-0.5 text-[8px] bg-amber-100 text-amber-700 px-1 rounded-full">{pollListings.length}</span>
+              )}
+            </Button>
+            {inlineListingsPanel}
+          </div>
+        )
+      )}
 
       {isClosed && (
         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">

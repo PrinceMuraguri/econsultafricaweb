@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
-import TradingPanel from "@/components/forecast/TradingPanel";
+
 import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
 import ListingsPanel from "@/components/forecast/ListingsPanel";
 import { usePoll } from "@/hooks/use-polls";
@@ -56,9 +56,6 @@ const ForecastPollDetail = () => {
     })();
   }, [poll?.id, user]);
 
-  const isClosed = poll ? (poll.status !== "active" || new Date(poll.close_at) < new Date()) : true;
-  // Hide TradingPanel if user already has an active stake — they use the PollCard exit/buy-more buttons instead
-  const showTradingPanel = hasVoted && !!user && !isClosed && !isAlreadyStaked;
 
   if (isLoading) {
     return (
@@ -107,11 +104,6 @@ const ForecastPollDetail = () => {
           pollId={poll.id}
           options={(poll as any).poll_options?.map((o: any) => ({ id: o.id, label: o.label })) || []}
         />
-
-        {/* Stage 3: Position panel — only if voted + logged in + active */}
-        {showTradingPanel && (
-          <TradingPanel poll={poll} votedOptionId={votedOptionId} hasVoted={hasVoted} />
-        )}
 
         {/* Economic Context */}
         {poll.context && (

@@ -1127,18 +1127,18 @@ const MyDashboard = () => {
           <div id="active-forecasts" className="mb-8 scroll-mt-20">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
-              My Active Forecasts ({activePositions.length})
+              My Active Forecasts ({allActiveForecasts.length})
             </h2>
             {isLoading ? (
               <p className="text-sm text-muted-foreground py-4">Loading...</p>
-            ) : activePositions.length === 0 ? (
+            ) : allActiveForecasts.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">
                 <p className="text-sm text-muted-foreground mb-3">No active positions yet.</p>
                 <Link to="/"><Button variant="outline" size="sm">Browse Forecast Questions <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></Link>
               </div>
             ) : (
               <div className="space-y-3">
-                {(showAllActive ? activePositions : activePositions.slice(0, 5)).map(pos => {
+                {(showAllActive ? allActiveForecasts : allActiveForecasts.slice(0, 5)).map((pos: any) => {
                   const consensusPct = pos.total_votes > 0 ? Math.round((pos.option_votes / pos.total_votes) * 100) : 50;
                   const isYes = pos.option_label.toLowerCase() === "yes";
                   // Check if user has shares in escrow (listed) for this poll
@@ -1174,12 +1174,12 @@ const MyDashboard = () => {
                     </Link>
                   );
                 })}
-                {activePositions.length > 5 && (
+                {allActiveForecasts.length > 5 && (
                   <button
                     onClick={() => setShowAllActive(v => !v)}
                     className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors"
                   >
-                    {showAllActive ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {activePositions.length - 5} more</>}
+                    {showAllActive ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {allActiveForecasts.length - 5} more</>}
                   </button>
                 )}
               </div>

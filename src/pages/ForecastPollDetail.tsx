@@ -4,6 +4,7 @@ import PollCard from "@/components/forecast/PollCard";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
 import ListingsPanel from "@/components/forecast/ListingsPanel";
+import UserPollActivity from "@/components/forecast/UserPollActivity";
 import { usePoll } from "@/hooks/use-polls";
 import { ArrowLeft, Scale, BarChart3 } from "lucide-react";
 
@@ -81,6 +82,9 @@ const ForecastPollDetail = () => {
             {(poll as any).resolution_criteria || "Resolved by Econsult Africa editorial team based on official data sources."}
           </p>
         </div>
+
+        {/* Your Activity History on this question */}
+        <UserPollActivity pollId={poll.id} />
 
         {/* Discussion */}
         <PollDiscussionTabs poll={poll} />

@@ -628,24 +628,28 @@ const MyDashboard = () => {
           timestamp: tx.created_at,
         });
       } else if (tx.type === 'share_purchase') {
+        const trade = tradeByRef.get(tx.reference);
         items.push({
           id: `wtx-${tx.id}`,
           kind: 'share_purchase',
-          label: 'Bought shares (P2P)',
-          description: tx.description || undefined,
+          label: trade ? `Bought shares — ${trade.option_label}` : 'Bought shares (P2P)',
+          description: trade?.poll_title || tx.description || undefined,
           amount: Math.abs(tx.amount),
           amountSign: '-',
           timestamp: tx.created_at,
+          link: trade?.poll_slug ? `/forecast-arena/${trade.poll_slug}` : undefined,
         });
       } else if (tx.type === 'share_sale') {
+        const trade = tradeByRef.get(tx.reference);
         items.push({
           id: `wtx-${tx.id}`,
           kind: 'share_sale',
-          label: 'Sold shares (P2P)',
-          description: tx.description || undefined,
+          label: trade ? `Sold shares — ${trade.option_label}` : 'Sold shares (P2P)',
+          description: trade?.poll_title || tx.description || undefined,
           amount: Math.abs(tx.amount),
           amountSign: '+',
           timestamp: tx.created_at,
+          link: trade?.poll_slug ? `/forecast-arena/${trade.poll_slug}` : undefined,
         });
       }
     });

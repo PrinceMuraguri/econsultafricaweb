@@ -249,7 +249,7 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch share positions from the new trading system
+  // Fetch share positions from the new trading system — enriched with poll/option info
   const { data: sharePositions = [] } = useQuery({
     queryKey: ["my-share-positions", user?.id],
     queryFn: async () => {
@@ -259,7 +259,23 @@ const MyDashboard = () => {
         .select("*")
         .eq("user_id", user.id);
       if (error) throw error;
-      return data || [];
+      if (!data || data.length === 0) return [];
+      const pollIds = [...new Set(data.map(p => p.poll_id))];
+      const optionIds = [...new Set(data.map(p => p.option_id))];
+      const [pollsRes, optionsRes] = await Promise.all([
+        supabase.from("polls").select("id, title, slug, status, close_at").in("id", pollIds),
+        supabase.from("poll_options").select("id, label").in("id", optionIds),
+      ]);
+      const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
+      const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
+      return data.map(pos => ({
+        ...pos,
+        poll_title: pollMap.get(pos.poll_id)?.title || "Unknown",
+        poll_slug: pollMap.get(pos.poll_id)?.slug || "",
+        poll_status: pollMap.get(pos.poll_id)?.status || "unknown",
+        poll_close_at: pollMap.get(pos.poll_id)?.close_at || "",
+        option_label: optionMap.get(pos.option_id)?.label || "Unknown",
+      }));
     },
     enabled: !!user,
     refetchInterval: 15000,
@@ -300,7 +316,7 @@ const MyDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Fetch trade history
+  // Fetch trade history — enriched with poll/option info
   const { data: tradeHistory = [] } = useQuery({
     queryKey: ["my-trades", user?.id],
     queryFn: async () => {
@@ -312,7 +328,21 @@ const MyDashboard = () => {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data || [];
+      if (!data || data.length === 0) return [];
+      const pollIds = [...new Set(data.map(t => t.poll_id))];
+      const optionIds = [...new Set(data.map(t => t.option_id))];
+      const [pollsRes, optionsRes] = await Promise.all([
+        supabase.from("polls").select("id, title, slug").in("id", pollIds),
+        supabase.from("poll_options").select("id, label").in("id", optionIds),
+      ]);
+      const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
+      const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
+      return data.map(t => ({
+        ...t,
+        poll_title: pollMap.get(t.poll_id)?.title || "Unknown",
+        poll_slug: pollMap.get(t.poll_id)?.slug || "",
+        option_label: optionMap.get(t.option_id)?.label || "Unknown",
+      }));
     },
     enabled: !!user,
     refetchInterval: 15000,
@@ -520,6 +550,40 @@ const MyDashboard = () => {
   const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = resolvedPositions.filter(p => p.outcome === "won").length;
 
+  // Merge P2P-only share positions (from positions table) into active forecasts
+  // These are positions where the user bought shares via P2P but never voted
+  const votePollIds = new Set(positions?.map(p => p.poll_id) || []);
+  const p2pOnlyPositions = sharePositions.filter((sp: any) =>
+    !votePollIds.has(sp.poll_id) && sp.poll_status === "active"
+  );
+  const allActiveForecasts = [...activePositions, ...p2pOnlyPositions.map((sp: any) => ({
+    id: sp.id,
+    poll_id: sp.poll_id,
+    option_id: sp.option_id,
+    created_at: sp.created_at,
+    is_staked: true,
+    stake_amount: Number(sp.total_cost),
+    poll_title: sp.poll_title,
+    poll_status: sp.poll_status,
+    poll_slug: sp.poll_slug,
+    option_label: sp.option_label,
+    winning_option_id: null,
+    close_at: sp.poll_close_at,
+    total_votes: 0,
+    option_votes: 0,
+    entry_price: Number(sp.avg_price),
+    potential_payout: Number(sp.shares),
+    outcome: "pending" as const,
+    _isP2POnly: true,
+  }))];
+
+  // Build reference→trade map for enriching P2P activity feed with poll titles
+  const tradeByRef = useMemo(() => {
+    const map = new Map<string, any>();
+    tradeHistory.forEach((t: any) => { if (t.reference) map.set(t.reference, t); });
+    return map;
+  }, [tradeHistory]);
+
   // Unified activity feed — merges votes, stakes, wallet events, and notifications
   const activityFeed = useMemo(() => {
     type ActivityItem = {
@@ -591,24 +655,28 @@ const MyDashboard = () => {
           timestamp: tx.created_at,
         });
       } else if (tx.type === 'share_purchase') {
+        const trade = tradeByRef.get(tx.reference);
         items.push({
           id: `wtx-${tx.id}`,
           kind: 'share_purchase',
-          label: 'Bought shares (P2P)',
-          description: tx.description || undefined,
+          label: trade ? `Bought shares — ${trade.option_label}` : 'Bought shares (P2P)',
+          description: trade?.poll_title || tx.description || undefined,
           amount: Math.abs(tx.amount),
           amountSign: '-',
           timestamp: tx.created_at,
+          link: trade?.poll_slug ? `/forecast-arena/${trade.poll_slug}` : undefined,
         });
       } else if (tx.type === 'share_sale') {
+        const trade = tradeByRef.get(tx.reference);
         items.push({
           id: `wtx-${tx.id}`,
           kind: 'share_sale',
-          label: 'Sold shares (P2P)',
-          description: tx.description || undefined,
+          label: trade ? `Sold shares — ${trade.option_label}` : 'Sold shares (P2P)',
+          description: trade?.poll_title || tx.description || undefined,
           amount: Math.abs(tx.amount),
           amountSign: '+',
           timestamp: tx.created_at,
+          link: trade?.poll_slug ? `/forecast-arena/${trade.poll_slug}` : undefined,
         });
       }
     });
@@ -636,7 +704,7 @@ const MyDashboard = () => {
     // Deduplicate by id
     const seen = new Set<string>();
     return items.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 40);
-  }, [positions, walletTxns, notifications]);
+  }, [positions, walletTxns, notifications, tradeByRef]);
 
   if (loading) {
     return (
@@ -701,7 +769,7 @@ const MyDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {[
               { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
-              { icon: Activity, label: "My Active Forecasts", value: activePositions.length },
+              { icon: Activity, label: "My Active Forecasts", value: allActiveForecasts.length },
               { icon: DollarSign, label: "Conviction Committed", value: <DualCurrency amount={totalCommitted} /> },
               { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
               { icon: CheckCircle, label: "Accuracy", value: resolvedPositions.length > 0 ? `${Math.round((wonCount / resolvedPositions.length) * 100)}%` : "—" },
@@ -944,7 +1012,7 @@ const MyDashboard = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Share Positions (Trading) */}
+          {/* Share Positions (Trading) — enriched with poll titles */}
           {sharePositions.length > 0 && (
             <div className="mb-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -953,18 +1021,22 @@ const MyDashboard = () => {
               </h2>
               <div className="space-y-2">
                 {sharePositions.map((pos: any) => (
-                  <div key={pos.id} className="bg-card border border-border rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-sm font-semibold text-foreground">{Number(pos.shares)} shares</span>
-                        <span className="text-xs text-muted-foreground ml-2">avg ${Number(pos.avg_price).toFixed(2)}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs text-muted-foreground">Cost basis: </span>
-                        <span className="font-mono text-sm font-bold">${Number(pos.total_cost).toFixed(2)}</span>
+                  <Link key={pos.id} to={pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : "#"} className="block">
+                    <div className="bg-card border border-border rounded-lg p-4 hover:border-primary/40 transition-colors">
+                      <h3 className="text-sm font-semibold text-foreground mb-1 leading-snug">{pos.poll_title}</h3>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">{pos.option_label}</span>
+                          <span>{Number(pos.shares).toFixed(4)} shares</span>
+                          <span>avg ${Number(pos.avg_price).toFixed(2)}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-muted-foreground">Cost: </span>
+                          <span className="font-mono text-sm font-bold">${Number(pos.total_cost).toFixed(2)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -1055,18 +1127,18 @@ const MyDashboard = () => {
           <div id="active-forecasts" className="mb-8 scroll-mt-20">
             <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
-              My Active Forecasts ({activePositions.length})
+              My Active Forecasts ({allActiveForecasts.length})
             </h2>
             {isLoading ? (
               <p className="text-sm text-muted-foreground py-4">Loading...</p>
-            ) : activePositions.length === 0 ? (
+            ) : allActiveForecasts.length === 0 ? (
               <div className="bg-card border border-border rounded-lg p-6 text-center">
                 <p className="text-sm text-muted-foreground mb-3">No active positions yet.</p>
                 <Link to="/"><Button variant="outline" size="sm">Browse Forecast Questions <ArrowRight className="w-3.5 h-3.5 ml-1" /></Button></Link>
               </div>
             ) : (
               <div className="space-y-3">
-                {(showAllActive ? activePositions : activePositions.slice(0, 5)).map(pos => {
+                {(showAllActive ? allActiveForecasts : allActiveForecasts.slice(0, 5)).map((pos: any) => {
                   const consensusPct = pos.total_votes > 0 ? Math.round((pos.option_votes / pos.total_votes) * 100) : 50;
                   const isYes = pos.option_label.toLowerCase() === "yes";
                   // Check if user has shares in escrow (listed) for this poll
@@ -1102,12 +1174,12 @@ const MyDashboard = () => {
                     </Link>
                   );
                 })}
-                {activePositions.length > 5 && (
+                {allActiveForecasts.length > 5 && (
                   <button
                     onClick={() => setShowAllActive(v => !v)}
                     className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-2 border border-dashed border-border rounded-lg hover:border-primary/40 transition-colors"
                   >
-                    {showAllActive ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {activePositions.length - 5} more</>}
+                    {showAllActive ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> Show {allActiveForecasts.length - 5} more</>}
                   </button>
                 )}
               </div>

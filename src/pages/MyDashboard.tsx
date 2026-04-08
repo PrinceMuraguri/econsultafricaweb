@@ -249,7 +249,7 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch share positions from the new trading system
+  // Fetch share positions from the new trading system — enriched with poll/option info
   const { data: sharePositions = [] } = useQuery({
     queryKey: ["my-share-positions", user?.id],
     queryFn: async () => {
@@ -259,7 +259,23 @@ const MyDashboard = () => {
         .select("*")
         .eq("user_id", user.id);
       if (error) throw error;
-      return data || [];
+      if (!data || data.length === 0) return [];
+      const pollIds = [...new Set(data.map(p => p.poll_id))];
+      const optionIds = [...new Set(data.map(p => p.option_id))];
+      const [pollsRes, optionsRes] = await Promise.all([
+        supabase.from("polls").select("id, title, slug, status, close_at").in("id", pollIds),
+        supabase.from("poll_options").select("id, label").in("id", optionIds),
+      ]);
+      const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
+      const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
+      return data.map(pos => ({
+        ...pos,
+        poll_title: pollMap.get(pos.poll_id)?.title || "Unknown",
+        poll_slug: pollMap.get(pos.poll_id)?.slug || "",
+        poll_status: pollMap.get(pos.poll_id)?.status || "unknown",
+        poll_close_at: pollMap.get(pos.poll_id)?.close_at || "",
+        option_label: optionMap.get(pos.option_id)?.label || "Unknown",
+      }));
     },
     enabled: !!user,
     refetchInterval: 15000,
@@ -300,7 +316,7 @@ const MyDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Fetch trade history
+  // Fetch trade history — enriched with poll/option info
   const { data: tradeHistory = [] } = useQuery({
     queryKey: ["my-trades", user?.id],
     queryFn: async () => {
@@ -312,7 +328,21 @@ const MyDashboard = () => {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data || [];
+      if (!data || data.length === 0) return [];
+      const pollIds = [...new Set(data.map(t => t.poll_id))];
+      const optionIds = [...new Set(data.map(t => t.option_id))];
+      const [pollsRes, optionsRes] = await Promise.all([
+        supabase.from("polls").select("id, title, slug").in("id", pollIds),
+        supabase.from("poll_options").select("id, label").in("id", optionIds),
+      ]);
+      const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
+      const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
+      return data.map(t => ({
+        ...t,
+        poll_title: pollMap.get(t.poll_id)?.title || "Unknown",
+        poll_slug: pollMap.get(t.poll_id)?.slug || "",
+        option_label: optionMap.get(t.option_id)?.label || "Unknown",
+      }));
     },
     enabled: !!user,
     refetchInterval: 15000,

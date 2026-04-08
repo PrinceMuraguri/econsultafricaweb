@@ -550,6 +550,33 @@ const MyDashboard = () => {
   const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = resolvedPositions.filter(p => p.outcome === "won").length;
 
+  // Merge P2P-only share positions (from positions table) into active forecasts
+  // These are positions where the user bought shares via P2P but never voted
+  const votePollIds = new Set(positions?.map(p => p.poll_id) || []);
+  const p2pOnlyPositions = sharePositions.filter((sp: any) =>
+    !votePollIds.has(sp.poll_id) && sp.poll_status === "active"
+  );
+  const allActiveForecasts = [...activePositions, ...p2pOnlyPositions.map((sp: any) => ({
+    id: sp.id,
+    poll_id: sp.poll_id,
+    option_id: sp.option_id,
+    created_at: sp.created_at,
+    is_staked: true,
+    stake_amount: Number(sp.total_cost),
+    poll_title: sp.poll_title,
+    poll_status: sp.poll_status,
+    poll_slug: sp.poll_slug,
+    option_label: sp.option_label,
+    winning_option_id: null,
+    close_at: sp.poll_close_at,
+    total_votes: 0,
+    option_votes: 0,
+    entry_price: Number(sp.avg_price),
+    potential_payout: Number(sp.shares),
+    outcome: "pending" as const,
+    _isP2POnly: true,
+  }))];
+
   // Build reference→trade map for enriching P2P activity feed with poll titles
   const tradeByRef = useMemo(() => {
     const map = new Map<string, any>();

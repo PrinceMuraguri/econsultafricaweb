@@ -769,7 +769,7 @@ const MyDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {[
               { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
-              { icon: Activity, label: "My Active Forecasts", value: activePositions.length },
+              { icon: Activity, label: "My Active Forecasts", value: allActiveForecasts.length },
               { icon: DollarSign, label: "Conviction Committed", value: <DualCurrency amount={totalCommitted} /> },
               { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
               { icon: CheckCircle, label: "Accuracy", value: resolvedPositions.length > 0 ? `${Math.round((wonCount / resolvedPositions.length) * 100)}%` : "—" },

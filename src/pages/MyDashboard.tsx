@@ -1012,7 +1012,7 @@ const MyDashboard = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Share Positions (Trading) */}
+          {/* Share Positions (Trading) — enriched with poll titles */}
           {sharePositions.length > 0 && (
             <div className="mb-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -1021,18 +1021,22 @@ const MyDashboard = () => {
               </h2>
               <div className="space-y-2">
                 {sharePositions.map((pos: any) => (
-                  <div key={pos.id} className="bg-card border border-border rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-sm font-semibold text-foreground">{Number(pos.shares)} shares</span>
-                        <span className="text-xs text-muted-foreground ml-2">avg ${Number(pos.avg_price).toFixed(2)}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs text-muted-foreground">Cost basis: </span>
-                        <span className="font-mono text-sm font-bold">${Number(pos.total_cost).toFixed(2)}</span>
+                  <Link key={pos.id} to={pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : "#"} className="block">
+                    <div className="bg-card border border-border rounded-lg p-4 hover:border-primary/40 transition-colors">
+                      <h3 className="text-sm font-semibold text-foreground mb-1 leading-snug">{pos.poll_title}</h3>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">{pos.option_label}</span>
+                          <span>{Number(pos.shares).toFixed(4)} shares</span>
+                          <span>avg ${Number(pos.avg_price).toFixed(2)}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-muted-foreground">Cost: </span>
+                          <span className="font-mono text-sm font-bold">${Number(pos.total_cost).toFixed(2)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

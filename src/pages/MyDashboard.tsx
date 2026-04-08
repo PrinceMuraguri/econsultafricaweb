@@ -550,6 +550,13 @@ const MyDashboard = () => {
   const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = resolvedPositions.filter(p => p.outcome === "won").length;
 
+  // Build reference→trade map for enriching P2P activity feed with poll titles
+  const tradeByRef = useMemo(() => {
+    const map = new Map<string, any>();
+    tradeHistory.forEach((t: any) => { if (t.reference) map.set(t.reference, t); });
+    return map;
+  }, [tradeHistory]);
+
   // Unified activity feed — merges votes, stakes, wallet events, and notifications
   const activityFeed = useMemo(() => {
     type ActivityItem = {

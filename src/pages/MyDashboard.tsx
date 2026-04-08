@@ -704,7 +704,7 @@ const MyDashboard = () => {
     // Deduplicate by id
     const seen = new Set<string>();
     return items.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 40);
-  }, [positions, walletTxns, notifications]);
+  }, [positions, walletTxns, notifications, tradeByRef]);
 
   if (loading) {
     return (

@@ -416,13 +416,14 @@ Deno.serve(async (req) => {
       performed_by: 'super_admin',
     });
 
-    // Fire emails in background
+    // Await emails — do NOT fire-and-forget; Deno kills background work after response
+    let emailsSent = 0;
+    let emailsFailed = 0;
     if (emailPromises.length > 0) {
-      Promise.allSettled(emailPromises).then(results => {
-        const sent   = results.filter(r => r.status === 'fulfilled').length;
-        const failed = results.filter(r => r.status === 'rejected').length;
-        console.log(`Settlement emails: ${sent} sent, ${failed} failed`);
-      });
+      const results = await Promise.allSettled(emailPromises);
+      emailsSent   = results.filter(r => r.status === 'fulfilled').length;
+      emailsFailed = results.filter(r => r.status === 'rejected').length;
+      console.log(`Settlement emails: ${emailsSent} sent, ${emailsFailed} failed`);
     }
 
     return new Response(JSON.stringify({

@@ -133,7 +133,6 @@ Deno.serve(async (req) => {
 
     // ── Helper: resolve user email from user_id ──────────────────────────────
     const resolveUserEmail = async (userId: string): Promise<string | null> => {
-      // Try user_profiles first (has voter_fingerprint → voter_profiles → email)
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('voter_fingerprint')
@@ -149,7 +148,6 @@ Deno.serve(async (req) => {
         if (vp?.email) return vp.email;
       }
 
-      // Fallback: auth.users via admin API
       const { data: { user } } = await supabase.auth.admin.getUserById(userId);
       return user?.email ?? null;
     };
@@ -162,6 +160,25 @@ Deno.serve(async (req) => {
         .eq('voter_fingerprint', fingerprint)
         .single();
       return vp?.email ?? null;
+    };
+
+    // ── Helper: resolve user's first name ────────────────────────────────────
+    const resolveUserName = async (userId: string | null, fingerprint: string): Promise<string | null> => {
+      if (userId) {
+        const { data: up } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('user_id', userId)
+          .single();
+        if (up?.full_name) return up.full_name.split(' ')[0];
+      }
+      const { data: vp } = await supabase
+        .from('voter_profiles')
+        .select('full_name')
+        .eq('voter_fingerprint', fingerprint)
+        .single();
+      if (vp?.full_name) return vp.full_name.split(' ')[0];
+      return null;
     };
 
     // ── 5. Payouts (only if there are winning positions) ─────────────────────

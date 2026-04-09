@@ -1,7 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Text, Hr, Section,
+  Body, Button, Container, Head, Heading, Html, Img, Preview, Text, Hr, Section,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -13,8 +13,11 @@ interface SettlementWinnerProps {
   winningOption?: string
   payoutAmount?: string
   stakeAmount?: string
+  netGain?: string
   pollUrl?: string
+  arenaUrl?: string
   userName?: string
+  isStaked?: boolean
 }
 
 const SettlementWinnerEmail = ({
@@ -22,43 +25,70 @@ const SettlementWinnerEmail = ({
   winningOption = 'Yes',
   payoutAmount = '$1.00',
   stakeAmount = '$1.00',
+  netGain = '$0.00',
   pollUrl,
+  arenaUrl = 'https://econsultafricaweb.lovable.app/forecast-arena',
   userName,
+  isStaked = false,
 }: SettlementWinnerProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You predicted correctly — {payoutAmount} has been credited to your wallet</Preview>
+    <Preview>
+      {isStaked
+        ? `Great call — you got it right and it paid off! 🎯`
+        : `Great call — you got this one right! 🎯`}
+    </Preview>
     <Body style={main}>
       <Container style={container}>
         <Img src={LOGO_URL} alt="Econsult Africa" width="160" height="auto" style={logo} />
         <Heading style={h1}>
-          {userName ? `Congratulations, ${userName}! 🎯` : 'Congratulations! 🎯'}
+          {userName ? `Hi ${userName},` : 'Hi there,'}
         </Heading>
         <Text style={text}>
-          Your forecast on <strong>"{pollTitle}"</strong> was correct.
-          The outcome resolved as <strong>{winningOption}</strong>.
+          Great call — you got this one right. 🎯
         </Text>
-        <Section style={payoutBox}>
-          <Text style={payoutLabel}>Your payout</Text>
-          <Text style={payoutValue}>{payoutAmount}</Text>
-          <Text style={payoutDetail}>Staked: {stakeAmount} • Net profit: calculated after 3.5% platform fee</Text>
-        </Section>
-        <Text style={text}>
-          The payout has been credited to your Econsult Africa wallet.
-          You can use it to participate in more forecasts or withdraw via mobile money or bank transfer.
-        </Text>
-        {pollUrl && (
-          <Button style={button} href={pollUrl}>
-            View Forecast Details
-          </Button>
+        {isStaked ? (
+          <>
+            <Text style={text}>
+              And even better, your conviction paid off:
+            </Text>
+            <Section style={payoutBox}>
+              <Text style={payoutDetail}>Amount staked: <strong>{stakeAmount}</strong></Text>
+              <Text style={payoutValue}>Payout: {payoutAmount}</Text>
+              <Text style={payoutDetail}>Net gain: <strong>{netGain}</strong></Text>
+            </Section>
+            <Text style={text}>
+              This is where forecasting becomes powerful — not just being right,
+              but knowing when to back your view.
+            </Text>
+            <Text style={text}>
+              The goal now is consistency. Keep showing up, keep refining,
+              and let your edge compound over time. Navigate to your dashboard
+              to view or withdraw earnings.
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={text}>
+              This is where forecasting becomes powerful — not just being right,
+              but knowing when to back your view.
+            </Text>
+            <Text style={text}>
+              The goal now is consistency. Keep showing up, keep refining,
+              and let your edge compound over time. Try our <strong>Commit Capital</strong> feature
+              to earn real rewards on your correct predictions next time.
+            </Text>
+          </>
         )}
+        <Button style={button} href={arenaUrl}>
+          Make your next forecast
+        </Button>
         <Hr style={hr} />
         <Text style={text}>
-          Your accuracy contributes to better collective intelligence on Africa's economic future.
-          Keep forecasting to climb the leaderboard.
+          Let's see how far you can take this.
         </Text>
         <Text style={footer}>
-          — The {SITE_NAME} Forecast Arena Team
+          — {SITE_NAME} Forecast Arena
         </Text>
       </Container>
     </Body>
@@ -68,15 +98,20 @@ const SettlementWinnerEmail = ({
 export const template = {
   component: SettlementWinnerEmail,
   subject: (data: Record<string, any>) =>
-    `🎯 Correct prediction — ${data.payoutAmount || 'payout'} credited to your wallet`,
+    data.isStaked
+      ? `🎯 Correct prediction — ${data.payoutAmount || 'payout'} credited to your wallet`
+      : `🎯 Great call — you got this one right!`,
   displayName: 'Forecast settlement — winner',
   previewData: {
     pollTitle: 'Will Kenya\'s inflation breach 5% in Q2 2026?',
     winningOption: 'Yes',
     payoutAmount: '$2.85',
     stakeAmount: '$1.00',
+    netGain: '$1.85',
     pollUrl: 'https://econsultafricaweb.lovable.app/forecast-arena/test-poll',
+    arenaUrl: 'https://econsultafricaweb.lovable.app/forecast-arena',
     userName: 'Jane',
+    isStaked: true,
   },
 } satisfies TemplateEntry
 
@@ -86,9 +121,8 @@ const logo = { margin: '0 0 24px' }
 const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1a2744', margin: '0 0 20px' }
 const text = { fontSize: '14px', color: '#636b7a', lineHeight: '1.6', margin: '0 0 25px' }
 const payoutBox = { backgroundColor: '#f0f7f0', borderRadius: '8px', padding: '20px', margin: '0 0 25px', textAlign: 'center' as const }
-const payoutLabel = { fontSize: '12px', color: '#636b7a', margin: '0 0 4px', textTransform: 'uppercase' as const, letterSpacing: '1px' }
 const payoutValue = { fontSize: '32px', fontWeight: 'bold' as const, color: '#16a34a', margin: '0 0 8px' }
-const payoutDetail = { fontSize: '12px', color: '#636b7a', margin: '0' }
+const payoutDetail = { fontSize: '14px', color: '#636b7a', margin: '0 0 4px' }
 const button = { backgroundColor: '#3660be', color: '#ffffff', fontSize: '14px', borderRadius: '4px', padding: '12px 24px', textDecoration: 'none' }
 const hr = { borderColor: '#e5e7eb', margin: '30px 0' }
 const footer = { fontSize: '12px', color: '#999999', margin: '0 0 8px' }

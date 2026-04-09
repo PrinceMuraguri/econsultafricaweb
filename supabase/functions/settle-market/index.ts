@@ -260,36 +260,50 @@ Deno.serve(async (req) => {
     for (const [key, vote] of voterMap) {
       const isWinner = vote.option_id === winning_option_id;
       const isStaked = vote.is_staked && Number(vote.stake_amount) > 0;
+      const stakeAmt = Number(vote.stake_amount) || 0;
 
       // Find payout amount if this user won with a stake
       const payoutEntry = isWinner && vote.user_id
         ? payoutRecords.find(p => p.user_id === vote.user_id)
         : null;
 
-      // In-app notification (only for logged-in users)
+      // In-app notification (only for logged-in users) — 4 variants
       if (vote.user_id) {
-        if (isWinner) {
-          const body = payoutEntry
-            ? `Your payout of $${payoutEntry.amount.toFixed(2)} has been credited to your wallet.`
-            : 'Your forecast was correct! Great job.';
+        if (isWinner && isStaked && payoutEntry) {
           notifs.push({
             user_id: vote.user_id,
             type:    'position_won',
-            title:   `Correct! "${poll.title}" → ${winningOption.label}`,
-            body,
+            title:   `You got it right — and it paid off. 🎯`,
+            body:    `You staked $${stakeAmt.toFixed(2)} and earned $${payoutEntry.amount.toFixed(2)}. Navigate to your dashboard to view or withdraw earnings.\nKeep building your edge on the Forecast Arena.`,
             poll_id,
-            link:    '/forecast-arena/' + poll.slug,
+            link:    '/my-dashboard',
+          });
+        } else if (isWinner) {
+          notifs.push({
+            user_id: vote.user_id,
+            type:    'position_won',
+            title:   `Nice call. You got it right. 🎯`,
+            body:    `Your forecast matched the outcome. Keep going — consistency is your edge. Take another position on the Forecast Arena.`,
+            poll_id,
+            link:    '/forecast-arena',
+          });
+        } else if (!isWinner && isStaked) {
+          notifs.push({
+            user_id: vote.user_id,
+            type:    'position_lost',
+            title:   `Missed this one. 📊`,
+            body:    `You staked $${stakeAmt.toFixed(2)} → Outcome didn't go your way.\nRefine your thinking and take another shot. Take another position on the Forecast Arena.`,
+            poll_id,
+            link:    '/forecast-arena',
           });
         } else {
           notifs.push({
             user_id: vote.user_id,
             type:    'position_lost',
-            title:   `Resolved: "${poll.title}" → ${winningOption.label}`,
-            body:    isStaked
-              ? 'Your forecast did not match. Your stake has been forfeited.'
-              : 'Your forecast did not match the outcome. Keep forecasting to improve your accuracy.',
+            title:   `Missed this one. 📊`,
+            body:    `Every call sharpens your edge. Stay consistent. Take another position on the Forecast Arena.`,
             poll_id,
-            link:    '/forecast-arena/' + poll.slug,
+            link:    '/forecast-arena',
           });
         }
       }
@@ -300,7 +314,6 @@ Deno.serve(async (req) => {
         return resolveEmailFromFingerprint(vote.voter_fingerprint);
       };
 
-      // Find the option label the voter chose
       const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
 
       if (isWinner) {
@@ -308,6 +321,8 @@ Deno.serve(async (req) => {
           (async () => {
             const email = await resolveEmail();
             if (!email) return;
+            const firstName = await resolveUserName(vote.user_id, vote.voter_fingerprint);
+            const netGain = payoutEntry ? (payoutEntry.amount - stakeAmt) : 0;
             await supabase.functions.invoke('send-transactional-email', {
               body: {
                 templateName: 'settlement-winner',
@@ -317,7 +332,12 @@ Deno.serve(async (req) => {
                   pollTitle:     poll.title,
                   winningOption: winningOption.label,
                   payoutAmount:  payoutEntry ? `$${payoutEntry.amount.toFixed(2)}` : '$0.00',
+                  stakeAmount:   `$${stakeAmt.toFixed(2)}`,
+                  netGain:       `$${netGain.toFixed(2)}`,
                   pollUrl:       `${siteUrl}/forecast-arena/${poll.slug}`,
+                  arenaUrl:      `${siteUrl}/forecast-arena`,
+                  userName:      firstName,
+                  isStaked,
                 },
               },
             });
@@ -328,6 +348,7 @@ Deno.serve(async (req) => {
           (async () => {
             const email = await resolveEmail();
             if (!email) return;
+            const firstName = await resolveUserName(vote.user_id, vote.voter_fingerprint);
             await supabase.functions.invoke('send-transactional-email', {
               body: {
                 templateName: 'settlement-loser',
@@ -337,7 +358,7 @@ Deno.serve(async (req) => {
                   pollTitle:     poll.title,
                   winningOption: winningOption.label,
                   userOption:    voterOptionLabel,
-                  stakeAmount:   isStaked ? `$${Number(vote.stake_amount).toFixed(2)}` : '$0.00',
+                  stakeAmount:   `$${stakeAmt.toFixed(2)}`,
                   arenaUrl:      `${siteUrl}/forecast-arena`,
                 },
               },

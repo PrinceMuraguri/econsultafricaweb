@@ -1,0 +1,1 @@
+DELETE FROM notifications WHERE poll_id = 'f834e4ba-6495-4009-a88f-17b40d51a202' AND type IN ('position_won', 'position_lost');

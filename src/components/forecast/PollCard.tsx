@@ -285,8 +285,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     activationRef.current = { optionId, timestamp: now };
 
     if (interactionMode === "vote") {
-      if (hasVoted || voting || isClosed) return;
-      void handleVote(optionId);
+      if (hasVoted || voting || isClosed) {
+        navigate(`/forecast-arena/${poll.slug}`);
+        return;
+      }
+      // Record the vote, then navigate to detail page
+      void handleVote(optionId).then(() => {
+        navigate(`/forecast-arena/${poll.slug}`);
+      });
       return;
     }
 

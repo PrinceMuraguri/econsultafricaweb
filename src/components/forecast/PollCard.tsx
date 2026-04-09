@@ -524,10 +524,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   onPointerUp={(e) => handleOptionPointerUp(option.id, e)}
                   onClick={(e) => handleOptionClick(option.id, e)}
                   onKeyDown={(e) => handleOptionKeyDown(option.id, e)}
-                  disabled={interactionMode === "vote" ? isClosed || hasVoted || voting : false}
+                  disabled={false}
                   className={`relative z-10 w-full pointer-events-auto overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
-                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 bg-transparent"
-                  } ${interactionMode === "vote" && (isClosed || hasVoted || voting) ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
+                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 hover:bg-primary/5 bg-transparent"
+                  } ${canVote && isHomepageMode ? "hover:scale-[1.02] hover:shadow-sm" : ""} cursor-pointer`}
                 >
                   {(hasVoted || isClosed) && (
                     <div className={`pointer-events-none absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />

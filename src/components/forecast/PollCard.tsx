@@ -391,12 +391,21 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     ? (leadingOption?.label.toLowerCase() === "no" ? "text-amber-500" : "text-green-600")
     : leadingPct <= 40 ? "text-amber-500" : "text-amber-500";
 
+  const isHomepageMode = interactionMode === "vote";
+
+  const handleCardClick = () => {
+    if (isHomepageMode) {
+      navigate(`/forecast-arena/${poll.slug}`);
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ y: -2 }}
+      onClick={handleCardClick}
       className={`bg-card rounded-lg border p-3 card-shadow flex flex-col relative ${
         isTrending ? "border-accent ring-2 ring-accent/20 shadow-lg shadow-accent/10" : "border-border"
-      }`}
+      } ${isHomepageMode ? "cursor-pointer hover:border-primary/50 hover:shadow-md transition-all" : ""}`}
       animate={isTrending ? { boxShadow: ["0 0 0px hsl(var(--accent) / 0.1)", "0 0 20px hsl(var(--accent) / 0.25)", "0 0 0px hsl(var(--accent) / 0.1)"] } : {}}
       transition={isTrending ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
     >

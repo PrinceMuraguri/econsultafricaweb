@@ -40,6 +40,7 @@ interface PollCardProps {
   compact?: boolean;
   isTrending?: boolean;
   interactionMode?: "navigate" | "vote";
+  homepage?: boolean;
 }
 
 interface PeerListing {
@@ -54,7 +55,7 @@ interface PeerListing {
   created_at: string | null;
 }
 
-const PollCard = ({ poll, compact = false, isTrending = false, interactionMode = "navigate" }: PollCardProps) => {
+const PollCard = ({ poll, compact = false, isTrending = false, interactionMode = "navigate", homepage = false }: PollCardProps) => {
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -391,7 +392,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     ? (leadingOption?.label.toLowerCase() === "no" ? "text-amber-500" : "text-green-600")
     : leadingPct <= 40 ? "text-amber-500" : "text-amber-500";
 
-  const isHomepageMode = interactionMode === "vote";
+  const isHomepageMode = homepage;
 
   const handleCardClick = () => {
     if (isHomepageMode) {

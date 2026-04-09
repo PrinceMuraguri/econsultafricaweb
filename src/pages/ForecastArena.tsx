@@ -308,7 +308,7 @@ const ForecastArena = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {displayPolls.map((poll: any, i: number) => (
                 <motion.div key={poll.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i % 6}>
-                  <PollCard poll={poll} isTrending={!isSearching && i === 0} interactionMode="vote" />
+                  <PollCard poll={poll} isTrending={!isSearching && i === 0} interactionMode="vote" homepage />
                 </motion.div>
               ))}
             </div>

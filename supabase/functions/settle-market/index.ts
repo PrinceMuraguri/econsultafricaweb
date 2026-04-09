@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   try {
     const { poll_id, winning_option_id, admin_key } = await req.json();
 
-    // Admin key check — requires ADMIN_SECRET_KEY env var; no hardcoded fallback
+    // Admin key check
     const expectedKey = Deno.env.get('ADMIN_SECRET_KEY');
     if (!expectedKey) {
       console.error('ADMIN_SECRET_KEY env var is not set — settlement refused');
@@ -70,8 +70,6 @@ Deno.serve(async (req) => {
     }
 
     // ── 2. Cancel all open listings for this poll ─────────────────────────────
-    // This returns escrowed shares to sellers' positions and restores votes.stake_amount
-    // so the pool calculation below is accurate and no shares are orphaned.
     const { data: openListings } = await supabase
       .from('listings')
       .select('id, seller_id')
@@ -92,27 +90,26 @@ Deno.serve(async (req) => {
     }
     console.log(`Cancelled ${listingsCancelled} open listing(s) before settlement`);
 
-    // ── 3. Compute total pool from votes (all staked amounts, after escrow restored) ──
-    const { data: allVotes, error: votesError } = await supabase
+    // ── 3. Fetch ALL votes (staked AND non-staked) for notifications ─────────
+    const { data: allVotesRaw, error: allVotesErr } = await supabase
       .from('votes')
       .select('user_id, voter_fingerprint, option_id, stake_amount, is_staked')
-      .eq('poll_id', poll_id)
-      .eq('is_staked', true);
+      .eq('poll_id', poll_id);
 
-    if (votesError) {
+    if (allVotesErr) {
       return new Response(JSON.stringify({ error: 'Failed to fetch votes' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const totalPool = (allVotes || []).reduce((s, v) => s + (Number(v.stake_amount) || 0), 0);
-    const losers    = (allVotes || []).filter(v => v.option_id !== winning_option_id);
-    console.log(`Total pool: $${totalPool.toFixed(2)}, losers: ${losers.length}`);
+    const allVotes = allVotesRaw || [];
+    const stakedVotes = allVotes.filter(v => v.is_staked);
+    const totalPool = stakedVotes.reduce((s, v) => s + (Number(v.stake_amount) || 0), 0);
+    const stakedLosers = stakedVotes.filter(v => v.option_id !== winning_option_id);
+    console.log(`Total pool: $${totalPool.toFixed(2)}, staked losers: ${stakedLosers.length}, total voters: ${allVotes.length}`);
 
     // ── 4. Get current position holders for the winning option ────────────────
-    // Using positions (not votes) ensures secondary market buyers who hold shares
-    // at settlement are paid, and sellers who listed/sold their shares are not.
     const { data: winnerPositions, error: posErr } = await supabase
       .from('positions')
       .select('user_id, shares')
@@ -131,124 +128,88 @@ Deno.serve(async (req) => {
     );
     console.log(`Winning positions: ${winnerPositions?.length}, total shares: ${totalWinningShares.toFixed(4)}`);
 
-    if (totalWinningShares === 0 || (winnerPositions || []).length === 0) {
-      // No winning position holders — mark settled with no payouts
-      await supabase.from('polls').update({
-        status: 'settled',
-        outcome: winningOption.label,
-        winning_option_id,
-        settled_at: new Date().toISOString(),
-        settled_by: 'super_admin',
-      }).eq('id', poll_id);
-
-      return new Response(JSON.stringify({
-        success: true,
-        summary: {
-          poll_title: poll.title,
-          winning_option: winningOption.label,
-          total_pool: totalPool,
-          winners: 0,
-          losers: losers.length,
-          total_payouts: 0,
-          note: 'No position holders on winning side — pool retained',
-        },
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
     const platformFeeRate = 0.035;
-
-    // Gross per share = min($1.00, pool / total_winning_shares)
-    // scaleFactor < 1 when losing stakes don't fully cover winners (e.g. everyone bet correctly)
-    const grossPerShare = Math.min(1.0, totalPool / totalWinningShares);
-    const scaleFactor   = grossPerShare; // already capped at 1.0
-    console.log(`Gross/share: $${grossPerShare.toFixed(4)}, scale: ${scaleFactor.toFixed(4)}`);
-
-    // ── 5. Build payout records and credit wallets ────────────────────────────
-    const payoutRecords: any[]  = [];
-    const notifs: any[]         = [];
-    const emailPromises: Promise<any>[] = [];
     const siteUrl = 'https://econsultafricaweb.lovable.app';
 
-    for (const pos of winnerPositions || []) {
-      const grossPayout = parseFloat((Number(pos.shares) * grossPerShare).toFixed(2));
-      const feePayout   = parseFloat((grossPayout * platformFeeRate).toFixed(2));
-      const netPayout   = parseFloat((grossPayout - feePayout).toFixed(2));
-
-      if (netPayout <= 0) continue;
-
-      // Credit wallet
-      const { data: wallet } = await supabase
-        .from('wallets')
-        .select('id, balance_usd')
-        .eq('user_id', pos.user_id)
+    // ── Helper: resolve user email from user_id ──────────────────────────────
+    const resolveUserEmail = async (userId: string): Promise<string | null> => {
+      // Try user_profiles first (has voter_fingerprint → voter_profiles → email)
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('voter_fingerprint')
+        .eq('user_id', userId)
         .single();
 
-      if (wallet) {
-        await supabase.from('wallets').update({
-          balance_usd: Number(wallet.balance_usd) + netPayout,
-          updated_at:  new Date().toISOString(),
-        }).eq('id', wallet.id);
-
-        await supabase.from('wallet_transactions').insert({
-          user_id:     pos.user_id,
-          type:        'payout',
-          amount:      netPayout,
-          description: `Settlement payout — ${winningOption.label} ✓`,
-          reference:   `payout_${poll_id.slice(0, 8)}_${pos.user_id.slice(0, 8)}_${Date.now()}`,
-        });
+      if (profile?.voter_fingerprint) {
+        const { data: vp } = await supabase
+          .from('voter_profiles')
+          .select('email')
+          .eq('voter_fingerprint', profile.voter_fingerprint)
+          .single();
+        if (vp?.email) return vp.email;
       }
 
-      // Find voter_fingerprint from votes (null for secondary buyers — that is fine)
-      const voteRow = (allVotes || []).find(v => v.user_id === pos.user_id);
+      // Fallback: auth.users via admin API
+      const { data: { user } } = await supabase.auth.admin.getUserById(userId);
+      return user?.email ?? null;
+    };
 
-      payoutRecords.push({
-        voter_fingerprint: voteRow?.voter_fingerprint ?? `pos_${pos.user_id.slice(0, 8)}`,
-        user_id:  pos.user_id,
-        poll_id,
-        amount:   netPayout,
-        status:   'pending',
-        reference: `payout_${poll_id.slice(0, 8)}_${pos.user_id.slice(0, 8)}_${Date.now()}`,
-      });
+    // ── Helper: resolve email from voter_fingerprint ─────────────────────────
+    const resolveEmailFromFingerprint = async (fingerprint: string): Promise<string | null> => {
+      const { data: vp } = await supabase
+        .from('voter_profiles')
+        .select('email')
+        .eq('voter_fingerprint', fingerprint)
+        .single();
+      return vp?.email ?? null;
+    };
 
-      // In-app notification
-      notifs.push({
-        user_id: pos.user_id,
-        type:    'position_won',
-        title:   `Correct! "${poll.title}" → ${winningOption.label}`,
-        body:    `Your payout of $${netPayout.toFixed(2)} has been credited to your wallet.`,
-        poll_id,
-        link:    '/forecast-arena/' + poll.slug,
-      });
+    // ── 5. Payouts (only if there are winning positions) ─────────────────────
+    const payoutRecords: any[] = [];
 
-      // Winner email (fire-and-forget)
-      emailPromises.push(
-        supabase.functions.invoke('send-transactional-email', {
-          body: {
-            templateName: 'settlement-winner',
-            recipientEmail: undefined, // fetched below
-            idempotencyKey: `settlement-winner-${poll_id}-${pos.user_id}`,
-            templateData: {
-              pollTitle:    poll.title,
-              winningOption: winningOption.label,
-              payoutAmount:  `$${netPayout.toFixed(2)}`,
-              pollUrl:       `${siteUrl}/forecast-arena/${poll.slug}`,
-            },
-          },
-        }).catch(e => console.error('Winner email error:', e.message))
-      );
-    }
+    if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
+      const grossPerShare = Math.min(1.0, totalPool / totalWinningShares);
+      console.log(`Gross/share: $${grossPerShare.toFixed(4)}`);
 
-    // Loser notifications (from votes table — original stakers only)
-    for (const vote of losers) {
-      if (!vote.user_id) continue;
-      notifs.push({
-        user_id: vote.user_id,
-        type:    'position_lost',
-        title:   `Resolved: "${poll.title}" → ${winningOption.label}`,
-        body:    'Your forecast did not match. Keep forecasting to improve your accuracy.',
-        poll_id,
-        link:    '/forecast-arena/' + poll.slug,
-      });
+      for (const pos of winnerPositions || []) {
+        const grossPayout = parseFloat((Number(pos.shares) * grossPerShare).toFixed(2));
+        const feePayout   = parseFloat((grossPayout * platformFeeRate).toFixed(2));
+        const netPayout   = parseFloat((grossPayout - feePayout).toFixed(2));
+
+        if (netPayout <= 0) continue;
+
+        // Credit wallet
+        const { data: wallet } = await supabase
+          .from('wallets')
+          .select('id, balance_usd')
+          .eq('user_id', pos.user_id)
+          .single();
+
+        if (wallet) {
+          await supabase.from('wallets').update({
+            balance_usd: Number(wallet.balance_usd) + netPayout,
+            updated_at:  new Date().toISOString(),
+          }).eq('id', wallet.id);
+
+          await supabase.from('wallet_transactions').insert({
+            user_id:     pos.user_id,
+            type:        'payout',
+            amount:      netPayout,
+            description: `Settlement payout — ${winningOption.label} ✓`,
+            reference:   `payout_${poll_id.slice(0, 8)}_${pos.user_id.slice(0, 8)}_${Date.now()}`,
+          });
+        }
+
+        const voteRow = allVotes.find(v => v.user_id === pos.user_id);
+        payoutRecords.push({
+          voter_fingerprint: voteRow?.voter_fingerprint ?? `pos_${pos.user_id.slice(0, 8)}`,
+          user_id:  pos.user_id,
+          poll_id,
+          amount:   netPayout,
+          status:   'pending',
+          reference: `payout_${poll_id.slice(0, 8)}_${pos.user_id.slice(0, 8)}_${Date.now()}`,
+        });
+      }
     }
 
     // ── 6. Persist payout records ──────────────────────────────────────────────
@@ -268,7 +229,108 @@ Deno.serve(async (req) => {
       settled_by:       'super_admin',
     }).eq('id', poll_id);
 
-    // ── 8. Notifications (deduplicated) ───────────────────────────────────────
+    // ── 8. Notifications for ALL voters (staked and non-staked) ───────────────
+    const notifs: any[] = [];
+    const emailPromises: Promise<any>[] = [];
+
+    // Deduplicate voters by user_id (prefer the one with user_id set)
+    const voterMap = new Map<string, typeof allVotes[0]>();
+    for (const v of allVotes) {
+      const key = v.user_id || `fp_${v.voter_fingerprint}`;
+      if (!voterMap.has(key)) voterMap.set(key, v);
+    }
+
+    for (const [key, vote] of voterMap) {
+      const isWinner = vote.option_id === winning_option_id;
+      const isStaked = vote.is_staked && Number(vote.stake_amount) > 0;
+
+      // Find payout amount if this user won with a stake
+      const payoutEntry = isWinner && vote.user_id
+        ? payoutRecords.find(p => p.user_id === vote.user_id)
+        : null;
+
+      // In-app notification (only for logged-in users)
+      if (vote.user_id) {
+        if (isWinner) {
+          const body = payoutEntry
+            ? `Your payout of $${payoutEntry.amount.toFixed(2)} has been credited to your wallet.`
+            : 'Your forecast was correct! Great job.';
+          notifs.push({
+            user_id: vote.user_id,
+            type:    'position_won',
+            title:   `Correct! "${poll.title}" → ${winningOption.label}`,
+            body,
+            poll_id,
+            link:    '/forecast-arena/' + poll.slug,
+          });
+        } else {
+          notifs.push({
+            user_id: vote.user_id,
+            type:    'position_lost',
+            title:   `Resolved: "${poll.title}" → ${winningOption.label}`,
+            body:    isStaked
+              ? 'Your forecast did not match. Your stake has been forfeited.'
+              : 'Your forecast did not match the outcome. Keep forecasting to improve your accuracy.',
+            poll_id,
+            link:    '/forecast-arena/' + poll.slug,
+          });
+        }
+      }
+
+      // Email notifications
+      const resolveEmail = async (): Promise<string | null> => {
+        if (vote.user_id) return resolveUserEmail(vote.user_id);
+        return resolveEmailFromFingerprint(vote.voter_fingerprint);
+      };
+
+      // Find the option label the voter chose
+      const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
+
+      if (isWinner) {
+        emailPromises.push(
+          (async () => {
+            const email = await resolveEmail();
+            if (!email) return;
+            await supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'settlement-winner',
+                recipientEmail: email,
+                idempotencyKey: `settlement-winner-${poll_id}-${key}`,
+                templateData: {
+                  pollTitle:     poll.title,
+                  winningOption: winningOption.label,
+                  payoutAmount:  payoutEntry ? `$${payoutEntry.amount.toFixed(2)}` : '$0.00',
+                  pollUrl:       `${siteUrl}/forecast-arena/${poll.slug}`,
+                },
+              },
+            });
+          })().catch(e => console.error('Winner email error:', e.message))
+        );
+      } else {
+        emailPromises.push(
+          (async () => {
+            const email = await resolveEmail();
+            if (!email) return;
+            await supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'settlement-loser',
+                recipientEmail: email,
+                idempotencyKey: `settlement-loser-${poll_id}-${key}`,
+                templateData: {
+                  pollTitle:     poll.title,
+                  winningOption: winningOption.label,
+                  userOption:    voterOptionLabel,
+                  stakeAmount:   isStaked ? `$${Number(vote.stake_amount).toFixed(2)}` : '$0.00',
+                  arenaUrl:      `${siteUrl}/forecast-arena`,
+                },
+              },
+            });
+          })().catch(e => console.error('Loser email error:', e.message))
+        );
+      }
+    }
+
+    // ── 9. Insert notifications (deduplicated by user_id) ─────────────────────
     if (notifs.length > 0) {
       const seen = new Set<string>();
       const uniqueNotifs = notifs.filter(n => {
@@ -276,10 +338,16 @@ Deno.serve(async (req) => {
         seen.add(n.user_id);
         return true;
       });
-      await supabase.from('notifications').insert(uniqueNotifs);
+      const { error: notifErr } = await supabase.from('notifications').insert(uniqueNotifs);
+      if (notifErr) console.error('Notification insert error:', notifErr.message);
+      else console.log(`Inserted ${uniqueNotifs.length} notification(s)`);
     }
 
-    // ── 9. Audit log ──────────────────────────────────────────────────────────
+    // ── 10. Audit log (ALWAYS runs) ───────────────────────────────────────────
+    const grossPerShare = totalWinningShares > 0
+      ? Math.min(1.0, totalPool / totalWinningShares)
+      : 0;
+
     await supabase.from('admin_audit_log').insert({
       action:      'settle_market',
       entity_type: 'poll',
@@ -290,13 +358,14 @@ Deno.serve(async (req) => {
         total_pool:             totalPool,
         total_winning_shares:   totalWinningShares,
         gross_per_share:        grossPerShare,
-        scale_factor:           scaleFactor,
         platform_fee_rate:      platformFeeRate,
         winner_positions:       (winnerPositions || []).length,
-        loser_votes:            losers.length,
+        staked_loser_votes:     stakedLosers.length,
+        total_voters:           allVotes.length,
         listings_cancelled:     listingsCancelled,
         total_net_payouts:      payoutRecords.reduce((s, p) => s + p.amount, 0),
         settlement_method:      'positions_based',
+        notifications_sent:     notifs.length,
       },
       performed_by: 'super_admin',
     });
@@ -313,15 +382,18 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       summary: {
-        poll_title:          poll.title,
-        winning_option:      winningOption.label,
-        total_pool:          totalPool,
+        poll_title:           poll.title,
+        winning_option:       winningOption.label,
+        total_pool:           totalPool,
         total_winning_shares: totalWinningShares,
-        gross_per_share:     grossPerShare,
-        winners:             payoutRecords.length,
-        losers:              losers.length,
-        listings_cancelled:  listingsCancelled,
-        total_payouts:       payoutRecords.reduce((s, p) => s + p.amount, 0),
+        gross_per_share:      grossPerShare,
+        winners_with_payout:  payoutRecords.length,
+        total_voters:         allVotes.length,
+        notifications_sent:   notifs.length,
+        emails_queued:        emailPromises.length,
+        losers:               allVotes.filter(v => v.option_id !== winning_option_id).length,
+        listings_cancelled:   listingsCancelled,
+        total_payouts:        payoutRecords.reduce((s, p) => s + p.amount, 0),
       },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

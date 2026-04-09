@@ -1,7 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Button, Container, Head, Heading, Html, Img, Preview, Text, Hr,
+  Body, Button, Container, Head, Heading, Html, Img, Preview, Text, Hr, Section,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -41,6 +41,14 @@ const SettlementLoserEmail = ({
             <Text style={text}>
               This one didn't go your way — and that's part of the process.
             </Text>
+            <Section style={pollInfoBox}>
+              <Text style={pollInfoLabel}>Poll:</Text>
+              <Text style={pollInfoValue}>{pollTitle}</Text>
+              <Text style={pollInfoLabel}>Your prediction:</Text>
+              <Text style={pollInfoValue}>{userOption}</Text>
+              <Text style={pollInfoLabel}>Correct answer:</Text>
+              <Text style={pollInfoValue}>{winningOption}</Text>
+            </Section>
             <Text style={text}>
               Here's how it played out:
             </Text>
@@ -62,6 +70,14 @@ const SettlementLoserEmail = ({
             <Text style={text}>
               This one didn't go your way — and that's okay.
             </Text>
+            <Section style={pollInfoBox}>
+              <Text style={pollInfoLabel}>Poll:</Text>
+              <Text style={pollInfoValue}>{pollTitle}</Text>
+              <Text style={pollInfoLabel}>Your prediction:</Text>
+              <Text style={pollInfoValue}>{userOption}</Text>
+              <Text style={pollInfoLabel}>Correct answer:</Text>
+              <Text style={pollInfoValue}>{winningOption}</Text>
+            </Section>
             <Text style={text}>
               Forecasting is a skill built over time. Each prediction helps you
               refine how you interpret information and uncertainty.
@@ -110,6 +126,9 @@ const logo = { margin: '0 0 24px' }
 const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1a2744', margin: '0 0 20px' }
 const text = { fontSize: '14px', color: '#636b7a', lineHeight: '1.6', margin: '0 0 25px' }
 const detailText = { fontSize: '14px', color: '#636b7a', lineHeight: '1.8', margin: '0 0 25px', whiteSpace: 'pre-line' as const }
+const pollInfoBox = { backgroundColor: '#f8f9fa', borderRadius: '8px', padding: '16px 20px', margin: '0 0 25px', borderLeft: '4px solid #e11d48' }
+const pollInfoLabel = { fontSize: '12px', color: '#999999', margin: '0 0 2px', textTransform: 'uppercase' as const, letterSpacing: '0.5px' }
+const pollInfoValue = { fontSize: '14px', color: '#1a2744', fontWeight: 'bold' as const, margin: '0 0 12px' }
 const button = { backgroundColor: '#3660be', color: '#ffffff', fontSize: '14px', borderRadius: '4px', padding: '12px 24px', textDecoration: 'none' }
 const hr = { borderColor: '#e5e7eb', margin: '30px 0' }
 const footer = { fontSize: '12px', color: '#999999', margin: '0 0 8px' }

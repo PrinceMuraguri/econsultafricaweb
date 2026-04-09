@@ -269,12 +269,17 @@ Deno.serve(async (req) => {
 
       // In-app notification (only for logged-in users) — 4 variants
       if (vote.user_id) {
+        const pollLine = `Poll: ${poll.title}`;
+        const predLine = `Your prediction: ${voterOptionLabel}`;
+        const correctLine = `Correct answer: ${winningOption.label}`;
+        const pollBlock = `${pollLine}\n${predLine}\n${correctLine}`;
+
         if (isWinner && isStaked && payoutEntry) {
           notifs.push({
             user_id: vote.user_id,
             type:    'position_won',
             title:   `You got it right — and it paid off. 🎯`,
-            body:    `You staked $${stakeAmt.toFixed(2)} and earned $${payoutEntry.amount.toFixed(2)}. Navigate to your dashboard to view or withdraw earnings.\nKeep building your edge on the Forecast Arena.`,
+            body:    `${pollBlock}\nYou staked $${stakeAmt.toFixed(2)} and earned $${payoutEntry.amount.toFixed(2)}. Navigate to your dashboard to view or withdraw earnings.\nKeep building your edge on the Forecast Arena.`,
             poll_id,
             link:    '/my-dashboard',
           });
@@ -283,7 +288,7 @@ Deno.serve(async (req) => {
             user_id: vote.user_id,
             type:    'position_won',
             title:   `Nice call. You got it right. 🎯`,
-            body:    `Your forecast matched the outcome. Keep going — consistency is your edge. Take another position on the Forecast Arena.`,
+            body:    `${pollBlock}\nYour forecast matched the outcome. Keep going — consistency is your edge. Take another position on the Forecast Arena.`,
             poll_id,
             link:    '/forecast-arena',
           });
@@ -292,7 +297,7 @@ Deno.serve(async (req) => {
             user_id: vote.user_id,
             type:    'position_lost',
             title:   `Missed this one. 📊`,
-            body:    `You staked $${stakeAmt.toFixed(2)} → Outcome didn't go your way.\nRefine your thinking and take another shot. Take another position on the Forecast Arena.`,
+            body:    `${pollBlock}\nYou staked $${stakeAmt.toFixed(2)} → Outcome didn't go your way.\nRefine your thinking and take another shot. Take another position on the Forecast Arena.`,
             poll_id,
             link:    '/forecast-arena',
           });
@@ -301,7 +306,7 @@ Deno.serve(async (req) => {
             user_id: vote.user_id,
             type:    'position_lost',
             title:   `Missed this one. 📊`,
-            body:    `Every call sharpens your edge. Stay consistent. Take another position on the Forecast Arena.`,
+            body:    `${pollBlock}\nEvery call sharpens your edge. Stay consistent. Take another position on the Forecast Arena.`,
             poll_id,
             link:    '/forecast-arena',
           });
@@ -331,6 +336,7 @@ Deno.serve(async (req) => {
                 templateData: {
                   pollTitle:     poll.title,
                   winningOption: winningOption.label,
+                  userOption:    voterOptionLabel,
                   payoutAmount:  payoutEntry ? `$${payoutEntry.amount.toFixed(2)}` : '$0.00',
                   stakeAmount:   `$${stakeAmt.toFixed(2)}`,
                   netGain:       `$${netGain.toFixed(2)}`,
@@ -410,13 +416,14 @@ Deno.serve(async (req) => {
       performed_by: 'super_admin',
     });
 
-    // Fire emails in background
+    // Await emails — do NOT fire-and-forget; Deno kills background work after response
+    let emailsSent = 0;
+    let emailsFailed = 0;
     if (emailPromises.length > 0) {
-      Promise.allSettled(emailPromises).then(results => {
-        const sent   = results.filter(r => r.status === 'fulfilled').length;
-        const failed = results.filter(r => r.status === 'rejected').length;
-        console.log(`Settlement emails: ${sent} sent, ${failed} failed`);
-      });
+      const results = await Promise.allSettled(emailPromises);
+      emailsSent   = results.filter(r => r.status === 'fulfilled').length;
+      emailsFailed = results.filter(r => r.status === 'rejected').length;
+      console.log(`Settlement emails: ${emailsSent} sent, ${emailsFailed} failed`);
     }
 
     return new Response(JSON.stringify({

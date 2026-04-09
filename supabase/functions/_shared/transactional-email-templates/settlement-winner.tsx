@@ -11,6 +11,7 @@ const LOGO_URL = 'https://iysutjnviccsgygpiqfe.supabase.co/storage/v1/object/pub
 interface SettlementWinnerProps {
   pollTitle?: string
   winningOption?: string
+  userOption?: string
   payoutAmount?: string
   stakeAmount?: string
   netGain?: string
@@ -23,6 +24,7 @@ interface SettlementWinnerProps {
 const SettlementWinnerEmail = ({
   pollTitle = 'Forecast Question',
   winningOption = 'Yes',
+  userOption = 'Yes',
   payoutAmount = '$1.00',
   stakeAmount = '$1.00',
   netGain = '$0.00',
@@ -47,6 +49,14 @@ const SettlementWinnerEmail = ({
         <Text style={text}>
           Great call — you got this one right. 🎯
         </Text>
+        <Section style={pollInfoBox}>
+          <Text style={pollInfoLabel}>Poll:</Text>
+          <Text style={pollInfoValue}>{pollTitle}</Text>
+          <Text style={pollInfoLabel}>Your prediction:</Text>
+          <Text style={pollInfoValue}>{userOption}</Text>
+          <Text style={pollInfoLabel}>Correct answer:</Text>
+          <Text style={pollInfoValue}>{winningOption}</Text>
+        </Section>
         {isStaked ? (
           <>
             <Text style={text}>
@@ -105,6 +115,7 @@ export const template = {
   previewData: {
     pollTitle: 'Will Kenya\'s inflation breach 5% in Q2 2026?',
     winningOption: 'Yes',
+    userOption: 'Yes',
     payoutAmount: '$2.85',
     stakeAmount: '$1.00',
     netGain: '$1.85',
@@ -120,6 +131,9 @@ const container = { padding: '30px 25px' }
 const logo = { margin: '0 0 24px' }
 const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1a2744', margin: '0 0 20px' }
 const text = { fontSize: '14px', color: '#636b7a', lineHeight: '1.6', margin: '0 0 25px' }
+const pollInfoBox = { backgroundColor: '#f8f9fa', borderRadius: '8px', padding: '16px 20px', margin: '0 0 25px', borderLeft: '4px solid #3660be' }
+const pollInfoLabel = { fontSize: '12px', color: '#999999', margin: '0 0 2px', textTransform: 'uppercase' as const, letterSpacing: '0.5px' }
+const pollInfoValue = { fontSize: '14px', color: '#1a2744', fontWeight: 'bold' as const, margin: '0 0 12px' }
 const payoutBox = { backgroundColor: '#f0f7f0', borderRadius: '8px', padding: '20px', margin: '0 0 25px', textAlign: 'center' as const }
 const payoutValue = { fontSize: '32px', fontWeight: 'bold' as const, color: '#16a34a', margin: '0 0 8px' }
 const payoutDetail = { fontSize: '14px', color: '#636b7a', margin: '0 0 4px' }

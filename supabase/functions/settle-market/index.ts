@@ -321,7 +321,7 @@ Deno.serve(async (req) => {
         return resolveEmailFromFingerprint(vote.voter_fingerprint);
       };
 
-      const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
+
 
       if (isWinner) {
         emailPromises.push(

@@ -360,6 +360,8 @@ Deno.serve(async (req) => {
                   userOption:    voterOptionLabel,
                   stakeAmount:   `$${stakeAmt.toFixed(2)}`,
                   arenaUrl:      `${siteUrl}/forecast-arena`,
+                  userName:      firstName,
+                  isStaked,
                 },
               },
             });

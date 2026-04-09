@@ -267,6 +267,8 @@ Deno.serve(async (req) => {
         ? payoutRecords.find(p => p.user_id === vote.user_id)
         : null;
 
+      const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
+
       // In-app notification (only for logged-in users) — 4 variants
       if (vote.user_id) {
         const pollLine = `Poll: ${poll.title}`;
@@ -319,7 +321,7 @@ Deno.serve(async (req) => {
         return resolveEmailFromFingerprint(vote.voter_fingerprint);
       };
 
-      const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
+
 
       if (isWinner) {
         emailPromises.push(

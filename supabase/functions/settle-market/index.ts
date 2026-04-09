@@ -336,6 +336,7 @@ Deno.serve(async (req) => {
                 templateData: {
                   pollTitle:     poll.title,
                   winningOption: winningOption.label,
+                  userOption:    voterOptionLabel,
                   payoutAmount:  payoutEntry ? `$${payoutEntry.amount.toFixed(2)}` : '$0.00',
                   stakeAmount:   `$${stakeAmt.toFixed(2)}`,
                   netGain:       `$${netGain.toFixed(2)}`,

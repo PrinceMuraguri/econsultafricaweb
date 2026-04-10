@@ -370,7 +370,6 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
           <div className="space-y-1.5 flex-1 relative">
             {sortedOptions.map((option) => {
               const price = totalStake > 0 ? Math.max(0.05, Math.min(0.95, (option.total_stake_amount || 0) / totalStake)) : 0.50;
-              const priceCents = Math.round(price * 100);
               const isYes = option.label.toLowerCase() === "yes";
               const isNo = option.label.toLowerCase() === "no";
               const optStake = option.total_stake_amount || 0;

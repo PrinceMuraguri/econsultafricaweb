@@ -145,7 +145,7 @@ const ForecastArena = () => {
               <h1 className="block w-full max-w-full overflow-visible text-[clamp(1.9rem,9vw,3.5rem)] font-black text-background leading-[0.95] tracking-tight uppercase whitespace-normal break-words [text-wrap:wrap]">
                 <span className="block sm:inline">Forecast</span>{" "}
                 <span className="block sm:inline">Arena</span>
-                <span className="ml-2 text-xs font-bold bg-green-500 text-white px-2.5 py-0.5 rounded-full align-middle normal-case tracking-normal border border-green-400 shadow-[0_0_8px_rgba(34,197,94,0.4)]">Free</span>
+                <span className="ml-2 text-xs font-medium bg-background/20 text-background/70 px-2 py-0.5 rounded-full align-middle normal-case tracking-normal">Free</span>
               </h1>
               <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's First Economic Sentiment Aggregator</p>
               <p className="text-xs text-background/50 tracking-wide mt-0.5">Collective intelligence for the public good</p>

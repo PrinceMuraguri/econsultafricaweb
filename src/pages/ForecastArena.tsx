@@ -214,6 +214,21 @@ const ForecastArena = () => {
         </div>
       </div>
 
+      {/* Pro cross-promotion banner */}
+      <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-amber-500/20">
+        <div className="container-page py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <TrendingUpIcon className="w-4 h-4 text-amber-500" />
+            <p className="text-xs text-foreground">
+              <span className="font-bold">Forecast Arena Pro</span> — Back your views with real capital and earn rewards.
+            </p>
+          </div>
+          <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
+            Explore Pro →
+          </Link>
+        </div>
+      </div>
+
       {/* Trending Section */}
       {showTrending && (
         <section className="py-4 border-b border-border bg-card/50">

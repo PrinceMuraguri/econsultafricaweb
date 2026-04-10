@@ -347,8 +347,8 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                       <span className="font-mono font-semibold text-foreground">${mktPrice.toFixed(2)} each</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Your shares are worth</span>
-                      <span className="font-mono font-semibold text-foreground">${mktValue.toFixed(2)}</span>
+                      <span>Market value</span>
+                      <span className="font-mono font-semibold text-foreground">${(Number(pos.shares) * mktPrice).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>You originally committed</span>

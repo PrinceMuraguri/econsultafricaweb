@@ -83,9 +83,10 @@ const Navbar = () => {
                 </Link>
               ) : (
                 <Link key={link.href} to={link.href}
-                  className={`text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
+                  className={`text-sm font-medium transition-colors duration-200 whitespace-nowrap inline-flex items-center gap-1 ${
                     location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}>
+                  {link.label === "Shop" && <ShoppingCart className="w-3.5 h-3.5" />}
                   {link.label}
                 </Link>
               )

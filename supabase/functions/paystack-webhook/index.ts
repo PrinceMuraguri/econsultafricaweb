@@ -397,7 +397,7 @@ Deno.serve(async (req) => {
                   resolutionDate: resDate,
                   capitalCommitted: stakeUsd > 0 ? `$${stakeUsd.toFixed(2)}` : undefined,
                   expectedReturn,
-                  pollUrl: `${Deno.env.get('SITE_URL') || 'https://econsult.africa'}/forecast-arena`,
+                  pollUrl: `${Deno.env.get('SITE_URL') || 'https://econsult.africa'}/forecast-arena-pro`,
                   userName,
                   isStaked: stakeUsd > 0,
                 },

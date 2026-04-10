@@ -606,7 +606,7 @@ const MyDashboard = () => {
         label: `Voted ${pos.option_label}`,
         description: pos.poll_title,
         timestamp: pos.created_at,
-        link: pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : undefined,
+        link: pos.poll_slug ? `/forecast-arena-pro/${pos.poll_slug}` : undefined,
       });
       if (pos.is_staked && pos.stake_amount) {
         items.push({
@@ -617,7 +617,7 @@ const MyDashboard = () => {
           amount: pos.stake_amount,
           amountSign: '-',
           timestamp: pos.created_at,
-          link: pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : undefined,
+          link: pos.poll_slug ? `/forecast-arena-pro/${pos.poll_slug}` : undefined,
         });
       }
     });
@@ -664,7 +664,7 @@ const MyDashboard = () => {
           amount: Math.abs(tx.amount),
           amountSign: '-',
           timestamp: tx.created_at,
-          link: trade?.poll_slug ? `/forecast-arena/${trade.poll_slug}` : undefined,
+          link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined,
         });
       } else if (tx.type === 'share_sale') {
         const trade = tradeByRef.get(tx.reference);
@@ -676,7 +676,7 @@ const MyDashboard = () => {
           amount: Math.abs(tx.amount),
           amountSign: '+',
           timestamp: tx.created_at,
-          link: trade?.poll_slug ? `/forecast-arena/${trade.poll_slug}` : undefined,
+          link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined,
         });
       }
     });
@@ -1021,7 +1021,7 @@ const MyDashboard = () => {
               </h2>
               <div className="space-y-2">
                 {sharePositions.map((pos: any) => (
-                  <Link key={pos.id} to={pos.poll_slug ? `/forecast-arena/${pos.poll_slug}` : "#"} className="block">
+                  <Link key={pos.id} to={pos.poll_slug ? `/forecast-arena-pro/${pos.poll_slug}` : "#"} className="block">
                     <div className="bg-card border border-border rounded-lg p-4 hover:border-primary/40 transition-colors">
                       <h3 className="text-sm font-semibold text-foreground mb-1 leading-snug">{pos.poll_title}</h3>
                       <div className="flex items-center justify-between">
@@ -1146,7 +1146,7 @@ const MyDashboard = () => {
                   const hasCapital = pos.is_staked || !!activeListing;
                   const capitalAmount = pos.is_staked ? pos.stake_amount : (activeListing ? Number(activeListing.cost_basis) : 0);
                   return (
-                    <Link key={pos.id} to={`/forecast-arena/${pos.poll_slug}`} className="block">
+                    <Link key={pos.id} to={`/forecast-arena-pro/${pos.poll_slug}`} className="block">
                       <div className={`bg-card border rounded-lg p-4 hover:border-primary/40 transition-colors ${activeListing ? "border-amber-500/30" : "border-border"}`}>
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="text-sm font-semibold text-foreground leading-snug flex-1 mr-4">{pos.poll_title}</h3>
@@ -1200,7 +1200,7 @@ const MyDashboard = () => {
             ) : (
               <div className="space-y-3">
                 {myActiveListings.map((listing) => (
-                  <Link key={listing.id} to={`/forecast-arena/${listing.polls?.slug}`} className="block">
+                  <Link key={listing.id} to={`/forecast-arena-pro/${listing.polls?.slug}`} className="block">
                     <div className="bg-card border border-amber-500/30 rounded-lg p-4 hover:border-amber-500/60 transition-colors">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 mr-4">

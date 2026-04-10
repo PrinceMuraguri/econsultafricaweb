@@ -27,7 +27,7 @@ const ForecastVoteConfirmationEmail = ({
   capitalCommitted,
   expectedReturn,
   pollUrl,
-  arenaUrl = 'https://econsult.africa/forecast-arena',
+  arenaUrl = 'https://econsult.africa/forecast-arena-pro',
   userName,
   isStaked = false,
 }: ForecastVoteConfirmationProps) => (

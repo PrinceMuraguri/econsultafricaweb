@@ -31,7 +31,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const [partialSellOpen, setPartialSellOpen] = useState(false);
   const [sellShares, setSellShares] = useState(1);
 
-  const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
+  const totalStake = poll.poll_options.reduce((s, o) => s + (o.total_stake_amount || 0), 0);
   const isClosed = poll.status !== "active" || new Date(poll.close_at) < new Date();
 
   // Set voted option as default
@@ -62,9 +62,9 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
 
   const selectedOption = poll.poll_options.find(o => o.id === selectedOptionId);
   const currentPrice = useMemo(() => {
-    if (!selectedOption || totalVotes === 0) return 0.50;
-    return Math.max(0.05, Math.min(0.95, selectedOption.total_votes_count / totalVotes));
-  }, [selectedOption, totalVotes]);
+    if (!selectedOption || totalStake === 0) return 0.50;
+    return Math.max(0.05, Math.min(0.95, (selectedOption.total_stake_amount || 0) / totalStake));
+  }, [selectedOption, totalStake]);
 
   const currentPosition = positions.find(p => p.option_id === selectedOptionId);
   const hasShares = positions.length > 0 && positions.some(p => Number(p.shares) > 0);
@@ -179,11 +179,11 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                 </p>
               )}
               <div className="text-[10px] text-muted-foreground space-y-0.5 mb-3">
-                <p>Current consensus: {poll.poll_options.map(o => {
-                  const pct = totalVotes > 0 ? Math.round((o.total_votes_count / totalVotes) * 100) : 50;
+                <p>Current market price: {poll.poll_options.map(o => {
+                  const pct = totalStake > 0 ? Math.round(((o.total_stake_amount || 0) / totalStake) * 100) : 50;
                   return `${pct}% ${o.label}`;
                 }).join(" / ")}</p>
-                <p>Share price: <span className="font-mono font-semibold text-foreground">${currentPrice.toFixed(2)}</span></p>
+                <p>Market price: <span className="font-mono font-semibold text-foreground">${currentPrice.toFixed(2)}</span></p>
               </div>
             </div>
 
@@ -191,7 +191,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
             {poll.poll_options.length > 2 && (
               <div className="flex gap-2 mb-2">
                 {poll.poll_options.map((opt) => {
-                  const price = totalVotes > 0 ? Math.max(0.05, Math.min(0.95, opt.total_votes_count / totalVotes)) : 0.50;
+                  const price = totalStake > 0 ? Math.max(0.05, Math.min(0.95, (opt.total_stake_amount || 0) / totalStake)) : 0.50;
                   const isSelected = opt.id === selectedOptionId;
                   return (
                     <button
@@ -319,8 +319,8 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
           <>
             {positions.filter(p => Number(p.shares) > 0).map((pos: any) => {
               const opt = poll.poll_options.find(o => o.id === pos.option_id);
-              const mktPrice = totalVotes > 0 && opt
-                ? Math.max(0.05, Math.min(0.95, opt.total_votes_count / totalVotes))
+              const mktPrice = totalStake > 0 && opt
+                ? Math.max(0.05, Math.min(0.95, (opt.total_stake_amount || 0) / totalStake))
                 : 0.50;
               const mktValue = parseFloat((Number(pos.shares) * mktPrice).toFixed(2));
               const exitFee = parseFloat((mktValue * fee).toFixed(2));

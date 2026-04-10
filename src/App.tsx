@@ -19,6 +19,8 @@ import Contact from "./pages/Contact.tsx";
 import SampleReport from "./pages/SampleReport.tsx";
 import PurchaseSuccess from "./pages/PurchaseSuccess.tsx";
 import ForecastPollDetail from "./pages/ForecastPollDetail.tsx";
+import ForecastArenaPro from "./pages/ForecastArenaPro.tsx";
+import ForecastPollDetailPro from "./pages/ForecastPollDetailPro.tsx";
 import StakeResult from "./pages/StakeResult.tsx";
 import Leaderboard from "./pages/Leaderboard.tsx";
 import UserProfile from "./pages/UserProfile.tsx";
@@ -66,6 +68,8 @@ const App = () => (
               <Route path="/how-it-works-detailed" element={<HowItWorksDetailed />} />
               <Route path="/terms-of-use" element={<TermsOfUse />} />
               <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
+              <Route path="/forecast-arena-pro" element={<ForecastArenaPro />} />
+              <Route path="/forecast-arena-pro/:slug" element={<ForecastPollDetailPro />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
               <Route path="/product/:slug" element={<ProductDetail />} />

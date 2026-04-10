@@ -17,6 +17,7 @@ import RegistrationModal from "@/components/auth/RegistrationModal";
 
 interface Props {
   poll: Poll;
+  basePath?: string;
 }
 
 interface Comment {

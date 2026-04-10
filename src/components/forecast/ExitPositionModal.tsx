@@ -56,6 +56,7 @@ export default function ExitPositionModal({
       queryClient.invalidateQueries({ queryKey: ["my-positions"] });
       queryClient.invalidateQueries({ queryKey: ["my-share-positions"] });
       queryClient.invalidateQueries({ queryKey: ["my-wallet-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
 
       setStep("success");
     } catch (err: any) {

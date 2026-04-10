@@ -100,6 +100,12 @@ Deno.serve(async (req) => {
       reference: `sell_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     });
 
+    // Decrement total_stake_amount on the poll option (capital leaving the market)
+    await supabase.rpc("decrement_stake_amount", {
+      p_option_id: option_id,
+      p_amount: grossAmount,
+    });
+
     // Credit wallet
     const { data: wallet } = await supabase
       .from("wallets")

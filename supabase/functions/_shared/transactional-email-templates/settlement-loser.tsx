@@ -23,7 +23,7 @@ const SettlementLoserEmail = ({
   winningOption = 'Yes',
   userOption = 'No',
   stakeAmount = '$1.00',
-  arenaUrl = 'https://econsultafricaweb.lovable.app/forecast-arena',
+  arenaUrl = 'https://econsultafricaweb.lovable.app/forecast-arena-pro',
   userName,
   isStaked = false,
 }: SettlementLoserProps) => (
@@ -114,7 +114,7 @@ export const template = {
     winningOption: 'Yes',
     userOption: 'No',
     stakeAmount: '$1.00',
-    arenaUrl: 'https://econsultafricaweb.lovable.app/forecast-arena',
+    arenaUrl: 'https://econsultafricaweb.lovable.app/forecast-arena-pro',
     userName: 'John',
     isStaked: true,
   },

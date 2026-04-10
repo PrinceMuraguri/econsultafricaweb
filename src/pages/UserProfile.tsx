@@ -194,7 +194,7 @@ const UserProfile = () => {
                   <p className="text-sm text-muted-foreground text-center py-8">No active staked positions.</p>
                 ) : (
                   activePositions.map((p: any) => (
-                    <Link key={p.id} to={`/forecast-arena/${p.polls?.slug}`} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:border-primary/30">
+                    <Link key={p.id} to={`/forecast-arena-pro/${p.polls?.slug}`} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:border-primary/30">
                       <div className="min-w-0 flex-1 mr-3">
                         <p className="text-sm font-medium text-foreground truncate">{p.polls?.title}</p>
                         <Badge variant="outline" className="text-[9px] mt-1">{(p.poll_options as any)?.label}</Badge>
@@ -212,7 +212,7 @@ const UserProfile = () => {
                   resolvedPositions.map((p: any) => {
                     const won = p.polls?.winning_option_id === p.option_id;
                     return (
-                      <Link key={p.id} to={`/forecast-arena/${p.polls?.slug}`} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:border-primary/30">
+                      <Link key={p.id} to={`/forecast-arena-pro/${p.polls?.slug}`} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:border-primary/30">
                         <div className="min-w-0 flex-1 mr-3">
                           <p className="text-sm font-medium text-foreground truncate">{p.polls?.title}</p>
                           <div className="flex items-center gap-2 mt-1">

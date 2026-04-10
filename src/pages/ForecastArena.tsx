@@ -8,7 +8,7 @@ import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flam
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";
+import { TrendingUp as TrendingUpIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 
@@ -334,7 +334,6 @@ const ForecastArena = () => {
           </div>
         </div>
       </section>
-      <WalletTopUpPrompt />
     </Layout>
   );
 };

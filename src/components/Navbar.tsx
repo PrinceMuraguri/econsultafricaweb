@@ -11,6 +11,7 @@ import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
   { label: "Forecast Arena", href: "/" },
+  { label: "Pro", href: "/forecast-arena-pro", isPro: true },
   { label: "Intelligence Marketplace", href: "/intelligence-marketplace" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Our Philosophy", href: "/our-philosophy" },
@@ -42,12 +43,14 @@ const Navbar = () => {
         {/* Mobile top nav strip */}
         <div className="lg:hidden overflow-x-auto border-b border-border/50 bg-background/60">
           <div className="flex items-center gap-1 px-3 py-1.5 min-w-max">
-            {navLinks.map((link) => (
+            {navLinks.map((link: any) => (
               <Link key={link.href} to={link.href}
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
-                  location.pathname === link.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                  link.isPro
+                    ? location.pathname.startsWith("/forecast-arena-pro") ? "bg-amber-500 text-amber-950 font-bold" : "text-amber-600 bg-amber-500/10 hover:bg-amber-500/20"
+                    : location.pathname === link.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 }`}>
-                {link.label}
+                {link.isPro && <span className="mr-0.5">💰</span>}{link.label}
               </Link>
             ))}
             {isLoggedIn && (
@@ -67,12 +70,14 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden lg:flex items-center gap-5">
-            {navLinks.map((link) => (
+            {navLinks.map((link: any) => (
               <Link key={link.href} to={link.href}
                 className={`text-sm font-medium transition-colors duration-200 ${
-                  location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  link.isPro
+                    ? location.pathname.startsWith("/forecast-arena-pro") ? "text-amber-600 font-bold" : "text-amber-600 hover:text-amber-500"
+                    : location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}>
-                {link.label}
+                {link.isPro && "💰 "}{link.label}
               </Link>
             ))}
 

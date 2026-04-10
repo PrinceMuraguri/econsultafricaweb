@@ -11,9 +11,9 @@ import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
   { label: "Forecast Arena", href: "/" },
-  { label: "Forecast Arena PRO", href: "/forecast-arena-pro", isPro: true },
-  { label: "Intelligence", href: "/intelligence-marketplace" },
+  { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
   { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Shop", href: "/intelligence-marketplace" },
   { label: "Philosophy", href: "/our-philosophy" },
   { label: "Insights", href: "/insights" },
   { label: "About", href: "/about" },
@@ -73,13 +73,13 @@ const Navbar = () => {
             {navLinks.map((link: any) => (
               link.isPro ? (
                 <Link key={link.href} to={link.href}
-                  className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md transition-all border ${
+                  className={`inline-flex items-center gap-1 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                     location.pathname.startsWith("/forecast-arena-pro")
-                      ? "bg-amber-400 text-amber-950 border-amber-500"
-                      : "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50"
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}>
-                  <Crown className="w-3 h-3" />
-                  <span>Forecast Arena <span className="text-amber-400 font-black" style={location.pathname.startsWith("/forecast-arena-pro") ? {color: 'rgb(120 53 15)'} : {}}>PRO</span></span>
+                  <span>{link.label}</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-black uppercase tracking-wide text-amber-950 bg-amber-400 px-1.5 py-0.5 rounded">PRO <Crown className="w-2.5 h-2.5" /></span>
                 </Link>
               ) : (
                 <Link key={link.href} to={link.href}

@@ -98,7 +98,7 @@ const ForecastPollDetail = () => {
         </div>
 
         {/* Your Activity History on this question */}
-        <UserPollActivity pollId={poll.id} />
+        <UserPollActivity pollId={poll.id} freeMode />
 
         {/* Discussion */}
         <PollDiscussionTabs poll={poll} />

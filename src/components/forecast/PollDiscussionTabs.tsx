@@ -41,7 +41,7 @@ function timeAgo(dateStr: string) {
   return `${days}d ago`;
 }
 
-const PollDiscussionTabs = ({ poll }: Props) => {
+const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -433,7 +433,7 @@ const PollDiscussionTabs = ({ poll }: Props) => {
                 const leadPct = leading && totalV > 0 ? Math.round((leading.total_votes_count / totalV) * 100) : 50;
 
                 return (
-                  <Link key={rp.id} to={`/forecast-arena/${rp.slug}`} className="flex items-center justify-between py-2 px-3 rounded border border-border hover:border-primary/30 transition-colors bg-card">
+                  <Link key={rp.id} to={`${basePath}/${rp.slug}`} className="flex items-center justify-between py-2 px-3 rounded border border-border hover:border-primary/30 transition-colors bg-card">
                     <div className="flex-1 min-w-0 mr-3">
                       <p className="text-sm font-medium text-foreground truncate">{rp.title}</p>
                       <span className="text-[10px] text-muted-foreground">{rp.category}</span>

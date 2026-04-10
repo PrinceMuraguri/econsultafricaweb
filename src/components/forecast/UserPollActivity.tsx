@@ -5,6 +5,7 @@ import { History, Vote, DollarSign, Tag, ShoppingBag, LogOut } from "lucide-reac
 
 interface UserPollActivityProps {
   pollId: string;
+  freeMode?: boolean;
 }
 
 interface ActivityEvent {
@@ -17,7 +18,7 @@ interface ActivityEvent {
   timestamp: string;
 }
 
-export default function UserPollActivity({ pollId }: UserPollActivityProps) {
+export default function UserPollActivity({ pollId, freeMode = false }: UserPollActivityProps) {
   const { user } = useAuth();
 
   const { data: events = [], isLoading } = useQuery<ActivityEvent[]>({
@@ -156,6 +157,10 @@ export default function UserPollActivity({ pollId }: UserPollActivityProps) {
       });
 
       items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      if (freeMode) {
+        return items.filter(i => i.type === "vote");
+      }
       return items;
     },
     enabled: !!user,

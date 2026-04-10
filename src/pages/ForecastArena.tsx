@@ -192,7 +192,7 @@ const ForecastArena = () => {
                   <p>This is a platform built on what people across Africa actually believe — not just headlines, not just reports.</p>
                   <p className="text-background/80 font-medium">How well can you read the economy?</p>
                   <p>100+ live economic questions across 10+ African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.</p>
-                  <p className="text-accent/90 text-xs font-medium">🚀 Beyond sentiment, you can now commit capital to your forecasts and earn rewards if you are right.</p>
+                  <p className="text-accent/90 text-xs font-medium">🚀 Want to go further? Try <Link to="/forecast-arena-pro" className="underline font-bold hover:text-accent">Forecast Arena Pro</Link> to back your views with real capital and earn rewards.</p>
                 </div>
               </motion.div>
             )}

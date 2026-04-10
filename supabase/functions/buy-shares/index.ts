@@ -35,13 +35,13 @@ Deno.serve(async (req) => {
     // Get current market price
     const { data: options } = await supabase
       .from("poll_options")
-      .select("id, total_votes_count")
+      .select("id, total_stake_amount")
       .eq("poll_id", poll_id);
 
-    const totalVotes = (options || []).reduce((s, o) => s + o.total_votes_count, 0);
+    const totalStake = (options || []).reduce((s, o) => s + Number(o.total_stake_amount || 0), 0);
     const thisOption = (options || []).find(o => o.id === option_id);
-    const currentPrice = totalVotes > 0 && thisOption
-      ? Math.max(0.05, Math.min(0.95, thisOption.total_votes_count / totalVotes))
+    const currentPrice = totalStake > 0 && thisOption
+      ? Math.max(0.05, Math.min(0.95, Number(thisOption.total_stake_amount || 0) / totalStake))
       : 0.50;
 
     const fee = 0.035;
@@ -201,7 +201,7 @@ Deno.serve(async (req) => {
               resolutionDate: resDate,
               capitalCommitted: `$${totalCost.toFixed(2)}`,
               expectedReturn,
-              pollUrl: `${Deno.env.get("SITE_URL") || "https://econsult.africa"}/forecast-arena`,
+              pollUrl: `${Deno.env.get("SITE_URL") || "https://econsult.africa"}/forecast-arena-pro`,
               userName,
               isStaked: true,
             },

@@ -370,7 +370,6 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
           <div className="space-y-1.5 flex-1 relative">
             {sortedOptions.map((option) => {
               const price = totalStake > 0 ? Math.max(0.05, Math.min(0.95, (option.total_stake_amount || 0) / totalStake)) : 0.50;
-              const priceCents = Math.round(price * 100);
               const isYes = option.label.toLowerCase() === "yes";
               const isNo = option.label.toLowerCase() === "no";
               const optStake = option.total_stake_amount || 0;
@@ -393,7 +392,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                       {option.label}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-amber-600">{priceCents}¢</span>
+                      <span className="font-mono text-xs font-bold text-amber-600">${price.toFixed(2)}</span>
                       {optStake > 0 && (
                         <span className="text-[9px] text-muted-foreground font-mono">${optStake.toFixed(0)}</span>
                       )}

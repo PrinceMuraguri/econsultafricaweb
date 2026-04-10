@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, BarChart3 } from "lucide-react";
+import { X, BarChart3, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { usePolls } from "@/hooks/use-polls";
 import PollCard from "./PollCard";
 
@@ -56,6 +57,12 @@ const ForecastWidget = () => {
             <div className="px-2 pb-2">
               <PollCard poll={featuredPoll} compact />
             </div>
+            <Link
+              to="/forecast-arena-pro"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-amber-700 bg-amber-50 border-t border-amber-200/50 hover:bg-amber-100 transition-colors"
+            >
+              💰 Try Pro — back forecasts with capital <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
         </motion.div>
       )}

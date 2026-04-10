@@ -748,7 +748,11 @@ const MyDashboard = () => {
             <p className="text-sm text-muted-foreground">
               Welcome back, {profile?.full_name || user.email}. Track your forecast positions and activity.
             </p>
-          </div>
+            <Link to="/forecast-arena-pro">
+              <Button variant="outline" size="sm" className="mt-3 border-amber-500/40 text-amber-700 hover:bg-amber-50">
+                💰 Trade in Forecast Arena Pro <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+            </Link>
 
           {/* Profile Card */}
           {profile && (

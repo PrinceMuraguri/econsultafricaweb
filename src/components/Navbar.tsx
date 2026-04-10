@@ -47,10 +47,10 @@ const Navbar = () => {
               <Link key={link.href} to={link.href}
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
                   link.isPro
-                    ? location.pathname.startsWith("/forecast-arena-pro") ? "bg-amber-500 text-amber-950 font-bold" : "text-amber-600 bg-amber-500/10 hover:bg-amber-500/20"
+                    ? location.pathname.startsWith("/forecast-arena-pro") ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground hover:bg-muted"
                     : location.pathname === link.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 }`}>
-                {link.isPro && <Crown className="w-3 h-3 inline mr-0.5" />}{link.label}
+                {link.label}{link.isPro && <span className="ml-0.5 text-[10px] font-black text-amber-500">PRO</span>}
               </Link>
             ))}
             {isLoggedIn && (

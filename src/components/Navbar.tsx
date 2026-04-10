@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X, User, LogIn, LogOut, Wallet, Bookmark } from "lucide-react";
+import { Menu, X, User, LogIn, LogOut, Wallet, Bookmark, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,12 +11,12 @@ import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
   { label: "Forecast Arena", href: "/" },
-  { label: "Pro", href: "/forecast-arena-pro", isPro: true },
-  { label: "Intelligence Marketplace", href: "/intelligence-marketplace" },
+  { label: "Forecast Arena PRO", href: "/forecast-arena-pro", isPro: true },
+  { label: "Intelligence", href: "/intelligence-marketplace" },
   { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Our Philosophy", href: "/our-philosophy" },
-  { label: "Insights & Media", href: "/insights" },
-  { label: "About Us", href: "/about" },
+  { label: "Philosophy", href: "/our-philosophy" },
+  { label: "Insights", href: "/insights" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -50,7 +50,7 @@ const Navbar = () => {
                     ? location.pathname.startsWith("/forecast-arena-pro") ? "bg-amber-500 text-amber-950 font-bold" : "text-amber-600 bg-amber-500/10 hover:bg-amber-500/20"
                     : location.pathname === link.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 }`}>
-                {link.isPro && <span className="mr-0.5">💰</span>}{link.label}
+                {link.isPro && <Crown className="w-3 h-3 inline mr-0.5" />}{link.label}
               </Link>
             ))}
             {isLoggedIn && (
@@ -64,21 +64,31 @@ const Navbar = () => {
           </div>
         </div>
 
-        <nav className="container-page flex items-center justify-between h-16">
+        <nav className="container-page flex items-center justify-between h-16 gap-4">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Econsult Africa" className="h-10 w-auto" />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-5">
+          <div className="hidden lg:flex items-center gap-4">
             {navLinks.map((link: any) => (
-              <Link key={link.href} to={link.href}
-                className={`text-sm font-medium transition-colors duration-200 ${
-                  link.isPro
-                    ? location.pathname.startsWith("/forecast-arena-pro") ? "text-amber-600 font-bold" : "text-amber-600 hover:text-amber-500"
-                    : location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}>
-                {link.isPro && "💰 "}{link.label}
-              </Link>
+              link.isPro ? (
+                <Link key={link.href} to={link.href}
+                  className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md transition-all border ${
+                    location.pathname.startsWith("/forecast-arena-pro")
+                      ? "bg-amber-400 text-amber-950 border-amber-500"
+                      : "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50"
+                  }`}>
+                  <Crown className="w-3 h-3" />
+                  <span>Forecast Arena <span className="text-amber-400 font-black" style={location.pathname.startsWith("/forecast-arena-pro") ? {color: 'rgb(120 53 15)'} : {}}>PRO</span></span>
+                </Link>
+              ) : (
+                <Link key={link.href} to={link.href}
+                  className={`text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
+                    location.pathname === link.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {link.label}
+                </Link>
+              )
             ))}
 
             {isLoggedIn ? (

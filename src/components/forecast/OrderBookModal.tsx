@@ -212,7 +212,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
                   }`}
                 >
                   <span className="block">{opt.label}</span>
-                  <span className="block text-lg font-mono">{Math.round(price * 100)}¢</span>
+                  <span className="block text-lg font-mono">${price.toFixed(2)}</span>
                 </button>
               );
             })}
@@ -261,7 +261,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
           {/* Limit price input */}
           {orderType === "limit" && (
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1">Limit Price (¢)</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Limit Price ($)</p>
               <div className="flex items-center gap-2">
                 <button onClick={() => setLimitPrice(Math.max(0.01, parseFloat((limitPrice - 0.01).toFixed(2))))}
                   className="w-8 h-8 rounded border border-border bg-muted/30 flex items-center justify-center">
@@ -269,18 +269,18 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
                 </button>
                 <input
                   type="number"
-                  value={Math.round(limitPrice * 100)}
-                  onChange={(e) => setLimitPrice(Math.max(0.01, Math.min(0.99, Number(e.target.value) / 100)))}
+                  value={limitPrice.toFixed(2)}
+                  onChange={(e) => setLimitPrice(Math.max(0.01, Math.min(0.99, Number(e.target.value))))}
                   className="font-mono text-center text-lg font-bold flex-1 h-8 rounded border border-border bg-background px-2"
-                  min={1} max={99}
+                  min={0.01} max={0.99} step={0.01}
                 />
-                <span className="text-sm text-muted-foreground">¢</span>
+                <span className="text-sm text-muted-foreground">$</span>
                 <button onClick={() => setLimitPrice(Math.min(0.99, parseFloat((limitPrice + 0.01).toFixed(2))))}
                   className="w-8 h-8 rounded border border-border bg-muted/30 flex items-center justify-center">
                   <Plus className="w-3 h-3" />
                 </button>
               </div>
-              <p className="text-[9px] text-muted-foreground mt-0.5">AMM price: {Math.round(ammPrice * 100)}¢</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">AMM price: ${ammPrice.toFixed(2)}</p>
             </div>
           )}
 
@@ -324,7 +324,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
             {side === "buy" ? (
               <>
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">{shares} × {Math.round(effectivePrice * 100)}¢</span>
+                  <span className="text-muted-foreground">{shares} × ${effectivePrice.toFixed(2)}</span>
                   <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
@@ -345,7 +345,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
             ) : (
               <>
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Sell {shares} × {Math.round(effectivePrice * 100)}¢</span>
+                  <span className="text-muted-foreground">Sell {shares} × ${effectivePrice.toFixed(2)}</span>
                   <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[10px]">
@@ -402,7 +402,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
               {sellOrders.length > 0 ? sellOrders.map((level, i) => (
                 <div key={`ask-${i}`} className="flex items-center justify-between px-3 py-1 text-[10px] relative">
                   <div className="absolute inset-0 bg-red-500/5" style={{ width: `${Math.min(100, level.shares * 5)}%` }} />
-                  <span className="relative font-mono text-red-500">{Math.round(level.price * 100)}¢</span>
+                  <span className="relative font-mono text-red-500">${level.price.toFixed(2)}</span>
                   <span className="relative font-mono text-muted-foreground">{level.shares.toFixed(0)}</span>
                 </div>
               )) : (
@@ -411,7 +411,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
 
               {/* Spread indicator */}
               <div className="bg-muted/50 px-3 py-1.5 text-center">
-                <span className="text-xs font-mono font-bold text-foreground">{Math.round(ammPrice * 100)}¢</span>
+                <span className="text-xs font-mono font-bold text-foreground">${ammPrice.toFixed(2)}</span>
                 <span className="text-[9px] text-muted-foreground ml-1">AMM price</span>
               </div>
 
@@ -419,7 +419,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
               {buyOrders.length > 0 ? buyOrders.map((level, i) => (
                 <div key={`bid-${i}`} className="flex items-center justify-between px-3 py-1 text-[10px] relative">
                   <div className="absolute inset-0 bg-green-500/5" style={{ width: `${Math.min(100, level.shares * 5)}%` }} />
-                  <span className="relative font-mono text-green-600">{Math.round(level.price * 100)}¢</span>
+                  <span className="relative font-mono text-green-600">${level.price.toFixed(2)}</span>
                   <span className="relative font-mono text-muted-foreground">{level.shares.toFixed(0)}</span>
                 </div>
               )) : (
@@ -445,7 +445,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
                         </span>
                         <span className="text-muted-foreground ml-1">{opt?.label}</span>
                         <span className="font-mono text-muted-foreground ml-1">
-                          {Number(order.shares) - Number(order.filled_shares)}/{Number(order.shares)} @ {Math.round(Number(order.price) * 100)}¢
+                          {Number(order.shares) - Number(order.filled_shares)}/{Number(order.shares)} @ ${Number(order.price).toFixed(2)}
                         </span>
                       </div>
                       <button

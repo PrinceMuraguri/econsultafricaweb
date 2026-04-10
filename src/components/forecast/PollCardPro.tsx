@@ -393,7 +393,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                       {option.label}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-amber-600">{priceCents}¢</span>
+                      <span className="font-mono text-xs font-bold text-amber-600">${price.toFixed(2)}</span>
                       {optStake > 0 && (
                         <span className="text-[9px] text-muted-foreground font-mono">${optStake.toFixed(0)}</span>
                       )}

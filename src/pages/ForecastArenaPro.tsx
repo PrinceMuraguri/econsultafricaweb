@@ -128,14 +128,12 @@ const ForecastArenaPro = () => {
         <div className="container-page relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="max-w-lg">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-3 mb-1">
                 <h1 className="block text-[clamp(1.9rem,9vw,3.5rem)] font-black text-background leading-[0.95] tracking-tight uppercase">
                   <span className="block sm:inline">Forecast</span>{" "}
-                  <span className="block sm:inline">Arena</span>
+                  <span className="block sm:inline">Arena</span>{" "}
+                  <span className="text-amber-400">Pro</span>
                 </h1>
-                <span className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-400 px-2.5 py-1 rounded-md border border-amber-500 self-start mt-2">
-                  <DollarSign className="w-3.5 h-3.5" /> Pro
-                </span>
               </div>
               <p className="text-sm md:text-base text-amber-400 font-semibold tracking-wide mt-1">Capital Markets — Back Your Forecasts</p>
               <p className="text-xs text-background/50 tracking-wide mt-0.5">Commit capital to economic forecasts. Earn rewards when you're right.</p>

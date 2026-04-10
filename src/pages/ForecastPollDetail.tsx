@@ -9,6 +9,7 @@ import { ArrowLeft, Scale, BarChart3, TrendingUp } from "lucide-react";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { data: poll, isLoading, error } = usePoll(slug || "");
 
   if (isLoading) {
@@ -40,9 +41,9 @@ const ForecastPollDetail = () => {
       {/* Back link */}
       <div className="bg-card border-b border-border">
         <div className="container-page max-w-3xl py-2">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+          <button onClick={() => navigate(-1)} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <ArrowLeft className="w-3.5 h-3.5" /> Back
-          </Link>
+          </button>
         </div>
       </div>
 

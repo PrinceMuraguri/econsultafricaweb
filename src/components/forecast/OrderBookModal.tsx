@@ -31,7 +31,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
   const [limitPrice, setLimitPrice] = useState(0.50);
   const [loading, setLoading] = useState(false);
 
-  const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
+  const totalStake = poll.poll_options.reduce((s, o) => s + (o.total_stake_amount || 0), 0);
   const isClosed = poll.status !== "active" || new Date(poll.close_at) < new Date();
 
   // Default to Yes option
@@ -88,9 +88,9 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
 
   const selectedOption = poll.poll_options.find(o => o.id === selectedOptionId);
   const ammPrice = useMemo(() => {
-    if (!selectedOption || totalVotes === 0) return 0.50;
-    return Math.max(0.05, Math.min(0.95, selectedOption.total_votes_count / totalVotes));
-  }, [selectedOption, totalVotes]);
+    if (!selectedOption || totalStake === 0) return 0.50;
+    return Math.max(0.05, Math.min(0.95, (selectedOption.total_stake_amount || 0) / totalStake));
+  }, [selectedOption, totalStake]);
 
   const effectivePrice = orderType === "market" ? ammPrice : limitPrice;
   const currentPosition = positions.find(p => p.option_id === selectedOptionId);
@@ -198,7 +198,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
           {/* Outcome selector */}
           <div className="flex gap-2">
             {poll.poll_options.map((opt) => {
-              const price = totalVotes > 0 ? Math.max(0.05, Math.min(0.95, opt.total_votes_count / totalVotes)) : 0.50;
+              const price = totalStake > 0 ? Math.max(0.05, Math.min(0.95, (opt.total_stake_amount || 0) / totalStake)) : 0.50;
               const isYes = opt.label.toLowerCase() === "yes";
               const isSelected = opt.id === selectedOptionId;
               return (

@@ -42,13 +42,13 @@ Deno.serve(async (req) => {
     // Get AMM price as fallback
     const { data: options } = await supabase
       .from("poll_options")
-      .select("id, total_votes_count")
+      .select("id, total_stake_amount")
       .eq("poll_id", poll_id);
 
-    const totalVotes = (options || []).reduce((s, o) => s + o.total_votes_count, 0);
+    const totalStake = (options || []).reduce((s, o) => s + Number(o.total_stake_amount || 0), 0);
     const thisOption = (options || []).find((o: any) => o.id === option_id);
-    const ammPrice = totalVotes > 0 && thisOption
-      ? Math.max(0.05, Math.min(0.95, thisOption.total_votes_count / totalVotes))
+    const ammPrice = totalStake > 0 && thisOption
+      ? Math.max(0.05, Math.min(0.95, Number(thisOption.total_stake_amount || 0) / totalStake))
       : 0.50;
 
     const orderPrice = price || ammPrice;

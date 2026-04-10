@@ -8,7 +8,7 @@ import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flam
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";
+import { TrendingUp as TrendingUpIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 
@@ -145,6 +145,7 @@ const ForecastArena = () => {
               <h1 className="block w-full max-w-full overflow-visible text-[clamp(1.9rem,9vw,3.5rem)] font-black text-background leading-[0.95] tracking-tight uppercase whitespace-normal break-words [text-wrap:wrap]">
                 <span className="block sm:inline">Forecast</span>{" "}
                 <span className="block sm:inline">Arena</span>
+                <span className="ml-2 text-xs font-medium bg-background/20 text-background/70 px-2 py-0.5 rounded-full align-middle normal-case tracking-normal">Free</span>
               </h1>
               <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's First Economic Sentiment Aggregator</p>
               <p className="text-xs text-background/50 tracking-wide mt-0.5">Collective intelligence for the public good</p>
@@ -210,6 +211,21 @@ const ForecastArena = () => {
             Forecast Arena aggregates people's expectations on economic outcomes for research and insight purposes.
             Not a betting or trading platform. Read our <a href="/terms-of-use" className="text-primary underline">Terms of Use</a>.
           </p>
+        </div>
+      </div>
+
+      {/* Pro cross-promotion banner */}
+      <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-amber-500/20">
+        <div className="container-page py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <TrendingUpIcon className="w-4 h-4 text-amber-500" />
+            <p className="text-xs text-foreground">
+              <span className="font-bold">Forecast Arena Pro</span> — Back your views with real capital and earn rewards.
+            </p>
+          </div>
+          <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
+            Explore Pro →
+          </Link>
         </div>
       </div>
 
@@ -334,7 +350,6 @@ const ForecastArena = () => {
           </div>
         </div>
       </section>
-      <WalletTopUpPrompt />
     </Layout>
   );
 };

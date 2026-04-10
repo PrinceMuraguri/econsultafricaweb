@@ -3,15 +3,13 @@ import Layout from "@/components/Layout";
 import PollCard from "@/components/forecast/PollCard";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
-import ListingsPanel from "@/components/forecast/ListingsPanel";
 import UserPollActivity from "@/components/forecast/UserPollActivity";
 import { usePoll } from "@/hooks/use-polls";
-import { ArrowLeft, Scale, BarChart3 } from "lucide-react";
+import { ArrowLeft, Scale, BarChart3, TrendingUp } from "lucide-react";
 
 const ForecastPollDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: poll, isLoading, error } = usePoll(slug || "");
-
 
   if (isLoading) {
     return (
@@ -52,8 +50,24 @@ const ForecastPollDetail = () => {
         {/* The same PollCard from the homepage, centerstage */}
         <PollCard poll={poll} interactionMode="vote" />
 
-        {/* P2P marketplace — active listings for this poll */}
-        <ListingsPanel poll={poll} />
+        {/* Pro cross-promotion banner */}
+        <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded-lg p-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-amber-500" />
+              Forecast Arena Pro — Capital Markets
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Back your forecasts with real capital. Earn $1.00 per share if you're right.
+            </p>
+          </div>
+          <Link
+            to={`/forecast-arena-pro/${poll.slug}`}
+            className="shrink-0 inline-flex items-center justify-center rounded-md bg-amber-500 text-white px-4 py-2 text-xs font-bold shadow hover:bg-amber-600 transition-colors"
+          >
+            Trade Pro →
+          </Link>
+        </div>
 
         {/* Probability over time chart */}
         <PollPerformanceChart

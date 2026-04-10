@@ -1269,6 +1269,10 @@ export type Database = {
         }
         Returns: Json
       }
+      decrement_stake_amount: {
+        Args: { p_amount: number; p_option_id: string }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

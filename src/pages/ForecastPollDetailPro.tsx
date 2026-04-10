@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCardPro from "@/components/forecast/PollCardPro";
 import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
@@ -11,6 +11,7 @@ import { ArrowLeft, Scale, BarChart3, DollarSign } from "lucide-react";
 
 const ForecastPollDetailPro = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { data: poll, isLoading, error } = usePoll(slug || "");
 
   if (isLoading) {
@@ -42,9 +43,9 @@ const ForecastPollDetailPro = () => {
       {/* Pro banner */}
       <div className="bg-amber-500/10 border-b border-amber-500/20">
         <div className="container-page max-w-3xl py-2 flex items-center justify-between">
-          <Link to="/forecast-arena-pro" className="text-sm text-muted-foreground hover:text-amber-600 transition-colors flex items-center gap-1">
+          <button onClick={() => navigate(-1)} className="text-sm text-muted-foreground hover:text-amber-600 transition-colors flex items-center gap-1">
             <ArrowLeft className="w-3.5 h-3.5" /> Back
-          </Link>
+          </button>
           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-900 bg-amber-400 px-2 py-0.5 rounded">
             <DollarSign className="w-3 h-3" /> Pro — Capital Markets
           </span>

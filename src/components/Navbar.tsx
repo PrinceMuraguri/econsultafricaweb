@@ -11,9 +11,9 @@ import logo from "@/assets/econsult-africa-logo.png";
 
 const navLinks = [
   { label: "Forecast Arena", href: "/" },
-  { label: "Forecast Arena PRO", href: "/forecast-arena-pro", isPro: true },
-  { label: "Intelligence", href: "/intelligence-marketplace" },
+  { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
   { label: "Leaderboard", href: "/leaderboard" },
+  { label: "Shop", href: "/intelligence-marketplace" },
   { label: "Philosophy", href: "/our-philosophy" },
   { label: "Insights", href: "/insights" },
   { label: "About", href: "/about" },
@@ -47,10 +47,10 @@ const Navbar = () => {
               <Link key={link.href} to={link.href}
                 className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
                   link.isPro
-                    ? location.pathname.startsWith("/forecast-arena-pro") ? "bg-amber-500 text-amber-950 font-bold" : "text-amber-600 bg-amber-500/10 hover:bg-amber-500/20"
+                    ? location.pathname.startsWith("/forecast-arena-pro") ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground hover:bg-muted"
                     : location.pathname === link.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 }`}>
-                {link.isPro && <Crown className="w-3 h-3 inline mr-0.5" />}{link.label}
+                {link.label}{link.isPro && <span className="ml-0.5 text-[10px] font-black text-amber-500">PRO</span>}
               </Link>
             ))}
             {isLoggedIn && (
@@ -73,13 +73,13 @@ const Navbar = () => {
             {navLinks.map((link: any) => (
               link.isPro ? (
                 <Link key={link.href} to={link.href}
-                  className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md transition-all border ${
+                  className={`inline-flex items-center gap-1 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                     location.pathname.startsWith("/forecast-arena-pro")
-                      ? "bg-amber-400 text-amber-950 border-amber-500"
-                      : "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50"
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}>
-                  <Crown className="w-3 h-3" />
-                  <span>Forecast Arena <span className="text-amber-400 font-black" style={location.pathname.startsWith("/forecast-arena-pro") ? {color: 'rgb(120 53 15)'} : {}}>PRO</span></span>
+                  <span>{link.label}</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-black uppercase tracking-wide text-amber-950 bg-amber-400 px-1.5 py-0.5 rounded">PRO <Crown className="w-2.5 h-2.5" /></span>
                 </Link>
               ) : (
                 <Link key={link.href} to={link.href}

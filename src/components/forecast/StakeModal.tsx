@@ -65,13 +65,13 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   });
   const walletBalance = Number(wallet?.balance_usd || 0);
 
-  const totalVotes = poll.poll_options.reduce((s, o) => s + o.total_votes_count, 0);
+  const totalStake = poll.poll_options.reduce((s, o) => s + (o.total_stake_amount || 0), 0);
 
   const sharePrice = useMemo(() => {
-    if (!selectedOption || totalVotes === 0) return 0.50;
-    const pct = selectedOption.total_votes_count / totalVotes;
+    if (!selectedOption || totalStake === 0) return 0.50;
+    const pct = (selectedOption.total_stake_amount || 0) / totalStake;
     return Math.max(0.05, Math.min(0.95, Math.round(pct * 100) / 100));
-  }, [selectedOption, totalVotes]);
+  }, [selectedOption, totalStake]);
 
   const totalCost = parseFloat((shares * sharePrice).toFixed(2));
   const platformFee = parseFloat((totalCost * 0.035).toFixed(2));
@@ -152,8 +152,8 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     }
   };
 
-  const optionPct = selectedOption && totalVotes > 0
-    ? Math.round((selectedOption.total_votes_count / totalVotes) * 100)
+  const optionPct = selectedOption && totalStake > 0
+    ? Math.round(((selectedOption.total_stake_amount || 0) / totalStake) * 100)
     : 50;
 
   return (
@@ -172,18 +172,18 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
             <p className="text-sm font-medium text-foreground mb-1">{poll.title}</p>
             <p className="text-xs text-muted-foreground">
               Your position: <span className="font-semibold text-accent">{selectedOption?.label}</span>
-              <span className="ml-2">({optionPct}% consensus)</span>
+              <span className="ml-2">({optionPct}% market price)</span>
             </p>
           </div>
 
           {/* Consensus price */}
           <div className="flex items-center justify-between bg-primary/5 rounded-lg px-4 py-3 border border-primary/10">
             <div>
-              <p className="text-xs text-muted-foreground">Consensus Price</p>
+              <p className="text-xs text-muted-foreground">Market Price</p>
               <p className="font-mono text-xl font-bold text-foreground">${sharePrice.toFixed(2)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Consensus Probability</p>
+              <p className="text-xs text-muted-foreground">Market Probability</p>
               <p className="font-mono text-xl font-bold text-primary">{Math.round(sharePrice * 100)}%</p>
             </div>
           </div>

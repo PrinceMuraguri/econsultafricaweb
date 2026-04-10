@@ -77,13 +77,18 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const potentialPayout = shares;
   const potentialReturn = parseFloat((potentialPayout - totalDebit).toFixed(2));
 
-  // Sell calculations for full position
-  const fullSellGross = currentPosition ? parseFloat((Number(currentPosition.shares) * currentPrice).toFixed(2)) : 0;
+  // Sell calculations — use proportional cost basis to match backend (sell-shares returns cost basis, not market value)
+  const fullSellGross = currentPosition ? parseFloat(Number(currentPosition.total_cost).toFixed(2)) : 0;
   const fullSellFee = parseFloat((fullSellGross * fee).toFixed(2));
   const fullSellNet = parseFloat((fullSellGross - fullSellFee).toFixed(2));
 
-  // Partial sell
-  const partialSellGross = parseFloat((sellShares * currentPrice).toFixed(2));
+  // Partial sell — proportional cost basis
+  const partialSellFraction = currentPosition && Number(currentPosition.shares) > 0
+    ? sellShares / Number(currentPosition.shares)
+    : 0;
+  const partialSellGross = currentPosition
+    ? parseFloat((Number(currentPosition.total_cost) * partialSellFraction).toFixed(2))
+    : 0;
   const partialSellFee = parseFloat((partialSellGross * fee).toFixed(2));
   const partialSellNet = parseFloat((partialSellGross - partialSellFee).toFixed(2));
 
@@ -322,9 +327,10 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
               const mktPrice = totalStake > 0 && opt
                 ? Math.max(0.05, Math.min(0.95, (opt.total_stake_amount || 0) / totalStake))
                 : 0.50;
-              const mktValue = parseFloat((Number(pos.shares) * mktPrice).toFixed(2));
-              const exitFee = parseFloat((mktValue * fee).toFixed(2));
-              const exitNet = parseFloat((mktValue - exitFee).toFixed(2));
+              // Exit refund is based on cost basis (what user committed), not market value
+              const exitGross = parseFloat(Number(pos.total_cost).toFixed(2));
+              const exitFee = parseFloat((exitGross * fee).toFixed(2));
+              const exitNet = parseFloat((exitGross - exitFee).toFixed(2));
 
               return (
                 <div key={pos.id} className="space-y-3">

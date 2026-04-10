@@ -213,9 +213,9 @@ const ForecastArenaPro = () => {
                   className="snap-start shrink-0 w-[200px] p-3 rounded-lg border border-amber-500/20 bg-card hover:border-amber-500/40 transition-colors">
                   <p className="text-xs font-semibold text-foreground line-clamp-2 mb-2">🔥 {t.title}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-mono font-bold text-amber-600">{t.total_votes}</span>
+                    <span className="text-lg font-mono font-bold text-amber-600">{t.total_votes} <span className="text-[9px] font-normal text-muted-foreground">forecasts</span></span>
                     <span className="text-[9px] bg-amber-500/10 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">
-                      {Number(t.recent_votes)} votes today
+                      {Number(t.recent_votes)} today
                     </span>
                   </div>
                 </Link>

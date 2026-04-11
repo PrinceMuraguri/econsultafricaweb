@@ -518,7 +518,11 @@ const MyDashboard = () => {
 
   const handleTabChange = (tab: "free" | "pro") => {
     setDashboardMode(tab);
-    setSearchParams({ tab });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("tab", tab);
+      return next;
+    });
   };
 
   if (loading) {

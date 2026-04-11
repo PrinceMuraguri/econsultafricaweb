@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Activity, ArrowRight, User, Wallet } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DualCurrency from "@/components/DualCurrency";
 import FreeForecastsTab from "@/components/dashboard/FreeForecastsTab";
@@ -357,20 +357,23 @@ const MyDashboard = () => {
     return ids;
   }, [positions, sharePositions]);
 
-  // Merge P2P-only share positions into Pro active
-  const votePollIds = new Set(positions?.map(p => p.poll_id) || []);
-  const p2pOnlyPositions = sharePositions.filter((sp: any) =>
-    !votePollIds.has(sp.poll_id) && sp.poll_status === "active"
-  ).map((sp: any) => ({
-    id: sp.id, poll_id: sp.poll_id, option_id: sp.option_id,
-    created_at: sp.created_at, is_staked: true,
-    stake_amount: Number(sp.total_cost), poll_title: sp.poll_title,
-    poll_status: sp.poll_status, poll_slug: sp.poll_slug,
-    option_label: sp.option_label, winning_option_id: null,
-    close_at: sp.poll_close_at, total_votes: 0, option_votes: 0,
-    entry_price: Number(sp.avg_price), potential_payout: Number(sp.shares),
-    outcome: "pending" as const, _isP2POnly: true,
-  }));
+  // Merge P2P-only share positions into Pro active — memoized to avoid new array refs
+  const votePollIds = useMemo(() => new Set(positions?.map(p => p.poll_id) || []), [positions]);
+  const p2pOnlyPositions = useMemo(() =>
+    sharePositions.filter((sp: any) =>
+      !votePollIds.has(sp.poll_id) && sp.poll_status === "active"
+    ).map((sp: any) => ({
+      id: sp.id, poll_id: sp.poll_id, option_id: sp.option_id,
+      created_at: sp.created_at, is_staked: true,
+      stake_amount: Number(sp.total_cost), poll_title: sp.poll_title,
+      poll_status: sp.poll_status, poll_slug: sp.poll_slug,
+      option_label: sp.option_label, winning_option_id: null,
+      close_at: sp.poll_close_at, total_votes: 0, option_votes: 0,
+      entry_price: Number(sp.avg_price), potential_payout: Number(sp.shares),
+      outcome: "pending" as const, _isP2POnly: true,
+    })),
+    [sharePositions, votePollIds]
+  );
 
   const freeActive = useMemo(() =>
     (positions?.filter(p => p.outcome === "pending" && !proPositionPollIds.has(p.poll_id)) || []),
@@ -438,7 +441,13 @@ const MyDashboard = () => {
     const notifKinds = new Set(['position_won', 'position_lost', 'payout_completed', 'withdrawal_completed', 'withdrawal_failed', 'comment_reply', 'listing_sold']);
     notifications?.forEach((notif: any) => {
       if (!notifKinds.has(notif.type)) return;
-      items.push({ id: `notif-${notif.id}`, kind: notif.type, label: notif.title, description: notif.body || undefined, timestamp: notif.created_at, link: notif.link || undefined });
+      // Carry poll_id so we can split notifications between Free/Pro tabs
+      items.push({
+        id: `notif-${notif.id}`, kind: notif.type, label: notif.title,
+        description: notif.body || undefined, timestamp: notif.created_at,
+        link: notif.link || undefined,
+        _pollId: notif.poll_id || undefined,
+      } as ActivityItem & { _pollId?: string });
     });
 
     items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -447,42 +456,59 @@ const MyDashboard = () => {
   }, [positions, walletTxns, notifications, tradeByRef, proPositionPollIds]);
 
   // Split activity: Free = votes + comment_reply only for free polls; Pro = everything financial + pro poll votes
-  const freeActivityKinds = new Set(['vote', 'comment_reply', 'position_won', 'position_lost']);
-  const proActivityKinds = new Set(['stake', 'deposit', 'withdrawal', 'payout', 'share_purchase', 'share_sale', 'payout_completed', 'withdrawal_completed', 'withdrawal_failed', 'listing_sold']);
+  // Defined as module-constant equivalents via useMemo to avoid new Set refs every render
+  const FREE_ACTIVITY_KINDS = useMemo(() => new Set(['vote', 'comment_reply', 'position_won', 'position_lost']), []);
+  const PRO_ACTIVITY_KINDS = useMemo(() => new Set(['stake', 'deposit', 'withdrawal', 'payout', 'share_purchase', 'share_sale', 'payout_completed', 'withdrawal_completed', 'withdrawal_failed', 'listing_sold']), []);
 
   const freeActivity = useMemo(() =>
     allActivity.filter(item => {
-      if (freeActivityKinds.has(item.kind)) {
-        // Only include votes for free polls
+      if (FREE_ACTIVITY_KINDS.has(item.kind)) {
+        // For vote items — only include votes for free polls
         if (item.kind === 'vote' && item.id.startsWith('vote-')) {
           const voteId = item.id.replace('vote-', '');
           const pos = positions?.find(p => p.id === voteId);
           if (pos && proPositionPollIds.has(pos.poll_id)) return false;
         }
+        // For position_won/position_lost notifications — exclude if poll is a Pro poll
+        if ((item.kind === 'position_won' || item.kind === 'position_lost') && (item as any)._pollId) {
+          if (proPositionPollIds.has((item as any)._pollId)) return false;
+        }
         return true;
       }
       return false;
     }),
-    [allActivity, positions, proPositionPollIds]
+    [allActivity, positions, proPositionPollIds, FREE_ACTIVITY_KINDS]
   );
 
   const proActivity = useMemo(() =>
     allActivity.filter(item => {
-      if (proActivityKinds.has(item.kind)) return true;
+      if (PRO_ACTIVITY_KINDS.has(item.kind)) return true;
       // Include votes/outcomes for pro polls
       if (item.kind === 'vote' && item.id.startsWith('vote-')) {
         const voteId = item.id.replace('vote-', '');
         const pos = positions?.find(p => p.id === voteId);
         return pos && proPositionPollIds.has(pos.poll_id);
       }
+      // Include position_won/position_lost for pro polls
+      if ((item.kind === 'position_won' || item.kind === 'position_lost') && (item as any)._pollId) {
+        return proPositionPollIds.has((item as any)._pollId);
+      }
       return false;
     }),
-    [allActivity, positions, proPositionPollIds]
+    [allActivity, positions, proPositionPollIds, PRO_ACTIVITY_KINDS]
   );
 
-  // Auto-select tab based on whether user has any Pro activity
+  // Auto-select tab ONCE based on whether user has any Pro activity
+  // Uses a ref to prevent re-forcing Pro after user manually switches to Free
+  const hasAutoSelected = useRef(false);
   useEffect(() => {
-    if (!searchParams.get("tab") && positions && positions.length > 0) {
+    if (hasAutoSelected.current) return;
+    if (searchParams.get("tab")) {
+      hasAutoSelected.current = true;
+      return;
+    }
+    if (positions && positions.length > 0) {
+      hasAutoSelected.current = true;
       const hasProActivity = proPositionPollIds.size > 0 || (wallet?.balance_usd || 0) > 0;
       if (hasProActivity) {
         setDashboardMode("pro");
@@ -492,7 +518,11 @@ const MyDashboard = () => {
 
   const handleTabChange = (tab: "free" | "pro") => {
     setDashboardMode(tab);
-    setSearchParams({ tab });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("tab", tab);
+      return next;
+    });
   };
 
   if (loading) {
@@ -607,6 +637,7 @@ const MyDashboard = () => {
               walletTxns={walletTxns || []}
               transactions={transactions || []}
               payouts={payouts || []}
+              walletPayouts={walletPayouts || []}
               isLoading={isLoading}
             />
           )}

@@ -9,7 +9,7 @@ import {
   DollarSign, Activity, ArrowRight, Wallet, Plus, ArrowDownToLine,
   ChevronDown, ChevronUp, History, Receipt, CreditCard, Tag
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DualCurrency from "@/components/DualCurrency";
@@ -63,6 +63,7 @@ interface ProTradingTabProps {
   walletTxns: any[];
   transactions: any[];
   payouts: any[];
+  walletPayouts: any[];
   isLoading: boolean;
 }
 
@@ -70,7 +71,7 @@ const ProTradingTab = ({
   user, profile, wallet, refreshWallet,
   proActive, proResolved, proActivity,
   sharePositions, myActiveListings, tradeHistory,
-  walletTxns, transactions, payouts,
+  walletTxns, transactions, payouts, walletPayouts,
   isLoading,
 }: ProTradingTabProps) => {
   const { toast } = useToast();
@@ -103,6 +104,9 @@ const ProTradingTab = ({
   const totalCommitted = proActive.reduce((s, p) => s + (p.stake_amount || 0), 0)
     + proResolved.reduce((s, p) => s + (p.stake_amount || 0), 0);
   const earningsFromPayouts = payouts?.reduce((s: number, p: any) => s + (p.amount || 0), 0) || 0;
+  const earningsFromWallet = walletPayouts?.reduce((s: number, p: any) => s + Math.abs(p.amount || 0), 0) || 0;
+  // Use payouts table first; fall back to wallet_transactions payout records if payouts table is empty
+  const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = proResolved.filter(p => p.outcome === "won").length;
   const accuracy = proResolved.length > 0 ? Math.round((wonCount / proResolved.length) * 100) : null;
 
@@ -232,7 +236,7 @@ const ProTradingTab = ({
           { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
           { icon: Activity, label: "Active Positions", value: proActive.length },
           { icon: DollarSign, label: "Capital Committed", value: <DualCurrency amount={totalCommitted} /> },
-          { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={earningsFromPayouts} /> },
+          { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
           { icon: CheckCircle, label: "Pro Accuracy", value: accuracy != null ? `${accuracy}%` : "—" },
         ].map((stat) => (
           <div key={stat.label} className="bg-card border border-border rounded-lg p-4">

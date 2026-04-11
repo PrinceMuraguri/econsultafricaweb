@@ -590,28 +590,33 @@ const MyDashboard = () => {
             </div>
           )}
 
-          {/* Tab Bar */}
-          <div className="flex gap-1 mb-8 bg-muted p-1 rounded-lg w-fit">
-            <button
-              onClick={() => handleTabChange("free")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                dashboardMode === "free"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              🗳️ Free Forecasts
-            </button>
-            <button
-              onClick={() => handleTabChange("pro")}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                dashboardMode === "pro"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              💰 Pro Trading
-            </button>
+          {/* Dashboard Mode Toggle */}
+          <div className="mb-8">
+            <div className="flex bg-muted rounded-xl p-1.5 max-w-md mx-auto shadow-inner">
+              <button
+                onClick={() => handleTabChange("free")}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-300 ${
+                  dashboardMode === "free"
+                    ? "bg-background text-foreground shadow-md py-3 px-5 text-base scale-[1.02]"
+                    : "text-muted-foreground hover:text-foreground py-2.5 px-4 text-sm"
+                }`}
+              >
+                🗳️ Free Forecasts
+              </button>
+              <button
+                onClick={() => handleTabChange("pro")}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-300 ${
+                  dashboardMode === "pro"
+                    ? "bg-background text-foreground shadow-md py-3 px-5 text-base scale-[1.02]"
+                    : "text-muted-foreground hover:text-foreground py-2.5 px-4 text-sm"
+                }`}
+              >
+                👑 Pro Forecasting
+              </button>
+            </div>
+            <p className="text-center text-sm text-muted-foreground mt-3">
+              You are currently viewing <span className="font-semibold text-foreground">{dashboardMode === "free" ? "Free Forecasts" : "Pro Forecasting"}</span>.
+            </p>
           </div>
 
           {/* Tab Content */}

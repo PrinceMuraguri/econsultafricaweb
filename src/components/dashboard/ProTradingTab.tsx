@@ -236,7 +236,7 @@ const ProTradingTab = ({
           { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
           { icon: Activity, label: "Active Positions", value: proActive.length },
           { icon: DollarSign, label: "Capital Committed", value: <DualCurrency amount={totalCommitted} /> },
-          { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={earningsFromPayouts} /> },
+          { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
           { icon: CheckCircle, label: "Pro Accuracy", value: accuracy != null ? `${accuracy}%` : "—" },
         ].map((stat) => (
           <div key={stat.label} className="bg-card border border-border rounded-lg p-4">

@@ -104,6 +104,9 @@ const ProTradingTab = ({
   const totalCommitted = proActive.reduce((s, p) => s + (p.stake_amount || 0), 0)
     + proResolved.reduce((s, p) => s + (p.stake_amount || 0), 0);
   const earningsFromPayouts = payouts?.reduce((s: number, p: any) => s + (p.amount || 0), 0) || 0;
+  const earningsFromWallet = walletPayouts?.reduce((s: number, p: any) => s + Math.abs(p.amount || 0), 0) || 0;
+  // Use payouts table first; fall back to wallet_transactions payout records if payouts table is empty
+  const totalEarnings = earningsFromPayouts || earningsFromWallet;
   const wonCount = proResolved.filter(p => p.outcome === "won").length;
   const accuracy = proResolved.length > 0 ? Math.round((wonCount / proResolved.length) * 100) : null;
 

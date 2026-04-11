@@ -456,42 +456,59 @@ const MyDashboard = () => {
   }, [positions, walletTxns, notifications, tradeByRef, proPositionPollIds]);
 
   // Split activity: Free = votes + comment_reply only for free polls; Pro = everything financial + pro poll votes
-  const freeActivityKinds = new Set(['vote', 'comment_reply', 'position_won', 'position_lost']);
-  const proActivityKinds = new Set(['stake', 'deposit', 'withdrawal', 'payout', 'share_purchase', 'share_sale', 'payout_completed', 'withdrawal_completed', 'withdrawal_failed', 'listing_sold']);
+  // Defined as module-constant equivalents via useMemo to avoid new Set refs every render
+  const FREE_ACTIVITY_KINDS = useMemo(() => new Set(['vote', 'comment_reply', 'position_won', 'position_lost']), []);
+  const PRO_ACTIVITY_KINDS = useMemo(() => new Set(['stake', 'deposit', 'withdrawal', 'payout', 'share_purchase', 'share_sale', 'payout_completed', 'withdrawal_completed', 'withdrawal_failed', 'listing_sold']), []);
 
   const freeActivity = useMemo(() =>
     allActivity.filter(item => {
-      if (freeActivityKinds.has(item.kind)) {
-        // Only include votes for free polls
+      if (FREE_ACTIVITY_KINDS.has(item.kind)) {
+        // For vote items — only include votes for free polls
         if (item.kind === 'vote' && item.id.startsWith('vote-')) {
           const voteId = item.id.replace('vote-', '');
           const pos = positions?.find(p => p.id === voteId);
           if (pos && proPositionPollIds.has(pos.poll_id)) return false;
         }
+        // For position_won/position_lost notifications — exclude if poll is a Pro poll
+        if ((item.kind === 'position_won' || item.kind === 'position_lost') && (item as any)._pollId) {
+          if (proPositionPollIds.has((item as any)._pollId)) return false;
+        }
         return true;
       }
       return false;
     }),
-    [allActivity, positions, proPositionPollIds]
+    [allActivity, positions, proPositionPollIds, FREE_ACTIVITY_KINDS]
   );
 
   const proActivity = useMemo(() =>
     allActivity.filter(item => {
-      if (proActivityKinds.has(item.kind)) return true;
+      if (PRO_ACTIVITY_KINDS.has(item.kind)) return true;
       // Include votes/outcomes for pro polls
       if (item.kind === 'vote' && item.id.startsWith('vote-')) {
         const voteId = item.id.replace('vote-', '');
         const pos = positions?.find(p => p.id === voteId);
         return pos && proPositionPollIds.has(pos.poll_id);
       }
+      // Include position_won/position_lost for pro polls
+      if ((item.kind === 'position_won' || item.kind === 'position_lost') && (item as any)._pollId) {
+        return proPositionPollIds.has((item as any)._pollId);
+      }
       return false;
     }),
-    [allActivity, positions, proPositionPollIds]
+    [allActivity, positions, proPositionPollIds, PRO_ACTIVITY_KINDS]
   );
 
-  // Auto-select tab based on whether user has any Pro activity
+  // Auto-select tab ONCE based on whether user has any Pro activity
+  // Uses a ref to prevent re-forcing Pro after user manually switches to Free
+  const hasAutoSelected = useRef(false);
   useEffect(() => {
-    if (!searchParams.get("tab") && positions && positions.length > 0) {
+    if (hasAutoSelected.current) return;
+    if (searchParams.get("tab")) {
+      hasAutoSelected.current = true;
+      return;
+    }
+    if (positions && positions.length > 0) {
+      hasAutoSelected.current = true;
       const hasProActivity = proPositionPollIds.size > 0 || (wallet?.balance_usd || 0) > 0;
       if (hasProActivity) {
         setDashboardMode("pro");

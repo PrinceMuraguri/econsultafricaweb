@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Activity, ArrowRight, User, Wallet } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DualCurrency from "@/components/DualCurrency";
 import FreeForecastsTab from "@/components/dashboard/FreeForecastsTab";
@@ -357,20 +357,23 @@ const MyDashboard = () => {
     return ids;
   }, [positions, sharePositions]);
 
-  // Merge P2P-only share positions into Pro active
-  const votePollIds = new Set(positions?.map(p => p.poll_id) || []);
-  const p2pOnlyPositions = sharePositions.filter((sp: any) =>
-    !votePollIds.has(sp.poll_id) && sp.poll_status === "active"
-  ).map((sp: any) => ({
-    id: sp.id, poll_id: sp.poll_id, option_id: sp.option_id,
-    created_at: sp.created_at, is_staked: true,
-    stake_amount: Number(sp.total_cost), poll_title: sp.poll_title,
-    poll_status: sp.poll_status, poll_slug: sp.poll_slug,
-    option_label: sp.option_label, winning_option_id: null,
-    close_at: sp.poll_close_at, total_votes: 0, option_votes: 0,
-    entry_price: Number(sp.avg_price), potential_payout: Number(sp.shares),
-    outcome: "pending" as const, _isP2POnly: true,
-  }));
+  // Merge P2P-only share positions into Pro active — memoized to avoid new array refs
+  const votePollIds = useMemo(() => new Set(positions?.map(p => p.poll_id) || []), [positions]);
+  const p2pOnlyPositions = useMemo(() =>
+    sharePositions.filter((sp: any) =>
+      !votePollIds.has(sp.poll_id) && sp.poll_status === "active"
+    ).map((sp: any) => ({
+      id: sp.id, poll_id: sp.poll_id, option_id: sp.option_id,
+      created_at: sp.created_at, is_staked: true,
+      stake_amount: Number(sp.total_cost), poll_title: sp.poll_title,
+      poll_status: sp.poll_status, poll_slug: sp.poll_slug,
+      option_label: sp.option_label, winning_option_id: null,
+      close_at: sp.poll_close_at, total_votes: 0, option_votes: 0,
+      entry_price: Number(sp.avg_price), potential_payout: Number(sp.shares),
+      outcome: "pending" as const, _isP2POnly: true,
+    })),
+    [sharePositions, votePollIds]
+  );
 
   const freeActive = useMemo(() =>
     (positions?.filter(p => p.outcome === "pending" && !proPositionPollIds.has(p.poll_id)) || []),
@@ -438,7 +441,13 @@ const MyDashboard = () => {
     const notifKinds = new Set(['position_won', 'position_lost', 'payout_completed', 'withdrawal_completed', 'withdrawal_failed', 'comment_reply', 'listing_sold']);
     notifications?.forEach((notif: any) => {
       if (!notifKinds.has(notif.type)) return;
-      items.push({ id: `notif-${notif.id}`, kind: notif.type, label: notif.title, description: notif.body || undefined, timestamp: notif.created_at, link: notif.link || undefined });
+      // Carry poll_id so we can split notifications between Free/Pro tabs
+      items.push({
+        id: `notif-${notif.id}`, kind: notif.type, label: notif.title,
+        description: notif.body || undefined, timestamp: notif.created_at,
+        link: notif.link || undefined,
+        _pollId: notif.poll_id || undefined,
+      } as ActivityItem & { _pollId?: string });
     });
 
     items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());

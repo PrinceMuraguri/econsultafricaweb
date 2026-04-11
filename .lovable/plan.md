@@ -1,94 +1,78 @@
 
 
-# Pro Forecast Arena Audit — Bugs Found
+# Migration Plan: Refund All Active Stakes & Reset for Pro Arena
 
-## Critical Bugs
+## Current State Summary
 
-### Bug 1: `sell-shares` never decrements `poll_options.total_stake_amount`
-**Severity: Critical — breaks market pricing**
+All capital on the platform was committed under the old system (vote-based odds). With Pro Arena using capital-weighted odds, we need a clean slate.
 
-When a user buys shares, `buy-shares` calls `increment_stake_amount` to increase the option's `total_stake_amount`. But `sell-shares` does NOT decrement it. This means:
-- After selling, the AMM price doesn't change
-- Capital is removed from a user's position but the market pool still counts it
-- Over time, market prices become increasingly inflated and detached from actual capital
+### What exists today
 
-The same bug exists in `create-listing` flow — `create_listing_atomic` updates `votes.stake_amount` but does NOT touch `poll_options.total_stake_amount`.
+| User | Active Stakes | Settled (already paid out) | Wallet Balance |
+|------|--------------|---------------------------|----------------|
+| **princemuraguri** | $5.05 (5 votes across 4 polls) | $2.90 (3 TEST polls — already settled) | $2.38 |
+| **funkiefresh_ke** | $2.50 (1 vote, 1 poll) | — | $0.00 |
+| **Anonymous user A** (no account) | $1.62 (2 votes, 2 polls) | — | N/A |
+| **Anonymous user B** (no account) | $0.95 (1 vote, 1 poll) | — | N/A |
 
-**Fix**: Create a `decrement_stake_amount` DB function and call it from `sell-shares`. Also verify `create_listing_atomic` and `cancel_listing_atomic` properly sync `total_stake_amount`.
+- **Total refundable (active polls only):** $10.12
+- **Settled polls:** Already paid out — no action needed
+- **Positions table:** Empty (no shares to unwind)
+- **Listings table:** No active listings
+- **poll_options.total_stake_amount:** Already 0 across all options
 
-### Bug 2: TradingPanel sell display doesn't match backend
-**Severity: High — user sees wrong refund amount**
+### The anonymous problem
 
-The `TradingPanel` "Adjust position" tab shows sell proceeds as `shares × currentPrice` (market value). But the `sell-shares` backend returns `position.total_cost × (shares / position.shares)` (proportional cost basis). These are different numbers.
+Two fingerprints ($2.57 total) paid via Paystack with no user account, so there's no wallet to refund to. Options:
+1. **Create wallets for them** — but they can't access them without an account
+2. **Process Paystack refunds** — refund directly to their payment method
+3. **Hold in escrow** — flag for manual resolution
 
-Example: User bought 10 shares at $0.30 each ($3.00 total). Price is now $0.70. Frontend shows "Exit entire position — receive $6.44" (10 × $0.70 × 0.965). Backend actually returns $2.90 ($3.00 × 0.965). User expects $6.44 but gets $2.90.
+I recommend **Option 3**: mark these votes as refunded in the database and flag the $2.57 for manual Paystack refund, since we can look up the original transactions by reference.
 
-**Fix**: Change TradingPanel sell calculations to use `position.total_cost * sellFraction` instead of `shares * currentPrice`.
+## Migration Steps
 
-## Medium Bugs
+### Step 1: Refund registered users to wallets
+For each staked vote on an **active** poll with a known `user_id` (or matching fingerprint):
+- Credit the `stake_amount` back to their wallet
+- Create a `wallet_transaction` record (type: `refund`, description: "Platform migration refund — legacy stake returned")
 
-### Bug 3: `ExitPositionModal` doesn't invalidate wallet balance
-The modal invalidates positions and transactions but never invalidates `["wallet-balance", user.id]`. After exiting a position, the wallet balance display stays stale until something else triggers a refresh.
+**princemuraguri:** +$5.05 → wallet becomes $7.43
+**funkiefresh_ke:** +$2.50 → wallet becomes $2.50
 
-**Fix**: Add `queryClient.invalidateQueries({ queryKey: ["wallet-balance"] })` to ExitPositionModal's success handler.
+### Step 2: Clear staking flags on all active-poll votes
+- Set `is_staked = false`, `stake_amount = 0` on all votes for active polls
+- This preserves the free sentiment votes while removing the capital attachment
 
-### Bug 4: `create_listing_atomic` and `cancel_listing_atomic` don't sync `total_stake_amount`
-When shares are listed for sale, capital is removed from the position but `poll_options.total_stake_amount` is unchanged. When a listing is cancelled, same issue. When a listing is sold via `buy_listing_atomic`, the buyer gets shares but `total_stake_amount` isn't updated either. This compounds Bug 1.
+### Step 3: Reset poll_options stake amounts
+- Confirm `total_stake_amount = 0` on all options (already the case, but run a safety reset)
 
-**Fix**: Add `total_stake_amount` adjustments to all three atomic functions.
+### Step 4: Handle anonymous stakes
+- Insert records into an `admin_audit_log` documenting the $2.57 owed to anonymous users with their Paystack references for manual refund processing
 
-## Minor Issues
+### Step 5: Clean up positions/trades if any residual
+- Delete any orphaned position or trade records tied to these legacy stakes (currently empty, but safety check)
 
-### Bug 5: Pro trending section displays vote count, not capital
-`ForecastArenaPro.tsx` line 216 shows `t.total_votes` in the trending cards. For a capital-weighted market, this should show total capital committed or at minimum use different labeling.
+## Accounting Verification
 
-**Fix**: Either query and display `total_stake_amount` in trending cards, or change the label to "forecasts" instead of showing the raw number as if it's a capital metric.
+Before and after the migration, we verify:
+```
+Total wallet balances (before) + Total refunded = Total wallet balances (after)
+($2.38) + ($5.05 + $2.50) = ($7.43 + $2.50) = $9.93 ✓
 
-## Confirmed Working (No Issues)
-- `PollDiscussionTabs` correctly uses `basePath` prop ✓
-- `PollCardPro` correctly uses `total_stake_amount` for all prices ✓
-- `StakeModal` correctly uses `total_stake_amount` ✓
-- `buy-shares` edge function correctly uses `total_stake_amount` ✓
-- `sell-shares` proportional refund logic is correct ✓
-- `WalletTopUpPrompt` triggers on `/forecast-arena-pro` (starts with `/forecast-arena`) ✓
-- Cross-system links (MyDashboard, UserProfile, StakeResult) all point to Pro ✓
-- Email templates default to Pro URLs ✓
-- `UserPollActivity` on Pro detail page shows all events (correct) ✓
-- `ExitPositionModal` refund calculation matches backend for full exits ✓
-
----
-
-## Implementation Plan
-
-### Step 1: Create `decrement_stake_amount` DB function (migration)
-```sql
-CREATE OR REPLACE FUNCTION public.decrement_stake_amount(p_option_id uuid, p_amount numeric)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
-BEGIN
-  UPDATE public.poll_options
-  SET total_stake_amount = GREATEST(0, total_stake_amount - p_amount)
-  WHERE id = p_option_id;
-END; $$;
+Anonymous stakes ($2.57) logged for manual Paystack refund
+Grand total accounted: $10.12 + $2.90 (settled) = $13.02 (matches votes table) ✓
 ```
 
-### Step 2: Update `sell-shares` edge function
-After updating position/deleting it, call `decrement_stake_amount` with the gross amount sold.
+No money is created — every dollar refunded traces back to a specific staked vote.
 
-### Step 3: Update `create_listing_atomic`, `cancel_listing_atomic`, `buy_listing_atomic` DB functions (migration)
-- `create_listing_atomic`: decrement `total_stake_amount` by `cost_basis`
-- `cancel_listing_atomic`: increment `total_stake_amount` by `cost_basis`
-- `buy_listing_atomic`: no change needed (capital stays in the market, just changes hands)
+## Technical Changes
 
-### Step 4: Fix TradingPanel sell display
-Change `Adjust position` tab calculations from `shares * currentPrice` to use `position.total_cost * sellFraction` to match backend behavior.
+1. **Database operations** (via insert tool):
+   - UPDATE wallets for princemuraguri and funkiefresh_ke
+   - INSERT wallet_transactions for audit trail
+   - UPDATE votes to clear staking flags on active polls
+   - INSERT admin_audit_log entries for anonymous refund tracking
 
-### Step 5: Fix ExitPositionModal wallet invalidation
-Add wallet-balance query invalidation to success handler.
-
-### Step 6: Update Pro trending display
-Change trending card metric label from showing raw vote count to something contextually appropriate.
-
----
-
-**Total changes**: 1 migration (2 new/updated DB functions), 3 edge function deploys, 3 frontend file edits.
+2. **No code changes needed** — the Pro Arena already uses its own capital commitment flow, and the Free Arena already strips trading UI.
 

@@ -640,7 +640,6 @@ const MyDashboard = () => {
               walletPayouts={walletPayouts || []}
               isLoading={isLoading}
             />
-            />
           )}
         </div>
       </section>

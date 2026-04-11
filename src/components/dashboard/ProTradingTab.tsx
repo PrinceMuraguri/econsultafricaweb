@@ -248,23 +248,34 @@ const ProTradingTab = ({
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <div className="flex flex-wrap gap-2">
-          {DEPOSIT_AMOUNTS.slice(0, 6).map(amount => (
-            <Button key={amount} variant="outline" size="sm"
-              onClick={() => handleDeposit(amount)} disabled={depositLoading}
-              className="font-mono">
-              <Plus className="w-3 h-3 mr-1" />${amount}
-            </Button>
-          ))}
+      <div className="mb-8 space-y-4">
+        {/* Add Funds */}
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-2">Add Funds to Wallet</h3>
+          <div className="flex flex-wrap gap-2">
+            {DEPOSIT_AMOUNTS.slice(0, 6).map(amount => (
+              <Button key={amount} variant="outline" size="sm"
+                onClick={() => handleDeposit(amount)} disabled={depositLoading}
+                className="font-mono">
+                <Plus className="w-3 h-3 mr-1" />${amount}
+              </Button>
+            ))}
+          </div>
         </div>
-        <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1} onClick={() => setWithdrawOpen(true)}>
-          <ArrowDownToLine className="w-3 h-3 mr-1" /> Mobile Money
-        </Button>
-        <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1}
-          onClick={() => { setWithdrawBankOpen(true); fetchBanks(bankCurrency); }}>
-          <ArrowDownToLine className="w-3 h-3 mr-1" /> Bank
-        </Button>
+        {/* Withdraw Funds */}
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-2">Withdraw Funds from Wallet</h3>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1} onClick={() => setWithdrawOpen(true)}>
+              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Mobile Money
+            </Button>
+            <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1}
+              onClick={() => { setWithdrawBankOpen(true); fetchBanks(bankCurrency); }}>
+              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Bank
+            </Button>
+          </div>
+        </div>
+        {/* Browse */}
         <Link to="/forecast-arena-pro">
           <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-700 hover:bg-amber-50">
             Browse Pro Markets <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -296,7 +307,7 @@ const ProTradingTab = ({
       <div id="pro-activity" className="mb-8 scroll-mt-20">
         <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
           <Activity className="w-5 h-5 text-primary" />
-          Pro Activity
+          Recent Pro Activity
           {proActivity.length > 0 && <span className="text-sm font-normal text-muted-foreground ml-1">({proActivity.length})</span>}
         </h2>
         {proActivity.length === 0 ? (

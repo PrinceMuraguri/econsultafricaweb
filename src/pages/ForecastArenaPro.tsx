@@ -135,12 +135,12 @@ const ForecastArenaPro = () => {
                   <span className="text-amber-400">Pro</span>
                 </h1>
               </div>
-              <p className="text-sm md:text-base text-amber-400 font-semibold tracking-wide mt-1">Capital Markets — Back Your Forecasts</p>
-              <p className="text-xs text-background/50 tracking-wide mt-0.5">Commit capital to economic forecasts. Earn rewards when you're right.</p>
+              <p className="text-sm md:text-base text-amber-400 font-semibold tracking-wide mt-1">Back Your Forecasts with Real Stakes</p>
+              <p className="text-xs text-background/50 tracking-wide mt-0.5">Put real funds behind the outcomes you believe in. Get rewarded when your forecast is right.</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
-                Your Capital. <span className="text-amber-400">Your Conviction.</span>
+                Put Your Money Where Your <span className="text-amber-400">Insight Is.</span>
               </p>
-              <p className="text-background/50 text-xs mt-1">Share prices reflect real capital committed. Each share resolves at $1.00 if correct, $0 if wrong.</p>
+              <p className="text-background/50 text-xs mt-1">Market odds adjust based on participant activity. Each position settles at $1.00 if correct, $0 if incorrect.</p>
               <Link to="/" className="inline-flex items-center gap-1 text-xs text-background/40 hover:text-background/70 mt-2 transition-colors">
                 ← Back to Free Forecast Arena
               </Link>

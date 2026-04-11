@@ -9,7 +9,7 @@ import {
   DollarSign, Activity, ArrowRight, Wallet, Plus, ArrowDownToLine,
   ChevronDown, ChevronUp, History, Receipt, CreditCard, Tag
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DualCurrency from "@/components/DualCurrency";

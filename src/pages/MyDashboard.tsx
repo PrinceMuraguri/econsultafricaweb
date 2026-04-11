@@ -637,7 +637,9 @@ const MyDashboard = () => {
               walletTxns={walletTxns || []}
               transactions={transactions || []}
               payouts={payouts || []}
+              walletPayouts={walletPayouts || []}
               isLoading={isLoading}
+            />
             />
           )}
         </div>

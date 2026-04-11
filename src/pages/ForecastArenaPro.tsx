@@ -191,7 +191,7 @@ const ForecastArenaPro = () => {
       <div className="bg-amber-500/10 border-b border-amber-500/20">
         <div className="container-page py-2">
           <p className="text-[10px] text-amber-700 text-center font-medium">
-            Pro — Capital Markets · Share prices reflect real capital committed · 3.5% platform fee · <a href="/terms-of-use" className="text-primary underline">Terms of Use</a>
+            Forecast Arena aggregates people's expectations on economic outcomes for research and insight purposes. Not a betting or trading platform. <a href="/terms-of-use" className="text-primary underline">Read our Terms of Use</a>.
           </p>
         </div>
       </div>

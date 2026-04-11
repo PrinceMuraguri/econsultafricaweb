@@ -63,6 +63,7 @@ interface ProTradingTabProps {
   walletTxns: any[];
   transactions: any[];
   payouts: any[];
+  walletPayouts: any[];
   isLoading: boolean;
 }
 
@@ -70,7 +71,7 @@ const ProTradingTab = ({
   user, profile, wallet, refreshWallet,
   proActive, proResolved, proActivity,
   sharePositions, myActiveListings, tradeHistory,
-  walletTxns, transactions, payouts,
+  walletTxns, transactions, payouts, walletPayouts,
   isLoading,
 }: ProTradingTabProps) => {
   const { toast } = useToast();

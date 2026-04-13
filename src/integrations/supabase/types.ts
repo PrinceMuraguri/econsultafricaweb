@@ -409,6 +409,7 @@ export type Database = {
           settled_at: string | null
           status: string
           transfer_code: string | null
+          user_id: string | null
           voter_fingerprint: string
         }
         Insert: {
@@ -421,6 +422,7 @@ export type Database = {
           settled_at?: string | null
           status?: string
           transfer_code?: string | null
+          user_id?: string | null
           voter_fingerprint: string
         }
         Update: {
@@ -433,11 +435,60 @@ export type Database = {
           settled_at?: string | null
           status?: string
           transfer_code?: string | null
+          user_id?: string | null
           voter_fingerprint?: string
         }
         Relationships: [
           {
             foreignKeyName: "payouts_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_fees: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          option_id: string | null
+          poll_id: string | null
+          reference: string | null
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          option_id?: string | null
+          poll_id?: string | null
+          reference?: string | null
+          source: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          option_id?: string | null
+          poll_id?: string | null
+          reference?: string | null
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_fees_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_fees_poll_id_fkey"
             columns: ["poll_id"]
             isOneToOne: false
             referencedRelation: "polls"
@@ -1230,6 +1281,16 @@ export type Database = {
         }
         Relationships: []
       }
+      money_reconciliation: {
+        Row: {
+          discrepancy: number | null
+          total_deposits: number | null
+          total_platform_fees: number | null
+          total_wallet_balances: number | null
+          total_withdrawals: number | null
+        }
+        Relationships: []
+      }
       payout_winners: {
         Row: {
           country_code: string | null
@@ -1246,6 +1307,46 @@ export type Database = {
           vote_date: string | null
           voter_fingerprint: string | null
           winning_option: string | null
+        }
+        Relationships: []
+      }
+      revenue_by_poll: {
+        Row: {
+          fee_events: number | null
+          fees_buy: number | null
+          fees_orders: number | null
+          fees_p2p: number | null
+          fees_sell: number | null
+          fees_settlement: number | null
+          first_fee_at: string | null
+          last_fee_at: string | null
+          poll_id: string | null
+          poll_status: string | null
+          poll_title: string | null
+          total_fees: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_fees_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_summary: {
+        Row: {
+          revenue_buy_shares: number | null
+          revenue_last_24h: number | null
+          revenue_last_7_days: number | null
+          revenue_order_fills: number | null
+          revenue_p2p: number | null
+          revenue_sell_shares: number | null
+          revenue_settlement: number | null
+          revenue_this_month: number | null
+          total_fee_events: number | null
+          total_revenue: number | null
         }
         Relationships: []
       }

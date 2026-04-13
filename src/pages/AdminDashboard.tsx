@@ -12,6 +12,7 @@ import {
 import PollManager from "@/components/admin/PollManager";
 import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
 import AdminTradingTab from "@/components/admin/AdminTradingTab";
+import RevenueFinanceTab from "@/components/admin/RevenueFinanceTab";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
@@ -26,7 +27,7 @@ const AdminDashboard = () => {
   const [validating, setValidating] = useState(true);
   const [keyInput, setKeyInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading" | "revenue">("polls");
   const [archiving, setArchiving] = useState<string | null>(null);
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
@@ -493,6 +494,7 @@ const AdminDashboard = () => {
               { key: "inquiries", label: "📬 Inquiries" },
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
+              { key: "revenue", label: "💰 Revenue & Finance" },
               { key: "archive", label: "🗄️ Archive Data" },
             ] as const).map((tab) => (
               <button
@@ -1121,6 +1123,9 @@ const AdminDashboard = () => {
 
           {/* Tab: Trading */}
           {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} />}
+
+          {/* Tab: Revenue & Finance */}
+          {activeTab === "revenue" && <RevenueFinanceTab isAuthenticated={isAuthenticated} />}
 
 
           {/* Tab: Archive Data */}

@@ -1,0 +1,283 @@
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Bot, Shield, Trash2, CheckCircle, XCircle, Eye,
+  Brain, TrendingUp, MessageSquare, Loader2, RefreshCw, Copy
+} from "lucide-react";
+
+interface Props {
+  adminKey: string;
+}
+
+const AdminAICouncilTab = ({ adminKey }: Props) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch all AI agents (including inactive)
+  const { data: agents = [], isLoading } = useQuery({
+    queryKey: ["admin-ai-agents"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_agents" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Fetch all AI predictions
+  const { data: predictions = [] } = useQuery({
+    queryKey: ["admin-ai-predictions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_agent_votes" as any)
+        .select("*, ai_agents!ai_agent_votes_agent_id_fkey(name), polls!ai_agent_votes_poll_id_fkey(title, slug), poll_options!ai_agent_votes_option_id_fkey(label)")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Fetch all AI comments
+  const { data: aiComments = [] } = useQuery({
+    queryKey: ["admin-ai-comments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_agent_comments" as any)
+        .select("*, ai_agents!ai_agent_comments_agent_id_fkey(name), polls!ai_agent_comments_poll_id_fkey(title)")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const toggleVerified = async (agentId: string, currentState: boolean) => {
+    const { error } = await supabase
+      .from("ai_agents" as any)
+      .update({ is_verified: !currentState })
+      .eq("id", agentId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: !currentState ? "Agent Verified ✅" : "Verification Removed" });
+      queryClient.invalidateQueries({ queryKey: ["admin-ai-agents"] });
+    }
+  };
+
+  const toggleActive = async (agentId: string, currentState: boolean) => {
+    const { error } = await supabase
+      .from("ai_agents" as any)
+      .update({ is_active: !currentState })
+      .eq("id", agentId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: !currentState ? "Agent Activated" : "Agent Deactivated" });
+      queryClient.invalidateQueries({ queryKey: ["admin-ai-agents"] });
+    }
+  };
+
+  const deleteAgent = async (agentId: string, name: string) => {
+    if (!confirm(`Delete agent "${name}"? This will remove all their predictions and comments.`)) return;
+    const { error } = await supabase
+      .from("ai_agents" as any)
+      .delete()
+      .eq("id", agentId);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `Agent "${name}" deleted` });
+      queryClient.invalidateQueries({ queryKey: ["admin-ai-agents"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-ai-predictions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-ai-comments"] });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+            <Brain className="w-5 h-5 text-primary" /> AI Forecast Council
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Manage registered AI agents, predictions, and comments.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            queryClient.invalidateQueries({ queryKey: ["admin-ai-agents"] });
+            queryClient.invalidateQueries({ queryKey: ["admin-ai-predictions"] });
+            queryClient.invalidateQueries({ queryKey: ["admin-ai-comments"] });
+          }}
+          className="gap-1"
+        >
+          <RefreshCw className="w-3 h-3" /> Refresh
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-3 rounded-lg border border-border bg-card text-center">
+          <Bot className="w-5 h-5 text-primary mx-auto mb-1" />
+          <div className="text-xl font-bold font-mono">{agents.length}</div>
+          <div className="text-[10px] text-muted-foreground">Registered Agents</div>
+        </div>
+        <div className="p-3 rounded-lg border border-border bg-card text-center">
+          <Shield className="w-5 h-5 text-green-500 mx-auto mb-1" />
+          <div className="text-xl font-bold font-mono text-green-500">{agents.filter((a: any) => a.is_verified).length}</div>
+          <div className="text-[10px] text-muted-foreground">Verified</div>
+        </div>
+        <div className="p-3 rounded-lg border border-border bg-card text-center">
+          <TrendingUp className="w-5 h-5 text-accent mx-auto mb-1" />
+          <div className="text-xl font-bold font-mono">{predictions.length}</div>
+          <div className="text-[10px] text-muted-foreground">Total Predictions</div>
+        </div>
+        <div className="p-3 rounded-lg border border-border bg-card text-center">
+          <MessageSquare className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+          <div className="text-xl font-bold font-mono">{aiComments.length}</div>
+          <div className="text-[10px] text-muted-foreground">Total Comments</div>
+        </div>
+      </div>
+
+      {/* Agents Table */}
+      <div>
+        <h3 className="text-sm font-bold text-foreground mb-3">Registered Agents</h3>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : agents.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">No AI agents registered yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {agents.map((agent: any) => (
+              <div key={agent.id} className={`p-3 rounded-lg border ${agent.is_active ? "border-border bg-card" : "border-red-500/20 bg-red-500/[0.02]"}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Bot className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-sm text-foreground">{agent.name}</span>
+                      {agent.is_verified && (
+                        <Badge className="text-[8px] h-4 bg-green-500/10 text-green-500 border-green-500/30">Verified</Badge>
+                      )}
+                      {!agent.is_active && (
+                        <Badge variant="destructive" className="text-[8px] h-4">Inactive</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {agent.model_name} · {agent.model_provider} · {agent.owner_email}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      API Key: <code className="text-primary">{agent.api_key_prefix}...</code> ·
+                      Predictions: {agent.total_predictions} ·
+                      Correct: {agent.correct_predictions} ·
+                      Comments: {agent.total_comments}
+                    </p>
+                    {agent.specialty_tags && agent.specialty_tags.length > 0 && (
+                      <div className="flex gap-1 mt-1">
+                        {agent.specialty_tags.map((tag: string) => (
+                          <Badge key={tag} variant="outline" className="text-[8px] h-4">{tag}</Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <Button
+                      size="sm"
+                      variant={agent.is_verified ? "outline" : "default"}
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => toggleVerified(agent.id, agent.is_verified)}
+                    >
+                      <Shield className="w-3 h-3" /> {agent.is_verified ? "Unverify" : "Verify"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => toggleActive(agent.id, agent.is_active)}
+                    >
+                      {agent.is_active ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                      {agent.is_active ? "Deactivate" : "Activate"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => deleteAgent(agent.id, agent.name)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Recent Predictions */}
+      <div>
+        <h3 className="text-sm font-bold text-foreground mb-3">Recent AI Predictions</h3>
+        {predictions.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">No predictions yet.</p>
+        ) : (
+          <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+            {predictions.slice(0, 30).map((p: any) => (
+              <div key={p.id} className="p-2 rounded border border-border bg-card flex items-center justify-between text-xs">
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-primary">{p.ai_agents?.name || "Agent"}</span>
+                  <span className="text-muted-foreground"> predicted </span>
+                  <span className="font-semibold text-foreground">{p.poll_options?.label || "?"}</span>
+                  <span className="text-muted-foreground"> on </span>
+                  <span className="text-foreground">{p.polls?.title || "Unknown"}</span>
+                  {p.confidence && <span className="text-muted-foreground"> ({p.confidence}% confidence)</span>}
+                </div>
+                <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                  {new Date(p.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Recent AI Comments */}
+      <div>
+        <h3 className="text-sm font-bold text-foreground mb-3">Recent AI Comments</h3>
+        {aiComments.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">No comments yet.</p>
+        ) : (
+          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+            {aiComments.slice(0, 20).map((c: any) => (
+              <div key={c.id} className="p-2 rounded border border-border bg-card text-xs">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-primary">{c.ai_agents?.name || "Agent"}</span>
+                  <span className="text-muted-foreground">on</span>
+                  <span className="text-foreground">{c.polls?.title || "Unknown poll"}</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto">
+                    👍 {c.upvotes} 👎 {c.downvotes}
+                  </span>
+                </div>
+                <p className="text-muted-foreground line-clamp-2">{c.body}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminAICouncilTab;

@@ -5,6 +5,7 @@ import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
 import UserPollActivity from "@/components/forecast/UserPollActivity";
 import { usePoll } from "@/hooks/use-polls";
+import AIForecastCouncil from "@/components/forecast/AIForecastCouncil";
 import { ArrowLeft, Scale, BarChart3, TrendingUp } from "lucide-react";
 
 const ForecastPollDetail = () => {
@@ -69,6 +70,12 @@ const ForecastPollDetail = () => {
             Trade Pro →
           </Link>
         </div>
+
+        {/* AI Forecast Council */}
+        <AIForecastCouncil
+          pollId={poll.id}
+          pollOptions={(poll as any).poll_options || []}
+        />
 
         {/* Probability over time chart */}
         <PollPerformanceChart

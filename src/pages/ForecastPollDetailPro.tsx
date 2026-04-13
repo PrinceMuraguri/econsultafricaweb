@@ -7,6 +7,7 @@ import ListingsPanel from "@/components/forecast/ListingsPanel";
 import UserPollActivity from "@/components/forecast/UserPollActivity";
 import TradingPanel from "@/components/forecast/TradingPanel";
 import { usePoll } from "@/hooks/use-polls";
+import AIForecastCouncil from "@/components/forecast/AIForecastCouncil";
 import { ArrowLeft, Scale, BarChart3, DollarSign } from "lucide-react";
 
 const ForecastPollDetailPro = () => {
@@ -61,6 +62,12 @@ const ForecastPollDetailPro = () => {
 
         {/* P2P marketplace */}
         <ListingsPanel poll={poll} />
+
+        {/* AI Forecast Council */}
+        <AIForecastCouncil
+          pollId={poll.id}
+          pollOptions={(poll as any).poll_options || []}
+        />
 
         {/* Probability over time chart */}
         <PollPerformanceChart

@@ -13,6 +13,7 @@ const navLinks = [
   { label: "Forecast Arena", href: "/" },
   { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
   { label: "Leaderboard", href: "/leaderboard" },
+  { label: "AI Council API", href: "/api-docs" },
   { label: "Shop", href: "/intelligence-marketplace" },
   { label: "Philosophy", href: "/our-philosophy" },
   { label: "Insights", href: "/insights" },

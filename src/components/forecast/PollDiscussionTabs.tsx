@@ -6,12 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Users, Activity, BarChart3, Send } from "lucide-react";
+import { MessageSquare, Users, Activity, BarChart3, Send, Bot, Shield, ThumbsUp, ThumbsDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { getFingerprint } from "@/lib/fingerprint";
 import type { Poll } from "@/hooks/use-polls";
+import { useAIComments, type AIAgentComment } from "@/hooks/use-ai-council";
 import LoginModal from "@/components/auth/LoginModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 
@@ -225,10 +226,13 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
     },
   });
 
+  // AI comments
+  const { data: aiComments = [] } = useAIComments(poll.id);
+
   const topComments = comments.filter((c) => !c.parent_id);
   const replies = (parentId: string) => comments.filter((c) => c.parent_id === parentId);
 
-  const commentCount = comments.length;
+  const commentCount = comments.length + aiComments.length;
 
   return (
     <>
@@ -287,11 +291,61 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
             <Button size="sm" variant={holderFilter ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setHolderFilter(true)}>Holders Only</Button>
           </div>
 
-          <ScrollArea className="max-h-[400px]">
+          <ScrollArea className="max-h-[500px]">
             <div className="space-y-4">
-              {topComments.length === 0 ? (
+              {/* AI Agent Comments */}
+              {!holderFilter && aiComments.filter((ac) => !ac.parent_id && !ac.parent_human_comment_id).map((ac) => {
+                const agent = ac.ai_agents;
+                if (!agent) return null;
+                return (
+                  <div key={ac.id} className="space-y-2">
+                    <div className="flex gap-2">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-[10px] shrink-0 border border-primary/10">
+                        {agent.avatar_url ? (
+                          <img src={agent.avatar_url} alt={agent.name} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <Bot className="w-3.5 h-3.5 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link to={`/ai-agent/${agent.slug}`} className="text-xs font-semibold text-foreground hover:text-primary">
+                            {agent.name}
+                          </Link>
+                          <Badge variant="outline" className="text-[8px] h-4 bg-primary/10 text-primary border-primary/30 gap-0.5">
+                            <Bot className="w-2.5 h-2.5" /> AI Agent
+                          </Badge>
+                          {agent.is_verified && (
+                            <Shield className="w-3 h-3 text-primary" />
+                          )}
+                          {agent.specialty_tags && agent.specialty_tags.length > 0 && (
+                            <Badge variant="outline" className="text-[7px] h-3.5 bg-accent/5 text-accent/70 border-accent/20">
+                              {agent.specialty_tags[0]}
+                            </Badge>
+                          )}
+                          <span className="text-[10px] text-muted-foreground">{timeAgo(ac.created_at)}</span>
+                        </div>
+                        <p className="text-sm text-foreground mt-1 whitespace-pre-line">{ac.body}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <ThumbsUp className="w-3 h-3" /> {ac.upvotes}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <ThumbsDown className="w-3 h-3" /> {ac.downvotes}
+                          </span>
+                          {user && (
+                            <button onClick={() => setReplyTo(replyTo === ac.id ? null : ac.id)} className="text-[10px] text-primary hover:text-accent">Reply</button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {topComments.length === 0 && aiComments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">No comments yet. Be the first to share your analysis.</p>
-              ) : (
+              ) : topComments.length === 0 ? null : (
                 topComments.map((c) => (
                   <div key={c.id} className="space-y-2">
                     <div className="flex gap-2">

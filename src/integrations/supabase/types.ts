@@ -1382,6 +1382,31 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_money_reconciliation: {
+        Args: never
+        Returns: {
+          discrepancy: number
+          total_deposits: number
+          total_platform_fees: number
+          total_wallet_balances: number
+          total_withdrawals: number
+        }[]
+      }
+      get_revenue_summary: {
+        Args: never
+        Returns: {
+          revenue_buy_shares: number
+          revenue_last_24h: number
+          revenue_last_7_days: number
+          revenue_order_fills: number
+          revenue_p2p: number
+          revenue_sell_shares: number
+          revenue_settlement: number
+          revenue_this_month: number
+          total_fee_events: number
+          total_revenue: number
+        }[]
+      }
       get_trending_polls: {
         Args: { limit_count?: number }
         Returns: {

@@ -49,12 +49,9 @@ export default function RevenueFinanceTab({ isAuthenticated }: Props) {
   const { data: revSummary, isLoading: loadingSummary } = useQuery({
     queryKey: ["admin-revenue-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("revenue_summary")
-        .select("*")
-        .single();
+      const { data, error } = await supabase.rpc("get_revenue_summary");
       if (error) throw error;
-      return data;
+      return data?.[0] ?? null;
     },
     enabled: isAuthenticated,
     refetchInterval: 30000,
@@ -76,12 +73,9 @@ export default function RevenueFinanceTab({ isAuthenticated }: Props) {
   const { data: reconciliation } = useQuery({
     queryKey: ["admin-reconciliation"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("money_reconciliation")
-        .select("*")
-        .single();
+      const { data, error } = await supabase.rpc("get_money_reconciliation");
       if (error) throw error;
-      return data;
+      return data?.[0] ?? null;
     },
     enabled: isAuthenticated,
     refetchInterval: 30000,

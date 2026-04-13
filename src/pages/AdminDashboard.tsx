@@ -1124,6 +1124,9 @@ const AdminDashboard = () => {
           {/* Tab: Trading */}
           {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} />}
 
+          {/* Tab: Revenue & Finance */}
+          {activeTab === "revenue" && <RevenueFinanceTab isAuthenticated={isAuthenticated} />}
+
 
           {/* Tab: Archive Data */}
           {activeTab === "archive" && (

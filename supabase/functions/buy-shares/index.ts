@@ -121,6 +121,16 @@ Deno.serve(async (req) => {
       reference: `buy_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     });
 
+    // Record platform fee
+    await supabase.from("platform_fees").insert({
+      source: "buy_shares",
+      amount: feeAmount,
+      poll_id,
+      option_id,
+      user_id: user.id,
+      reference: `buy_${poll_id.slice(0, 8)}_${Date.now()}`,
+    });
+
     // Check for existing vote — by user_id first (reliable), then fingerprint
     const { data: existingVoteByUser } = await supabase
       .from("votes")

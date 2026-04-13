@@ -274,6 +274,26 @@ Deno.serve(async (req) => {
         }).eq("id", fill.matchOrderId);
       }
 
+      // Record platform fees for both sides of the fill
+      await supabase.from("platform_fees").insert([
+        {
+          source: side === "buy" ? "order_fill_buyer" : "order_fill_seller",
+          amount: parseFloat((fillCost * fee).toFixed(2)),
+          poll_id,
+          option_id,
+          user_id: user.id,
+          reference: tradeRef,
+        },
+        {
+          source: side === "buy" ? "order_fill_seller" : "order_fill_buyer",
+          amount: parseFloat((fillCost * fee).toFixed(2)),
+          poll_id,
+          option_id,
+          user_id: fill.counterpartyId,
+          reference: tradeRef + "_match",
+        },
+      ]);
+
       // Wallet transaction records
       await supabase.from("wallet_transactions").insert({
         user_id: user.id,

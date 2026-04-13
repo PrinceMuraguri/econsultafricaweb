@@ -195,6 +195,16 @@ Deno.serve(async (req) => {
 
         if (netPayout <= 0) continue;
 
+        // Record platform fee from settlement
+        await supabase.from('platform_fees').insert({
+          source: 'settlement',
+          amount: feePayout,
+          poll_id,
+          option_id: winning_option_id,
+          user_id: pos.user_id,
+          reference: `settle_${poll_id.slice(0, 8)}_${pos.user_id.slice(0, 8)}_${Date.now()}`,
+        });
+
         // Credit wallet
         const { data: wallet } = await supabase
           .from('wallets')

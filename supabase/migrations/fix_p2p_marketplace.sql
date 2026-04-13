@@ -12,9 +12,17 @@ WHERE a.id > b.id
   AND a.option_id = b.option_id;
 
 -- 2. Unique constraint on positions (required for ON CONFLICT upserts)
-ALTER TABLE positions
-  ADD CONSTRAINT IF NOT EXISTS positions_user_poll_option_unique
-  UNIQUE (user_id, poll_id, option_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'positions_user_poll_option_unique'
+  ) THEN
+    ALTER TABLE positions
+      ADD CONSTRAINT positions_user_poll_option_unique
+      UNIQUE (user_id, poll_id, option_id);
+  END IF;
+END
+$$;
 
 -- 3. Add cost_basis column to listings
 --    Stores the exact cost deducted from the seller's position at listing time
@@ -159,6 +167,10 @@ BEGIN
      v_listing.poll_id, v_listing.option_id,
      'sell', v_listing.shares, v_listing.price_per_share,
      v_total_ask, v_fee_amount, 'sell_' || v_ref);
+
+  -- Record platform fee for P2P trade
+  INSERT INTO platform_fees (source, amount, poll_id, option_id, user_id, reference)
+  VALUES ('p2p_listing', v_fee_amount, v_listing.poll_id, v_listing.option_id, v_listing.seller_id, 'p2p_fee_' || v_ref);
 
   RETURN jsonb_build_object(
     'success',         true,

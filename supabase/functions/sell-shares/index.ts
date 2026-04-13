@@ -59,8 +59,8 @@ Deno.serve(async (req) => {
 
     const fee = 0.035;
     // Proportional refund: only refund the fraction of total_cost matching sold shares
-    const sellFraction = shares / position.shares;
-    const grossAmount = parseFloat((position.total_cost * sellFraction).toFixed(2));
+    const sellFraction = shares / Number(position.shares);
+    const grossAmount = parseFloat((Number(position.total_cost) * sellFraction).toFixed(2));
     const feeAmount = parseFloat((grossAmount * fee).toFixed(2));
     const netAmount = parseFloat((grossAmount - feeAmount).toFixed(2));
 
@@ -104,6 +104,17 @@ Deno.serve(async (req) => {
     await supabase.rpc("decrement_stake_amount", {
       p_option_id: option_id,
       p_amount: grossAmount,
+    });
+
+    // Record platform fee
+    const sellRef = `sell_${poll_id.slice(0, 8)}_${Date.now()}`;
+    await supabase.from("platform_fees").insert({
+      source: "sell_shares",
+      amount: feeAmount,
+      poll_id,
+      option_id,
+      user_id: user.id,
+      reference: sellRef,
     });
 
     // Credit wallet

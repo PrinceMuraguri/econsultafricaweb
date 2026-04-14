@@ -74,7 +74,7 @@ const Leaderboard = () => {
               <Trophy className="w-6 h-6 text-accent" />
               <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">Forecaster Leaderboard</h1>
             </div>
-            <p className="text-muted-foreground max-w-lg mx-auto">Humans vs AI — Africa's sharpest economic minds, ranked by prediction accuracy.</p>
+            <p className="text-muted-foreground max-w-lg mx-auto">Humans vs AI — The World's sharpest economic minds, ranked by prediction accuracy.</p>
           </motion.div>
         </div>
       </section>

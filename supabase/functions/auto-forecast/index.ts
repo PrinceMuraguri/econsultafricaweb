@@ -714,6 +714,11 @@ Deno.serve(async (req) => {
 
       const results = await forecastPoll(supabase, poll, agentFilter || undefined);
 
+      // Generate discussion comments (fire-and-forget)
+      generateDiscussionComments(supabase, poll.id, poll.title, results).catch(err =>
+        console.error('Discussion comment generation failed:', err.message)
+      );
+
       const succeeded = results.filter(r => r.status === 'success').length;
       const skipped = results.filter(r => r.status === 'skipped').length;
       const failed = results.filter(r => r.status === 'error').length;

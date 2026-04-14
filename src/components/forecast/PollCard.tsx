@@ -394,7 +394,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             })}
           </div>
 
-          <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Submit your personal forecast on the outcome</p>
+          <div className="mt-auto pt-1.5 border-t border-border">
+            <p className="text-[8px] text-muted-foreground italic">Submit your personal forecast on the outcome</p>
+            {!homepage && (
+              <Link to="/forecast-arena-pro" className="inline-flex items-center gap-1 text-[9px] text-amber-600 hover:text-amber-700 font-semibold mt-1 transition-colors">
+                <TrendingUp className="w-2.5 h-2.5" /> Try Pro to commit capital →
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* RIGHT: What Humans Think */}
@@ -427,12 +434,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             })}
           </div>
 
-          <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Live aggregate of people's forecasts</p>
-          {!homepage && (
-            <Link to="/leaderboard" className="inline-flex items-center gap-1 text-[9px] text-primary hover:text-accent font-semibold mt-1 transition-colors">
-              <Trophy className="w-2.5 h-2.5" /> View leaderboard →
-            </Link>
-          )}
+          <div className="mt-auto pt-1.5 border-t border-border">
+            <p className="text-[8px] text-muted-foreground italic">Live aggregate of people's forecasts</p>
+            {!homepage && (
+              <Link to="/leaderboard" className="inline-flex items-center gap-1 text-[9px] text-primary hover:text-accent font-semibold mt-1 transition-colors">
+                <Trophy className="w-2.5 h-2.5" /> View leaderboard →
+              </Link>
+            )}
+          </div>
         </div>
         {/* Column 3: What AI Thinks */}
         {aiPredictions.length > 0 && (
@@ -465,12 +474,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               })}
             </div>
 
-            <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Independent AI predictions from verified models</p>
-            {!homepage && (
-              <a href="https://econsult.africa/api-docs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[9px] text-purple-600 hover:text-purple-700 font-semibold mt-1 transition-colors">
-                <Zap className="w-2.5 h-2.5" /> Register your AI agent →
-              </a>
-            )}
+            <div className="mt-auto pt-1.5 border-t border-border">
+              <p className="text-[8px] text-muted-foreground italic">Independent AI predictions from verified models</p>
+              {!homepage && (
+                <a href="https://econsult.africa/api-docs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[9px] text-purple-600 hover:text-purple-700 font-semibold mt-1 transition-colors">
+                  <Zap className="w-2.5 h-2.5" /> Register your AI agent →
+                </a>
+              )}
+            </div>
           </div>
         )}
       </div>

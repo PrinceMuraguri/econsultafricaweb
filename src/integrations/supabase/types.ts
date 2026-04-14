@@ -14,222 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      ai_agents: {
-        Row: {
-          id: string
-          name: string
-          slug: string
-          description: string
-          avatar_url: string | null
-          model_name: string
-          model_provider: string
-          personality: string | null
-          specialty_tags: string[]
-          owner_email: string
-          website_url: string | null
-          api_key_hash: string
-          api_key_prefix: string
-          is_verified: boolean
-          is_active: boolean
-          total_predictions: number
-          correct_predictions: number
-          total_comments: number
-          created_at: string
-          updated_at: string
-          last_active_at: string | null
-        }
-        Insert: {
-          id?: string
-          name: string
-          slug: string
-          description?: string
-          avatar_url?: string | null
-          model_name?: string
-          model_provider?: string
-          personality?: string | null
-          specialty_tags?: string[]
-          owner_email: string
-          website_url?: string | null
-          api_key_hash: string
-          api_key_prefix: string
-          is_verified?: boolean
-          is_active?: boolean
-          total_predictions?: number
-          correct_predictions?: number
-          total_comments?: number
-          created_at?: string
-          updated_at?: string
-          last_active_at?: string | null
-        }
-        Update: {
-          id?: string
-          name?: string
-          slug?: string
-          description?: string
-          avatar_url?: string | null
-          model_name?: string
-          model_provider?: string
-          personality?: string | null
-          specialty_tags?: string[]
-          owner_email?: string
-          website_url?: string | null
-          api_key_hash?: string
-          api_key_prefix?: string
-          is_verified?: boolean
-          is_active?: boolean
-          total_predictions?: number
-          correct_predictions?: number
-          total_comments?: number
-          created_at?: string
-          updated_at?: string
-          last_active_at?: string | null
-        }
-        Relationships: []
-      }
-      ai_agent_votes: {
-        Row: {
-          id: string
-          agent_id: string
-          poll_id: string
-          option_id: string
-          confidence: number | null
-          rationale: string | null
-          data_sources: string | null
-          alternative_risks: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          agent_id: string
-          poll_id: string
-          option_id: string
-          confidence?: number | null
-          rationale?: string | null
-          data_sources?: string | null
-          alternative_risks?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          agent_id?: string
-          poll_id?: string
-          option_id?: string
-          confidence?: number | null
-          rationale?: string | null
-          data_sources?: string | null
-          alternative_risks?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_agent_votes_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "ai_agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_agent_votes_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_agent_votes_option_id_fkey"
-            columns: ["option_id"]
-            isOneToOne: false
-            referencedRelation: "poll_options"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      ai_agent_comments: {
-        Row: {
-          id: string
-          agent_id: string
-          poll_id: string
-          parent_id: string | null
-          parent_human_comment_id: string | null
-          body: string
-          upvotes: number
-          downvotes: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          agent_id: string
-          poll_id: string
-          parent_id?: string | null
-          parent_human_comment_id?: string | null
-          body: string
-          upvotes?: number
-          downvotes?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          agent_id?: string
-          poll_id?: string
-          parent_id?: string | null
-          parent_human_comment_id?: string | null
-          body?: string
-          upvotes?: number
-          downvotes?: number
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_agent_comments_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "ai_agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_agent_comments_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      ai_comment_reactions: {
-        Row: {
-          id: string
-          comment_id: string
-          user_id: string
-          reaction: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          comment_id: string
-          user_id: string
-          reaction: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          comment_id?: string
-          user_id?: string
-          reaction?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_comment_reactions_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "ai_agent_comments"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       admin_audit_log: {
         Row: {
           action: string
@@ -259,6 +43,236 @@ export type Database = {
           performed_by?: string
         }
         Relationships: []
+      }
+      ai_agent_comments: {
+        Row: {
+          agent_id: string
+          body: string
+          created_at: string | null
+          downvotes: number | null
+          id: string
+          parent_human_comment_id: string | null
+          parent_id: string | null
+          poll_id: string
+          upvotes: number | null
+        }
+        Insert: {
+          agent_id: string
+          body: string
+          created_at?: string | null
+          downvotes?: number | null
+          id?: string
+          parent_human_comment_id?: string | null
+          parent_id?: string | null
+          poll_id: string
+          upvotes?: number | null
+        }
+        Update: {
+          agent_id?: string
+          body?: string
+          created_at?: string | null
+          downvotes?: number | null
+          id?: string
+          parent_human_comment_id?: string | null
+          parent_id?: string | null
+          poll_id?: string
+          upvotes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_comments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_comments_parent_human_comment_id_fkey"
+            columns: ["parent_human_comment_id"]
+            isOneToOne: false
+            referencedRelation: "poll_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agent_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_comments_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agent_votes: {
+        Row: {
+          agent_id: string
+          alternative_risks: string | null
+          confidence: number | null
+          created_at: string | null
+          data_sources: string | null
+          id: string
+          option_id: string
+          poll_id: string
+          rationale: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          alternative_risks?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          data_sources?: string | null
+          id?: string
+          option_id: string
+          poll_id: string
+          rationale?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          alternative_risks?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          data_sources?: string | null
+          id?: string
+          option_id?: string
+          poll_id?: string
+          rationale?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_votes_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_agents: {
+        Row: {
+          api_key_hash: string
+          api_key_prefix: string
+          avatar_url: string | null
+          correct_predictions: number | null
+          created_at: string | null
+          description: string
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          last_active_at: string | null
+          model_name: string
+          model_provider: string
+          name: string
+          owner_email: string
+          personality: string | null
+          slug: string
+          specialty_tags: string[] | null
+          total_comments: number | null
+          total_predictions: number | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          api_key_hash: string
+          api_key_prefix: string
+          avatar_url?: string | null
+          correct_predictions?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_active_at?: string | null
+          model_name?: string
+          model_provider?: string
+          name: string
+          owner_email: string
+          personality?: string | null
+          slug: string
+          specialty_tags?: string[] | null
+          total_comments?: number | null
+          total_predictions?: number | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          api_key_hash?: string
+          api_key_prefix?: string
+          avatar_url?: string | null
+          correct_predictions?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_active_at?: string | null
+          model_name?: string
+          model_provider?: string
+          name?: string
+          owner_email?: string
+          personality?: string | null
+          slug?: string
+          specialty_tags?: string[] | null
+          total_comments?: number | null
+          total_predictions?: number | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      ai_comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string | null
+          id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agent_comments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_send_log: {
         Row: {

@@ -42,6 +42,7 @@ interface PollCardProps {
 }
 
 const PollCard = ({ poll, compact = false, isTrending = false, interactionMode = "navigate", homepage = false }: PollCardProps) => {
+  const { data: aiPredictions = [] } = useAIPredictions(poll.id);
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();

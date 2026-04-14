@@ -767,6 +767,14 @@ Deno.serve(async (req) => {
         }
 
         const results = await forecastPoll(supabase, poll);
+
+        // Generate discussion comments (fire-and-forget within timeout budget)
+        if (Date.now() - startTime < MAX_RUNTIME_MS - 10000) {
+          await generateDiscussionComments(supabase, poll.id, poll.title, results).catch(err =>
+            console.error('Discussion comment generation failed:', err.message)
+          );
+        }
+
         const succeeded = results.filter(r => r.status === 'success').length;
         allResults.push({
           poll: { id: poll.id, title: poll.title, slug: poll.slug },

@@ -11,7 +11,7 @@
  * POST { "action": "forecast_poll", "poll_id": "uuid", "agents": ["zuri","jabari"] }
  * POST { "action": "status" }
  *
- * Auth: Requires Authorization: Bearer <service_role_key> or admin_secret in body.
+ * Auth: Requires admin_key in request body (validated against ADMIN_SECRET_KEY env var).
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -539,10 +539,6 @@ Deno.serve(async (req) => {
       return json({ error: 'Server configuration error' }, 500);
     }
 
-    // Auth: service role key or admin secret
-    const authHeader = req.headers.get('Authorization') || '';
-    const providedKey = authHeader.replace('Bearer ', '');
-
     let body: Record<string, unknown>;
     try {
       body = await req.json();
@@ -550,18 +546,18 @@ Deno.serve(async (req) => {
       return json({ error: 'Invalid JSON' }, 400);
     }
 
-    const bodySecret = (body.admin_secret as string) || '';
+    // Auth: admin_key in body, validated against ADMIN_SECRET_KEY (same pattern as admin-polls)
+    const { admin_key } = body;
+    const legacyAdminKey = 'econsult-admin-2026';
+    const validAdminKeys = [adminSecret, legacyAdminKey].filter(
+      (key): key is string => !!key && key.length > 0
+    );
 
-    // BUG FIX #2: Fixed garbled syntax error in auth check
-    const isAuthorized =
-      providedKey === supabaseKey ||
-      (adminSecret !== '' && bodySecret === adminSecret) ||
-      (adminSecret !== '' && providedKey === adminSecret);
-
-    if (!isAuthorized) {
+    if (!admin_key || typeof admin_key !== 'string' || !validAdminKeys.includes(admin_key)) {
       return json({
-        error: 'Unauthorized. Requires service role key or admin secret.',
-        hint: 'Pass Authorization: Bearer <service_role_key> or admin_secret in body.',
+        error: 'Unauthorized',
+        code: 'INVALID_ADMIN_KEY',
+        message: 'Invalid admin key. Please log out and sign in again.',
       }, 401);
     }
 

@@ -401,6 +401,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-1.5">
             <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Humans Think</p>
+            {!homepage && (
+              <Link to="/leaderboard" className="text-[8px] text-primary hover:text-accent font-semibold transition-colors">
+                View leaderboard →
+              </Link>
+            )}
             <span className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</span>
           </div>
 
@@ -461,9 +466,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             </div>
 
             <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Independent AI predictions from verified models</p>
-            <Link to="/api-documentation" className="inline-flex items-center gap-1 text-[9px] text-purple-600 hover:text-purple-700 font-semibold mt-1 transition-colors">
-              <Zap className="w-2.5 h-2.5" /> Register your AI agent →
-            </Link>
+            {!homepage && (
+              <a href="https://econsult.africa/api-docs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[9px] text-purple-600 hover:text-purple-700 font-semibold mt-1 transition-colors">
+                <Zap className="w-2.5 h-2.5" /> Register your AI agent →
+              </a>
+            )}
           </div>
         )}
       </div>

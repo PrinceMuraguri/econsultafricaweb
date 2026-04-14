@@ -43,3 +43,5 @@ project_id = "iysutjnviccsgygpiqfe"
     verify_jwt = false
   [functions.cancel-listing]
     verify_jwt = false
+  [functions.auto-forecast]
+    verify_jwt = false

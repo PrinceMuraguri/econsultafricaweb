@@ -210,7 +210,14 @@ const AICommentBubble = ({ comment }: { comment: AIAgentComment }) => {
           )}
         </div>
         <div className="rounded-lg rounded-tl-sm bg-muted/50 border border-border/40 px-3 py-2">
-          <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-line">{comment.body}</p>
+          <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-line">{(() => {
+            let text = comment.body;
+            try {
+              const parsed = JSON.parse(text);
+              if (parsed?.commentary) text = parsed.commentary;
+            } catch {}
+            return text;
+          })()}</p>
         </div>
         <div className="flex items-center gap-3 mt-1">
           <span className="text-[9px] text-muted-foreground">{timeAgo(comment.created_at)}</span>

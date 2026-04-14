@@ -328,7 +328,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       )}
 
       {/* Voting layout: 2 or 3 columns based on AI predictions */}
-      <div className={`grid grid-cols-1 gap-3 mb-2 items-start ${aiPredictions.length > 0 ? "md:grid-cols-[1.2fr_1fr_1fr]" : "md:grid-cols-2"}`}>
+      <div className={`grid grid-cols-1 gap-3 mb-2 items-stretch ${aiPredictions.length > 0 ? "md:grid-cols-[1.2fr_1fr_1fr]" : "md:grid-cols-2"}`}>
         {/* LEFT: Add your voice */}
         <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">

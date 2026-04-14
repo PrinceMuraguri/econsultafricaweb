@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Bot, Brain, ChevronDown, ChevronUp, Shield, Sparkles,
-  ExternalLink, TrendingUp, Target, AlertTriangle, BookOpen
+  ExternalLink, TrendingUp, Target, AlertTriangle, BookOpen,
+  ThumbsUp, ThumbsDown, MessageCircle
 } from "lucide-react";
-import { useAIPredictions, type AIAgentPrediction } from "@/hooks/use-ai-council";
+import { useAIPredictions, useAIComments, type AIAgentPrediction, type AIAgentComment } from "@/hooks/use-ai-council";
 import type { PollOption } from "@/hooks/use-polls";
 
 interface Props {
@@ -56,6 +56,7 @@ function getModelIcon(provider: string) {
   return "🤖";
 }
 
+/* ─── Agent Prediction Card ─── */
 const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPrediction; optionMap: Record<string, string> }) => {
   const [expanded, setExpanded] = useState(false);
   const agent = prediction.ai_agents;
@@ -67,12 +68,11 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
   return (
     <motion.div
       layout
-      className="min-w-[280px] max-w-[340px] shrink-0 rounded-xl border border-border/60 bg-gradient-to-br from-card via-card to-primary/[0.02] backdrop-blur-sm overflow-hidden group hover:border-primary/30 transition-all duration-300"
+      className="rounded-xl border border-border/60 bg-gradient-to-br from-card via-card to-primary/[0.02] backdrop-blur-sm overflow-hidden group hover:border-primary/30 transition-all duration-300"
     >
       {/* Header */}
       <div className="p-3 pb-2">
         <div className="flex items-start gap-2.5">
-          {/* Avatar */}
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-lg shrink-0 border border-primary/10">
             {agent.avatar_url ? (
               <img src={agent.avatar_url} alt={agent.name} className="w-full h-full rounded-lg object-cover" />
@@ -80,25 +80,15 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
               <span>{getModelIcon(agent.model_provider)}</span>
             )}
           </div>
-
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <Link
-                to={`/ai-agent/${agent.slug}`}
-                className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate"
-              >
+              <Link to={`/ai-agent/${agent.slug}`} className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
                 {agent.name}
               </Link>
-              {agent.is_verified && (
-                <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
-              )}
+              {agent.is_verified && <Shield className="w-3.5 h-3.5 text-primary shrink-0" />}
             </div>
-            <p className="text-[10px] text-muted-foreground truncate">
-              {agent.model_name} · {agent.model_provider}
-            </p>
+            <p className="text-[10px] text-muted-foreground truncate">{agent.model_name} · {agent.model_provider}</p>
           </div>
-
-          {/* Confidence */}
           {prediction.confidence && (
             <div className="text-right shrink-0">
               <div className="text-xs font-mono font-bold text-primary">{prediction.confidence}%</div>
@@ -107,7 +97,6 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
           )}
         </div>
 
-        {/* Specialty tags */}
         {agent.specialty_tags && agent.specialty_tags.length > 0 && (
           <div className="flex gap-1 mt-2 flex-wrap">
             {agent.specialty_tags.slice(0, 2).map((tag) => (
@@ -126,21 +115,15 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
           <span className="text-[10px] text-muted-foreground font-medium">FORECAST:</span>
           <span className="text-xs font-bold text-foreground">{optionLabel}</span>
         </div>
-
-        {/* Stats row */}
         <div className="flex items-center gap-3 mt-1.5">
           <div className="flex items-center gap-1">
             <TrendingUp className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground">
-              {agent.total_predictions} calls
-            </span>
+            <span className="text-[10px] text-muted-foreground">{agent.total_predictions} calls</span>
           </div>
           {accuracy !== null && (
-            <div className="flex items-center gap-1">
-              <span className={`text-[10px] font-mono font-bold ${accuracy >= 60 ? "text-green-500" : accuracy >= 40 ? "text-amber-500" : "text-red-500"}`}>
-                {accuracy}% accuracy
-              </span>
-            </div>
+            <span className={`text-[10px] font-mono font-bold ${accuracy >= 60 ? "text-green-500" : accuracy >= 40 ? "text-amber-500" : "text-red-500"}`}>
+              {accuracy}% accuracy
+            </span>
           )}
           <span className="text-[9px] text-muted-foreground ml-auto">{timeAgo(prediction.created_at)}</span>
         </div>
@@ -168,21 +151,16 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
                 className="overflow-hidden"
               >
                 <div className="px-3 pb-3 space-y-2 border-t border-border/30">
-                  {/* Rationale */}
                   <div className="mt-2">
                     <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Rationale</p>
                     <p className="text-xs text-foreground/80 leading-relaxed whitespace-pre-line">{prediction.rationale}</p>
                   </div>
-
-                  {/* Data sources */}
                   {prediction.data_sources && (
                     <div>
                       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Data Sources</p>
                       <p className="text-[11px] text-muted-foreground leading-relaxed whitespace-pre-line">{prediction.data_sources}</p>
                     </div>
                   )}
-
-                  {/* Risks */}
                   {prediction.alternative_risks && (
                     <div>
                       <div className="flex items-center gap-1 mb-1">
@@ -202,8 +180,60 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
   );
 };
 
+/* ─── AI Discussion Comment Bubble ─── */
+const AICommentBubble = ({ comment }: { comment: AIAgentComment }) => {
+  const agent = comment.ai_agents;
+  if (!agent) return null;
+
+  return (
+    <div className="flex gap-2.5 group">
+      {/* Avatar */}
+      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-sm shrink-0 border border-primary/10 mt-0.5">
+        {agent.avatar_url ? (
+          <img src={agent.avatar_url} alt={agent.name} className="w-full h-full rounded-lg object-cover" />
+        ) : (
+          <span className="text-xs">{getModelIcon(agent.model_name || "")}</span>
+        )}
+      </div>
+
+      {/* Bubble */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <Link to={`/ai-agent/${agent.slug}`} className="text-xs font-bold text-foreground hover:text-primary transition-colors">
+            {agent.name}
+          </Link>
+          {agent.is_verified && <Shield className="w-3 h-3 text-primary" />}
+          {agent.specialty_tags && agent.specialty_tags.length > 0 && (
+            <Badge variant="outline" className={`text-[7px] h-3.5 px-1 ${getSpecialtyColor(agent.specialty_tags[0])}`}>
+              {agent.specialty_tags[0]}
+            </Badge>
+          )}
+        </div>
+        <div className="rounded-lg rounded-tl-sm bg-muted/50 border border-border/40 px-3 py-2">
+          <p className="text-xs text-foreground/85 leading-relaxed whitespace-pre-line">{comment.body}</p>
+        </div>
+        <div className="flex items-center gap-3 mt-1">
+          <span className="text-[9px] text-muted-foreground">{timeAgo(comment.created_at)}</span>
+          {(comment.upvotes || 0) > 0 && (
+            <span className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
+              <ThumbsUp className="w-2.5 h-2.5" /> {comment.upvotes}
+            </span>
+          )}
+          {(comment.downvotes || 0) > 0 && (
+            <span className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
+              <ThumbsDown className="w-2.5 h-2.5" /> {comment.downvotes}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Main Component ─── */
 const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
   const { data: predictions = [], isLoading } = useAIPredictions(pollId);
+  const { data: aiComments = [] } = useAIComments(pollId);
 
   const optionMap: Record<string, string> = {};
   pollOptions.forEach((o) => { optionMap[o.id] = o.label; });
@@ -215,9 +245,9 @@ const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
           <div className="w-5 h-5 rounded-md bg-primary/20 animate-pulse" />
           <div className="h-4 w-40 bg-muted animate-pulse rounded" />
         </div>
-        <div className="flex gap-3 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="min-w-[280px] h-32 rounded-xl bg-muted/50 animate-pulse" />
+            <div key={i} className="h-32 rounded-xl bg-muted/50 animate-pulse" />
           ))}
         </div>
       </div>
@@ -252,7 +282,6 @@ const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
     optionAICounts[p.option_id] = (optionAICounts[p.option_id] || 0) + 1;
   });
 
-  // AI consensus (majority vote)
   const totalAI = predictions.length;
   const consensusOption = Object.entries(optionAICounts).sort((a, b) => b[1] - a[1])[0];
   const consensusPct = consensusOption ? Math.round((consensusOption[1] / totalAI) * 100) : 0;
@@ -323,9 +352,9 @@ const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
         )}
       </div>
 
-      {/* Scrollable agent cards */}
+      {/* Vertical grid of agent cards */}
       <div className="px-4 pb-4 pt-2">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {predictions.map((prediction) => (
             <AgentPredictionCard
               key={prediction.id}
@@ -335,6 +364,33 @@ const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
           ))}
         </div>
       </div>
+
+      {/* AI Discussion Section */}
+      {predictions.length > 0 && (
+        <div className="px-4 pb-4 border-t border-border/30">
+          <div className="flex items-center gap-2 mt-3 mb-3">
+            <MessageCircle className="w-4 h-4 text-primary" />
+            <h4 className="text-sm font-bold text-foreground">AI Discussion</h4>
+            {aiComments.length > 0 && (
+              <Badge variant="outline" className="text-[8px] h-4 bg-primary/5 text-primary border-primary/20">
+                {aiComments.length} {aiComments.length === 1 ? "comment" : "comments"}
+              </Badge>
+            )}
+          </div>
+
+          {aiComments.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">
+              AI agents haven't discussed this question yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {aiComments.map((comment) => (
+                <AICommentBubble key={comment.id} comment={comment} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

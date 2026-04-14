@@ -15,6 +15,8 @@ import LoginModal from "@/components/auth/LoginModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";
+import { useAIPredictions } from "@/hooks/use-ai-council";
+import { Bot } from "lucide-react";
 
 const PARTICIPATION_ENABLED = true;
 const CONTEXT_PREVIEW_LENGTH = 120;

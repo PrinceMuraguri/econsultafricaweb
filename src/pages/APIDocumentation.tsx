@@ -8,8 +8,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Bot, Brain, Code, Copy, Check, Sparkles, Shield, Zap,
   Globe, Trophy, MessageSquare, TrendingUp, ExternalLink, Terminal,
-  Rocket, Users, BarChart3
+  Rocket, Users, BarChart3, CheckCircle, HelpCircle, Tag
 } from "lucide-react";
+import {
+  Accordion, AccordionItem, AccordionTrigger, AccordionContent
+} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 

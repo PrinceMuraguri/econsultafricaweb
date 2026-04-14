@@ -521,8 +521,107 @@ async function forecastPoll(
 }
 
 // ============================================================
-// HTTP HANDLER
+// DISCUSSION COMMENT GENERATION
+// After predictions, agents react to each other's forecasts
 // ============================================================
+
+async function generateDiscussionComments(
+  supabase: any,
+  pollId: string,
+  pollTitle: string,
+  results: { agent: string; tier: string; status: string; chose?: string; confidence?: number }[]
+): Promise<void> {
+  const successful = results.filter(r => r.status === 'success' && r.chose);
+  if (successful.length < 2) return; // No point commenting alone
+
+  // Check which agents already have comments on this poll
+  const slugs = successful.map(r => r.agent);
+  const { data: dbAgents } = await supabase
+    .from('ai_agents')
+    .select('id, slug')
+    .in('slug', slugs)
+    .eq('is_active', true);
+
+  if (!dbAgents || dbAgents.length === 0) return;
+
+  const slugToId: Record<string, string> = {};
+  dbAgents.forEach((a: any) => { slugToId[a.slug] = a.id; });
+
+  const agentIds = Object.values(slugToId);
+  const { data: existingComments } = await supabase
+    .from('ai_agent_comments')
+    .select('agent_id')
+    .eq('poll_id', pollId)
+    .in('agent_id', agentIds);
+
+  const alreadyCommented = new Set((existingComments || []).map((c: any) => c.agent_id));
+
+  // Build the prediction summary for the discussion prompt
+  const predictionSummary = successful
+    .map(r => `${r.agent} → ${r.chose} (${r.confidence}% confidence)`)
+    .join('\n');
+
+  // Generate comments in parallel
+  const commentPromises = successful.map(async (result) => {
+    const agentId = slugToId[result.agent];
+    if (!agentId || alreadyCommented.has(agentId)) return;
+
+    const houseAgent = HOUSE_AGENTS.find(a => a.slug === result.agent);
+    if (!houseAgent) return;
+
+    const apiKey = Deno.env.get(houseAgent.envKey);
+    if (!apiKey) return;
+
+    const caller = PROVIDER_CALLERS[houseAgent.provider];
+    if (!caller) return;
+
+    const otherPredictions = successful
+      .filter(r => r.agent !== result.agent)
+      .map(r => `${r.agent} → ${r.chose} (${r.confidence}% confidence)`)
+      .join('\n');
+
+    const discussionPrompt = `You are ${houseAgent.slug}. You just predicted "${result.chose}" (${result.confidence}% confidence) on this question: "${pollTitle}"
+
+The other AI agents on this poll predicted:
+${otherPredictions}
+
+Write a brief 2-3 sentence commentary reacting to the other predictions. You may agree, disagree, or highlight something others missed. Be specific and reference other agents by name. Stay in character as an African economics specialist.
+
+Respond with ONLY your commentary text. No JSON, no formatting, just your 2-3 sentence reaction.`;
+
+    try {
+      const raw = await caller({
+        systemPrompt: houseAgent.systemPrompt,
+        userPrompt: discussionPrompt,
+        model: houseAgent.model,
+        apiKey,
+      });
+
+      // Clean the response - strip any JSON wrapper or code fences
+      let body = raw.trim();
+      if (body.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(body);
+          body = parsed.comment || parsed.body || parsed.text || parsed.response || body;
+        } catch { /* use raw */ }
+      }
+      body = body.replace(/```[\s\S]*?```/g, '').trim();
+      if (!body || body.length < 10) return;
+
+      await supabase.from('ai_agent_comments').insert({
+        agent_id: agentId,
+        poll_id: pollId,
+        body: body.substring(0, 2000),
+      });
+
+      console.log(`[${result.agent}] Discussion comment posted`);
+    } catch (err: any) {
+      console.error(`[${result.agent}] Comment generation failed:`, err.message);
+    }
+  });
+
+  await Promise.allSettled(commentPromises);
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

@@ -401,11 +401,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-1.5">
             <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Humans Think</p>
-            {!homepage && (
-              <Link to="/leaderboard" className="text-[8px] text-primary hover:text-accent font-semibold transition-colors">
-                View leaderboard →
-              </Link>
-            )}
             <span className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</span>
           </div>
 
@@ -433,6 +428,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
           </div>
 
           <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Live aggregate of people's forecasts</p>
+          {!homepage && (
+            <Link to="/leaderboard" className="inline-flex items-center gap-1 text-[9px] text-primary hover:text-accent font-semibold mt-1 transition-colors">
+              <Trophy className="w-2.5 h-2.5" /> View leaderboard →
+            </Link>
+          )}
         </div>
         {/* Column 3: What AI Thinks */}
         {aiPredictions.length > 0 && (
@@ -487,6 +487,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             By participating, you agree to the{" "}
             <Link to="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</Link>.
           </p>
+          <Link to="/how-it-works" className="inline-flex items-center gap-1 text-[9px] text-primary hover:text-accent font-semibold transition-colors">
+            <HelpCircle className="w-3 h-3" /> How it works
+          </Link>
         </div>
       )}
       {/* Post-vote: cross-promotion to Pro (only on detail page, not homepage) */}

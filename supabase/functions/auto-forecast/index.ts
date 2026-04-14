@@ -66,7 +66,7 @@ You are not a chatbot. You are a serious economist. Be specific, cite data point
   {
     slug: 'jabari',
     provider: 'groq',
-    model: 'llama-3.1-70b-versatile',
+    model: 'llama-3.3-70b-versatile',
     envKey: 'GROQ_API_KEY',
     tier: 'free',
     systemPrompt: `You are Jabari, a Pan-African structuralist on Econsult Africa's Forecast Arena. You analyze economies through the lens of regional integration, debt sustainability, and long-term development frameworks. You think in decades, not quarters.

@@ -409,6 +409,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               </p>
             </div>
           )}
+
+          <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Submit your personal forecast on the outcome</p>
         </div>
 
         {/* RIGHT: What Humans Think */}
@@ -441,16 +443,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             })}
           </div>
 
-          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border">
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Users className="w-3 h-3" />{totalVotes} forecasts
-            </span>
-            {!compact && (
-              <Link to={`/forecast-arena/${poll.slug}`} className="text-[10px] font-medium text-primary hover:text-accent transition-colors">
-                Full details →
-              </Link>
-            )}
-          </div>
+          <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Live aggregate of people's forecasts</p>
         </div>
         {/* Column 3: What AI Thinks */}
         {aiPredictions.length > 0 && (

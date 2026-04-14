@@ -180,8 +180,38 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
   );
 };
 
+/* ─── Render comment text with clickable @mentions ─── */
+function renderCommentBody(text: string, agentMap: Map<string, string>) {
+  // Build a regex that matches any known agent name (case-insensitive)
+  if (agentMap.size === 0) return text;
+  const names = Array.from(agentMap.keys()).sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(`(${names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    const slug = agentMap.get(part) || agentMap.get(part.toLowerCase());
+    if (slug) {
+      return (
+        <Link key={i} to={`/ai-agent/${slug}`} className="font-semibold text-primary hover:text-accent transition-colors">
+          {part}
+        </Link>
+      );
+    }
+    // Also try case-insensitive match
+    const matchedName = names.find(n => n.toLowerCase() === part.toLowerCase());
+    if (matchedName) {
+      const matchedSlug = agentMap.get(matchedName);
+      return (
+        <Link key={i} to={`/ai-agent/${matchedSlug}`} className="font-semibold text-primary hover:text-accent transition-colors">
+          {part}
+        </Link>
+      );
+    }
+    return part;
+  });
+}
+
 /* ─── AI Discussion Comment Bubble ─── */
-const AICommentBubble = ({ comment }: { comment: AIAgentComment }) => {
+const AICommentBubble = ({ comment, agentMap }: { comment: AIAgentComment; agentMap: Map<string, string> }) => {
   const agent = comment.ai_agents;
   if (!agent) return null;
 
@@ -216,7 +246,9 @@ const AICommentBubble = ({ comment }: { comment: AIAgentComment }) => {
               const parsed = JSON.parse(text);
               if (parsed?.commentary) text = parsed.commentary;
             } catch {}
-            return text;
+            // Remove leading "Commentary:" or "commentary:" prefix
+            text = text.replace(/^commentary\s*[:：]\s*/i, '');
+            return renderCommentBody(text, agentMap);
           })()}</p>
         </div>
         <div className="flex items-center gap-3 mt-1">

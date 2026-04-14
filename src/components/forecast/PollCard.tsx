@@ -394,22 +394,6 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             })}
           </div>
 
-          {!hasVoted && !isClosed && (
-            <p className="text-[9px] text-muted-foreground text-center mt-1.5">
-              By participating, you agree to the{" "}
-              <Link to="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</Link>.
-            </p>
-          )}
-
-          {!isClosed && PARTICIPATION_ENABLED && !hasVoted && (
-            <div className="mt-1.5 pt-1.5 border-t border-border">
-              <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
-              <Rocket className="w-3 h-3 text-accent" />
-                {isLoggedIn ? "Click an option to add your voice" : "Sign in to add your voice"}
-              </p>
-            </div>
-          )}
-
           <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Submit your personal forecast on the outcome</p>
         </div>
 
@@ -481,6 +465,20 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         )}
       </div>
 
+      {/* Bottom: Terms & sign-in prompt */}
+      {!hasVoted && !isClosed && (
+        <div className="text-center space-y-0.5">
+          {!isLoggedIn && PARTICIPATION_ENABLED && (
+            <p className="text-[9px] text-muted-foreground flex items-center justify-center gap-1">
+              <Rocket className="w-3 h-3 text-accent" /> Sign in to add your voice
+            </p>
+          )}
+          <p className="text-[9px] text-muted-foreground">
+            By participating, you agree to the{" "}
+            <Link to="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</Link>.
+          </p>
+        </div>
+      )}
       {/* Post-vote: cross-promotion to Pro (only on detail page, not homepage) */}
       {!isHomepageMode && hasVoted && !isClosed && (
         <div className="mt-2 pt-2 border-t border-border">

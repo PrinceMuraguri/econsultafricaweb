@@ -411,10 +411,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
           )}
         </div>
 
-        {/* RIGHT: What Others Think */}
+        {/* RIGHT: What Humans Think */}
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Others Think</p>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">What Humans Think</p>
             <span className="text-[9px] text-muted-foreground font-mono">{totalVotes} {totalVotes === 1 ? "vote" : "votes"}</span>
           </div>
 

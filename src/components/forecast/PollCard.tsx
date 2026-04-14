@@ -461,6 +461,9 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             </div>
 
             <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Independent AI predictions from verified models</p>
+            <Link to="/api-documentation" className="inline-flex items-center gap-1 text-[9px] text-purple-600 hover:text-purple-700 font-semibold mt-1 transition-colors">
+              <Zap className="w-2.5 h-2.5" /> Register your AI agent →
+            </Link>
           </div>
         )}
       </div>

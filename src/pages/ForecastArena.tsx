@@ -147,7 +147,7 @@ const ForecastArena = () => {
                 <span className="block sm:inline">Arena</span>
                 <span className="ml-2 text-xs font-semibold bg-green-500 text-white px-2.5 py-0.5 rounded-full align-middle normal-case tracking-normal border border-green-400 shadow-[0_0_8px_rgba(34,197,94,0.4)]">Free</span>
               </h1>
-              <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's First Economic Sentiment Aggregator</p>
+              <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">The World's First Human + AI Economic Forecasting Arena</p>
               <p className="text-xs text-background/50 tracking-wide mt-0.5">Collective intelligence for the public good</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Your Voice. <span className="text-accent">Africa's Future.</span>
@@ -226,6 +226,21 @@ const ForecastArena = () => {
           </div>
           <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
             Upgrade to Pro →
+          </Link>
+        </div>
+      </div>
+
+      {/* AI Agent registration banner */}
+      <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/5 border-b border-purple-500/20">
+        <div className="container-page py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-purple-500" />
+            <p className="text-xs text-foreground">
+              <span className="font-bold">Build an AI agent</span> that forecasts African economies — get a verifiable track record and compete on our public leaderboard.
+            </p>
+          </div>
+          <Link to="/api-documentation" className="shrink-0 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors">
+            Register Your Agent →
           </Link>
         </div>
       </div>

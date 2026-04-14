@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   Bot, Shield, Trash2, CheckCircle, XCircle,
   Brain, TrendingUp, MessageSquare, Loader2, RefreshCw,
-  Zap, Play, PlayCircle, Settings, Key, AlertTriangle,
+  Zap, Play, PlayCircle, AlertTriangle,
   ChevronDown, ChevronUp, Sparkles, Target
 } from "lucide-react";
 
@@ -17,18 +16,9 @@ interface Props {
   adminKey: string;
 }
 
-const AUTO_FORECAST_URL =
-  "https://iysutjnviccsgygpiqfe.supabase.co/functions/v1/auto-forecast";
-
 const AdminAICouncilTab = ({ adminKey }: Props) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Service role key — stored in sessionStorage for security (not localStorage)
-  const [serviceKey, setServiceKey] = useState(() =>
-    sessionStorage.getItem("ea_srk") || "");
-  const [serviceKeyInput, setServiceKeyInput] = useState("");
-  const [showKeySetup, setShowKeySetup] = useState(false);
 
   // Agent status from auto-forecast
   const [agentStatus, setAgentStatus] = useState<any>(null);
@@ -39,13 +29,6 @@ const AdminAICouncilTab = ({ adminKey }: Props) => {
   const [forecastResults, setForecastResults] = useState<any>(null);
   const [selectedPollId, setSelectedPollId] = useState<string>("");
   const [showResults, setShowResults] = useState(true);
-
-  // Save service key to session
-  useEffect(() => {
-    if (serviceKey) {
-      sessionStorage.setItem("ea_srk", serviceKey);
-    }
-  }, [serviceKey]);
 
   // Fetch all AI agents (including inactive)
   const { data: agents = [], isLoading } = useQuery({
@@ -103,27 +86,15 @@ const AdminAICouncilTab = ({ adminKey }: Props) => {
   });
 
   // ==========================================
-  // API HELPERS
+  // API HELPER — uses adminKey prop via supabase.functions.invoke
   // ==========================================
 
   const callAutoForecast = async (body: Record<string, unknown>) => {
-    if (!serviceKey) {
-      toast({ title: "Service key required", description: "Enter your Supabase service role key first.", variant: "destructive" });
-      setShowKeySetup(true);
-      return null;
-    }
-    const res = await fetch(AUTO_FORECAST_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${serviceKey}`,
-      },
-      body: JSON.stringify(body),
+    const { data, error } = await supabase.functions.invoke("auto-forecast", {
+      body: { admin_key: adminKey, ...body },
     });
-    const data = await res.json();
-    if (data.error) {
-      throw new Error(data.error + (data.hint ? ` (${data.hint})` : ""));
-    }
+    if (error) throw new Error(error.message || "Edge function call failed");
+    if (data?.error) throw new Error(data.error + (data.hint ? ` (${data.hint})` : ""));
     return data;
   };
 
@@ -146,7 +117,7 @@ const AdminAICouncilTab = ({ adminKey }: Props) => {
     setForecastLoading(true);
     setForecastResults(null);
     try {
-      const data = await callAutoForecast({ action: "forecast_all" });
+      const data = await callAutoForecast({ action: "forecast_all", limit: 5 });
       if (data) {
         setForecastResults(data);
         setShowResults(true);
@@ -193,22 +164,6 @@ const AdminAICouncilTab = ({ adminKey }: Props) => {
       toast({ title: "Forecast failed", description: err.message, variant: "destructive" });
     }
     setForecastLoading(false);
-  };
-
-  const saveServiceKey = () => {
-    const trimmed = serviceKeyInput.trim();
-    if (!trimmed) return;
-    setServiceKey(trimmed);
-    setServiceKeyInput("");
-    setShowKeySetup(false);
-    toast({ title: "Service key saved", description: "Stored in this browser session only. You'll need to re-enter after closing the browser." });
-  };
-
-  const clearServiceKey = () => {
-    setServiceKey("");
-    sessionStorage.removeItem("ea_srk");
-    setAgentStatus(null);
-    toast({ title: "Service key cleared" });
   };
 
   // Agent management
@@ -306,358 +261,273 @@ const AdminAICouncilTab = ({ adminKey }: Props) => {
       </div>
 
       {/* ============================================================ */}
-      {/* SERVICE KEY SETUP */}
+      {/* AGENT READINESS STATUS */}
       {/* ============================================================ */}
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Key className="w-4 h-4 text-amber-600" />
-            <span className="text-sm font-bold text-foreground">API Connection</span>
-            {serviceKey ? (
-              <Badge className="text-[8px] h-4 bg-green-500/10 text-green-500 border-green-500/30">Connected</Badge>
-            ) : (
-              <Badge className="text-[8px] h-4 bg-red-500/10 text-red-500 border-red-500/30">Not Connected</Badge>
-            )}
-          </div>
-          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowKeySetup(!showKeySetup)}>
-            {showKeySetup ? <ChevronUp className="w-3 h-3" /> : <Settings className="w-3 h-3" />}
+      <div className="rounded-lg border border-border bg-card p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" /> Agent Readiness
+          </h3>
+          <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1" onClick={checkStatus} disabled={statusLoading}>
+            {statusLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+            Check Status
           </Button>
         </div>
 
-        {!serviceKey && !showKeySetup && (
-          <p className="text-xs text-muted-foreground">
-            Connect your Supabase service role key to enable AI forecast controls.
-            <button onClick={() => setShowKeySetup(true)} className="text-primary hover:text-accent ml-1 underline">Set up now</button>
-          </p>
-        )}
+        {!agentStatus ? (
+          <p className="text-xs text-muted-foreground">Click "Check Status" to see which agents have API keys configured and are ready to forecast.</p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">{agentStatus.message}</p>
 
-        {serviceKey && !showKeySetup && (
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Key: <code className="text-primary">{serviceKey.substring(0, 20)}... {serviceKey.substring(serviceKey.length - 8)}</code>
-              <span className="text-[10px] ml-2">(session only — clears when you close browser)</span>
-            </p>
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-red-500 hover:text-red-600" onClick={clearServiceKey}>
-              Clear Key
-            </Button>
-          </div>
-        )}
-
-        {showKeySetup && (
-          <div className="mt-3 space-y-3">
-            <div className="p-3 rounded bg-card border border-border">
-              <p className="text-xs font-semibold text-foreground mb-2">Where to find your service role key:</p>
-              <ol className="text-xs text-muted-foreground space-y-1 list-decimal ml-4">
-                <li>Go to Supabase Dashboard</li>
-                <li>Click your project</li>
-                <li>Go to <strong>Settings</strong> (gear icon) then <strong>API</strong></li>
-                <li>Under <strong>Project API keys</strong>, copy the <strong>service_role</strong> key (the secret one)</li>
-              </ol>
-              <div className="flex items-center gap-1 mt-2 p-2 rounded bg-red-500/5 border border-red-500/20">
-                <AlertTriangle className="w-3 h-3 text-red-500 shrink-0" />
-                <p className="text-[10px] text-red-500">Keep this key secret. It has full database access. Only enter it here on the admin dashboard.</p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {(agentStatus.agents || []).map((agent: any) => (
+                <div
+                  key={agent.slug}
+                  className={`p-2 rounded border flex items-center justify-between ${
+                    agent.has_api_key
+                      ? "border-green-500/30 bg-green-500/5"
+                      : "border-red-500/20 bg-red-500/[0.02]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${agent.has_api_key ? "bg-green-500" : "bg-red-500"}`} />
+                    <div>
+                      <span className="text-xs font-semibold text-foreground capitalize">{agent.slug}</span>
+                      <p className="text-[10px] text-muted-foreground">{agent.model} · {agent.provider}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge
+                      variant="outline"
+                      className={`text-[8px] h-4 ${
+                        agent.tier === "free"
+                          ? "bg-green-500/10 text-green-500 border-green-500/30"
+                          : agent.tier === "near-free"
+                          ? "bg-blue-500/10 text-blue-500 border-blue-500/30"
+                          : "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                      }`}
+                    >
+                      {agent.tier === "free" ? "FREE" : agent.tier === "near-free" ? "~FREE" : "PREMIUM"}
+                    </Badge>
+                    {!agent.has_api_key && (
+                      <p className="text-[9px] text-red-400 mt-0.5">Missing: {agent.env_var}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div className="flex gap-2">
-              <Input type="password" placeholder="Paste your service_role key here..." value={serviceKeyInput} onChange={(e) => setServiceKeyInput(e.target.value)} className="h-8 text-xs font-mono" onKeyDown={(e) => { if (e.key === "Enter") saveServiceKey(); }} />
-              <Button size="sm" className="h-8 gap-1" onClick={saveServiceKey} disabled={!serviceKeyInput.trim()}>
-                <CheckCircle className="w-3 h-3" /> Save
-              </Button>
-              <Button size="sm" variant="ghost" className="h-8" onClick={() => setShowKeySetup(false)}>
-                Cancel
-              </Button>
-            </div>
+            {/* Setup links */}
+            {agentStatus.setup_guide && (
+              <details className="text-xs">
+                <summary className="text-primary cursor-pointer hover:text-accent font-semibold">How to add missing API keys</summary>
+                <div className="mt-2 p-3 rounded bg-muted/50 border border-border space-y-1.5">
+                  <p className="text-muted-foreground">Go to <strong>Lovable Cloud</strong> → <strong>Secrets</strong> and add:</p>
+                  {Object.entries(agentStatus.setup_guide).map(([step, desc]: [string, any]) => (
+                    <p key={step} className="text-muted-foreground">
+                      <span className="font-semibold text-foreground">{step.replace(/_/g, " ").toUpperCase()}:</span> {desc}
+                    </p>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         )}
       </div>
 
       {/* ============================================================ */}
-      {/* AGENT READINESS STATUS */}
+      {/* FORECAST CONTROLS */}
       {/* ============================================================ */}
-      {serviceKey && (
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Zap className="w-4 h-4 text-primary" /> Agent Readiness
-            </h3>
-            <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1" onClick={checkStatus} disabled={statusLoading}>
-              {statusLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-              Check Status
+      <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/[0.03] to-accent/[0.02] p-4">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-4">
+          <Sparkles className="w-4 h-4 text-accent" /> Trigger AI Forecasts
+        </h3>
+
+        <div className="space-y-4">
+          {/* Forecast ALL */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-foreground">Forecast All Active Polls</p>
+              <p className="text-[10px] text-muted-foreground">
+                All available AI agents will independently analyze and predict on every active poll they haven't predicted on yet. Processes up to 5 polls per click. If you have more, click again — already-predicted polls are skipped.
+              </p>
+            </div>
+            <Button
+              onClick={forecastAll}
+              disabled={forecastLoading}
+              className="gap-1.5 bg-primary hover:bg-primary/90 shrink-0"
+            >
+              {forecastLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <PlayCircle className="w-4 h-4" />
+              )}
+              {forecastLoading ? "Running..." : "Forecast All"}
             </Button>
           </div>
 
-          {!agentStatus ? (
-            <p className="text-xs text-muted-foreground">Click "Check Status" to see which agents have API keys configured and are ready to forecast.</p>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-xs text-muted-foreground">{agentStatus.message}</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {(agentStatus.agents || []).map((agent: any) => (
-                  <div
-                    key={agent.slug}
-                    className={`p-2 rounded border flex items-center justify-between ${
-                      agent.has_api_key
-                        ? "border-green-500/30 bg-green-500/5"
-                        : "border-red-500/20 bg-red-500/[0.02]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${agent.has_api_key ? "bg-green-500" : "bg-red-500"}`} />
-                      <div>
-                        <span className="text-xs font-semibold text-foreground capitalize">{agent.slug}</span>
-                        <p className="text-[10px] text-muted-foreground">{agent.model} · {agent.provider}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Badge
-                        variant="outline"
-                        className={`text-[8px] h-4 ${
-                          agent.tier === "free"
-                            ? "bg-green-500/10 text-green-500 border-green-500/30"
-                            : agent.tier === "near-free"
-                            ? "bg-blue-500/10 text-blue-500 border-blue-500/30"
-                            : "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                        }`}
-                      >
-                        {agent.tier === "free" ? "FREE" : agent.tier === "near-free" ? "~FREE" : "PREMIUM"}
-                      </Badge>
-                      {!agent.has_api_key && (
-                        <p className="text-[9px] text-red-400 mt-0.5">Missing: {agent.env_var}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Setup links */}
-              {agentStatus.setup_guide && (
-                <details className="text-xs">
-                  <summary className="text-primary cursor-pointer hover:text-accent font-semibold">How to add missing API keys</summary>
-                  <div className="mt-2 p-3 rounded bg-muted/50 border border-border space-y-1.5">
-                    <p className="text-muted-foreground">Go to <strong>Supabase Dashboard</strong> then <strong>Edge Functions</strong> then <strong>Secrets</strong> and add:</p>
-                    {Object.entries(agentStatus.setup_guide).map(([step, desc]: [string, any]) => (
-                      <p key={step} className="text-muted-foreground">
-                        <span className="font-semibold text-foreground">{step.replace(/_/g, " ").toUpperCase()}:</span> {desc}
-                      </p>
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* FORECAST CONTROLS */}
-      {/* ============================================================ */}
-      {serviceKey && (
-        <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/[0.03] to-accent/[0.02] p-4">
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-4">
-            <Sparkles className="w-4 h-4 text-accent" /> Trigger AI Forecasts
-          </h3>
-
-          <div className="space-y-4">
-            {/* Forecast ALL */}
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-foreground">Forecast All Active Polls</p>
-                <p className="text-[10px] text-muted-foreground">
-                  All available AI agents will independently analyze and predict on every active poll they haven't predicted on yet. Processes up to 5 polls per click. If you have more, click again — already-predicted polls are skipped.
-                </p>
-              </div>
-              <Button
-                onClick={forecastAll}
-                disabled={forecastLoading}
-                className="gap-1.5 bg-primary hover:bg-primary/90 shrink-0"
-              >
-                {forecastLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <PlayCircle className="w-4 h-4" />
-                )}
-                {forecastLoading ? "Running..." : "Forecast All"}
+          {/* Forecast SINGLE POLL */}
+          <div className="p-3 rounded-lg bg-card border border-border">
+            <p className="text-xs font-semibold text-foreground mb-2">Forecast a Specific Poll</p>
+            <div className="flex gap-2">
+              <Select value={selectedPollId} onValueChange={setSelectedPollId}>
+                <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectValue placeholder="Select an active poll..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {activePolls.map((poll: any) => (
+                    <SelectItem key={poll.id} value={poll.id}>
+                      <span className="truncate">{poll.title}</span>
+                      <span className="text-muted-foreground ml-1">({poll.country})</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button size="sm" onClick={forecastSinglePoll} disabled={forecastLoading || !selectedPollId} className="h-8 gap-1 shrink-0">
+                {forecastLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                Forecast
               </Button>
             </div>
-
-            {/* Forecast SINGLE POLL */}
-            <div className="p-3 rounded-lg bg-card border border-border">
-              <p className="text-xs font-semibold text-foreground mb-2">Forecast a Specific Poll</p>
-              <div className="flex gap-2">
-                <Select value={selectedPollId} onValueChange={setSelectedPollId}>
-                  <SelectTrigger className="h-8 text-xs flex-1">
-                    <SelectValue placeholder="Select an active poll..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activePolls.map((poll: any) => (
-                      <SelectItem key={poll.id} value={poll.id}>
-                        <span className="truncate">{poll.title}</span>
-                        <span className="text-muted-foreground ml-1">({poll.country})</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button size="sm" onClick={forecastSinglePoll} disabled={forecastLoading || !selectedPollId} className="h-8 gap-1 shrink-0">
-                  {forecastLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-                  Forecast
-                </Button>
-              </div>
-              {activePolls.length > 0 && (
-                <p className="text-[10px] text-muted-foreground mt-1.5">{activePolls.length} active poll{activePolls.length !== 1 ? "s" : ""} available</p>
-              )}
-              {activePolls.length === 0 && (
-                <p className="text-[10px] text-amber-500 mt-1.5">No active polls found. Create a poll first.</p>
-              )}
-            </div>
+            {activePolls.length > 0 && (
+              <p className="text-[10px] text-muted-foreground mt-1.5">{activePolls.length} active poll{activePolls.length !== 1 ? "s" : ""} available</p>
+            )}
+            {activePolls.length === 0 && (
+              <p className="text-[10px] text-amber-500 mt-1.5">No active polls found. Create a poll first.</p>
+            )}
           </div>
+        </div>
 
-          {/* ============================================================ */}
-          {/* FORECAST RESULTS */}
-          {/* ============================================================ */}
-          {forecastResults && (
-            <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
-              <button
-                onClick={() => setShowResults(!showResults)}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
-              >
-                <span className="text-xs font-bold text-foreground flex items-center gap-2">
-                  <Target className="w-3.5 h-3.5 text-primary" />
-                  Forecast Results
-                  {forecastResults.summary && (
-                    <Badge variant="outline" className="text-[8px] h-4 bg-green-500/10 text-green-500 border-green-500/30">
-                      {forecastResults.summary.total_predictions_made || forecastResults.summary.succeeded || 0} predictions
-                    </Badge>
-                  )}
-                  {forecastResults.summary?.timed_out && (
-                    <Badge variant="outline" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/30">
-                      Timed out — click again
-                    </Badge>
-                  )}
-                </span>
-                {showResults ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
+        {/* ============================================================ */}
+        {/* FORECAST RESULTS */}
+        {/* ============================================================ */}
+        {forecastResults && (
+          <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
+            <button
+              onClick={() => setShowResults(!showResults)}
+              className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
+            >
+              <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                <Target className="w-3.5 h-3.5 text-primary" />
+                Forecast Results
+                {forecastResults.summary && (
+                  <Badge variant="outline" className="text-[8px] h-4 bg-green-500/10 text-green-500 border-green-500/30">
+                    {forecastResults.summary.total_predictions_made || forecastResults.summary.succeeded || 0} predictions
+                  </Badge>
+                )}
+                {forecastResults.summary?.timed_out && (
+                  <Badge variant="outline" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/30">
+                    Timed out — click again
+                  </Badge>
+                )}
+              </span>
+              {showResults ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
 
-              {showResults && (
-                <div className="px-3 pb-3 space-y-2">
-                  {/* Summary */}
-                  {forecastResults.summary && (
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground p-2 rounded bg-muted/30">
-                      {forecastResults.summary.polls_processed !== undefined && (
-                        <span>Polls: <strong className="text-foreground">{forecastResults.summary.polls_processed}</strong></span>
-                      )}
+            {showResults && (
+              <div className="px-3 pb-3 space-y-2">
+                {/* Summary */}
+                {forecastResults.summary && (
+                  <div className="flex flex-wrap gap-3 text-xs text-muted-foreground p-2 rounded bg-muted/30">
+                    {forecastResults.summary.polls_processed !== undefined && (
+                      <span>Polls: <strong className="text-foreground">{forecastResults.summary.polls_processed}</strong></span>
+                    )}
+                    <span>
+                      Predicted: <strong className="text-green-500">{forecastResults.summary.total_predictions_made || forecastResults.summary.succeeded || 0}</strong>
+                    </span>
+                    {(forecastResults.summary.skipped > 0 || forecastResults.polls?.some((p: any) => p.skipped > 0)) && (
                       <span>
-                        Predicted: <strong className="text-green-500">{forecastResults.summary.total_predictions_made || forecastResults.summary.succeeded || 0}</strong>
+                        Skipped: <strong className="text-muted-foreground">{forecastResults.summary.skipped || forecastResults.polls?.reduce((s: number, p: any) => s + p.skipped, 0) || 0}</strong>
                       </span>
-                      {(forecastResults.summary.skipped > 0 || forecastResults.polls?.some((p: any) => p.skipped > 0)) && (
-                        <span>
-                          Skipped: <strong className="text-muted-foreground">{forecastResults.summary.skipped || forecastResults.polls?.reduce((s: number, p: any) => s + p.skipped, 0) || 0}</strong>
-                        </span>
-                      )}
-                      {(forecastResults.summary.failed > 0 || forecastResults.polls?.some((p: any) => p.failed > 0)) && (
-                        <span>
-                          Failed: <strong className="text-red-500">{forecastResults.summary.failed || forecastResults.polls?.reduce((s: number, p: any) => s + p.failed, 0) || 0}</strong>
-                        </span>
-                      )}
-                      {forecastResults.summary.runtime_ms && (
-                        <span>
-                          Time: <strong className="text-foreground">{(forecastResults.summary.runtime_ms / 1000).toFixed(1)}s</strong>
-                        </span>
-                      )}
-                    </div>
-                  )}
+                    )}
+                    {(forecastResults.summary.failed > 0 || forecastResults.polls?.some((p: any) => p.failed > 0)) && (
+                      <span>
+                        Failed: <strong className="text-red-500">{forecastResults.summary.failed || forecastResults.polls?.reduce((s: number, p: any) => s + p.failed, 0) || 0}</strong>
+                      </span>
+                    )}
+                    {forecastResults.summary.runtime_ms && (
+                      <span>
+                        Time: <strong className="text-foreground">{(forecastResults.summary.runtime_ms / 1000).toFixed(1)}s</strong>
+                      </span>
+                    )}
+                  </div>
+                )}
 
-                  {/* Timeout tip */}
-                  {forecastResults.tip && (
-                    <div className="flex items-start gap-2 p-2 rounded bg-amber-500/5 border border-amber-500/20">
-                      <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-amber-600">{forecastResults.tip}</p>
-                    </div>
-                  )}
+                {/* Timeout tip */}
+                {forecastResults.tip && (
+                  <div className="flex items-start gap-2 p-2 rounded bg-amber-500/5 border border-amber-500/20">
+                    <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-amber-600">{forecastResults.tip}</p>
+                  </div>
+                )}
 
-                  {/* Per-poll results (for forecast_all) */}
-                  {forecastResults.polls && forecastResults.polls.map((pollResult: any, idx: number) => (
-                    <div key={idx} className="border border-border rounded p-2">
-                      <p className="text-xs font-semibold text-foreground mb-1 truncate">
-                        {pollResult.poll?.title}
-                      </p>
-                      <div className="space-y-1">
-                        {pollResult.results?.map((r: any, i: number) => (
-                          <div key={i} className="flex items-center gap-2 text-[10px]">
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              r.status === "success" ? "bg-green-500" :
-                              r.status === "skipped" ? "bg-yellow-500" : "bg-red-500"
-                            }`} />
-                            <span className="font-semibold text-foreground w-16 capitalize">{r.agent}</span>
-                            {r.status === "success" && (
-                              <span className="text-green-600">
-                                picked <strong>{r.chose}</strong> ({r.confidence}% confidence)
-                              </span>
-                            )}
-                            {r.status === "skipped" && (
-                              <span className="text-muted-foreground">{r.error}</span>
-                            )}
-                            {r.status === "error" && (
-                              <span className="text-red-500">{r.error}</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Single-poll results (for forecast_poll) */}
-                  {forecastResults.results && !forecastResults.polls && (
+                {/* Per-poll results (for forecast_all) */}
+                {forecastResults.polls && forecastResults.polls.map((pollResult: any, idx: number) => (
+                  <div key={idx} className="border border-border rounded p-2">
+                    <p className="text-xs font-semibold text-foreground mb-1 truncate">
+                      {pollResult.poll?.title}
+                    </p>
                     <div className="space-y-1">
-                      {forecastResults.results.map((r: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2 text-xs p-1.5 rounded bg-muted/20">
-                          <div className={`w-2 h-2 rounded-full shrink-0 ${
+                      {pollResult.results?.map((r: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-[10px]">
+                          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                             r.status === "success" ? "bg-green-500" :
-                            r.status === "skipped" ? "bg-yellow-500" :
-                            "bg-red-500"
+                            r.status === "skipped" ? "bg-yellow-500" : "bg-red-500"
                           }`} />
-                          <span className="font-semibold text-foreground w-20 capitalize">{r.agent}</span>
-                          <Badge variant="outline" className={`text-[8px] h-4 ${
-                            r.tier === "free" ? "bg-green-500/10 text-green-500 border-green-500/30" :
-                            r.tier === "near-free" ? "bg-blue-500/10 text-blue-500 border-blue-500/30" :
-                            "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                          }`}>{r.tier}</Badge>
+                          <span className="font-semibold text-foreground w-16 capitalize">{r.agent}</span>
                           {r.status === "success" && (
-                            <span className="text-green-600 flex-1">
-                              picked <strong>{r.chose}</strong> ({r.confidence}%)
+                            <span className="text-green-600">
+                              picked <strong>{r.chose}</strong> ({r.confidence}% confidence)
                             </span>
                           )}
                           {r.status === "skipped" && (
-                            <span className="text-muted-foreground flex-1">{r.error}</span>
+                            <span className="text-muted-foreground">{r.error}</span>
                           )}
                           {r.status === "error" && (
-                            <span className="text-red-500 flex-1">{r.error}</span>
+                            <span className="text-red-500">{r.error}</span>
                           )}
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                  </div>
+                ))}
 
-      {/* Prompt to connect if no service key */}
-      {!serviceKey && (
-        <div className="rounded-lg border border-dashed border-primary/20 bg-primary/[0.02] p-6 text-center">
-          <Zap className="w-8 h-8 text-primary mx-auto mb-2" />
-          <p className="text-sm font-semibold text-foreground mb-1">Connect to Enable AI Forecasting</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Enter your Supabase service role key above to unlock forecast controls.
-          </p>
-          <Button size="sm" variant="outline" className="gap-1" onClick={() => setShowKeySetup(true)}>
-            <Key className="w-3 h-3" /> Set Up Connection
-          </Button>
-        </div>
-      )}
+                {/* Single-poll results (for forecast_poll) */}
+                {forecastResults.results && !forecastResults.polls && (
+                  <div className="space-y-1">
+                    {forecastResults.results.map((r: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-xs p-1.5 rounded bg-muted/20">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                          r.status === "success" ? "bg-green-500" :
+                          r.status === "skipped" ? "bg-yellow-500" :
+                          "bg-red-500"
+                        }`} />
+                        <span className="font-semibold text-foreground w-20 capitalize">{r.agent}</span>
+                        <Badge variant="outline" className={`text-[8px] h-4 ${
+                          r.tier === "free" ? "bg-green-500/10 text-green-500 border-green-500/30" :
+                          r.tier === "near-free" ? "bg-blue-500/10 text-blue-500 border-blue-500/30" :
+                          "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                        }`}>{r.tier}</Badge>
+                        {r.status === "success" && (
+                          <span className="text-green-600 flex-1">
+                            picked <strong>{r.chose}</strong> ({r.confidence}%)
+                          </span>
+                        )}
+                        {r.status === "skipped" && (
+                          <span className="text-muted-foreground flex-1">{r.error}</span>
+                        )}
+                        {r.status === "error" && (
+                          <span className="text-red-500 flex-1">{r.error}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ============================================================ */}
       {/* AGENTS TABLE */}

@@ -327,8 +327,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         </div>
       )}
 
-      {/* Two-column layout: Left = Vote, Right = Sentiment */}
-      <div className="grid grid-cols-2 gap-3 mb-2">
+      {/* Voting layout: 2 or 3 columns based on AI predictions */}
+      <div className={`grid grid-cols-1 gap-3 mb-2 items-start ${aiPredictions.length > 0 ? "md:grid-cols-[1.2fr_1fr_1fr]" : "md:grid-cols-2"}`}>
         {/* LEFT: Add your voice */}
         <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold mb-0.5">
@@ -452,42 +452,41 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             )}
           </div>
         </div>
+        {/* Column 3: What AI Thinks */}
+        {aiPredictions.length > 0 && (
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+                <Bot className="w-3 h-3 text-purple-500" /> What AI Thinks
+              </p>
+              <span className="text-[9px] text-muted-foreground font-mono">{aiPredictions.length} {aiPredictions.length === 1 ? "forecast" : "forecasts"}</span>
+            </div>
+
+            <div className="space-y-2 flex-1">
+              {sortedOptions.map((option) => {
+                const aiCount = aiPredictions.filter(p => p.option_id === option.id).length;
+                const aiPct = aiPredictions.length > 0 ? Math.round((aiCount / aiPredictions.length) * 100) : 0;
+
+                return (
+                  <div key={option.id} className="space-y-0.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-foreground font-medium">{option.label}</span>
+                      <span className="font-mono text-muted-foreground">
+                        {aiCount} <span className="text-[9px]">({aiPct}%)</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700 bg-purple-500" style={{ width: `${aiPct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-[8px] text-muted-foreground mt-2 pt-1.5 border-t border-border italic">Independent AI predictions from verified models</p>
+          </div>
+        )}
       </div>
-
-      {/* What AI Thinks */}
-      {aiPredictions.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-border">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
-              <Bot className="w-3 h-3 text-primary" /> What AI Thinks
-            </p>
-            <span className="text-[9px] text-muted-foreground font-mono">{aiPredictions.length} {aiPredictions.length === 1 ? "forecast" : "forecasts"}</span>
-          </div>
-
-          <div className="space-y-1.5">
-            {sortedOptions.map((option) => {
-              const aiCount = aiPredictions.filter(p => p.option_id === option.id).length;
-              const aiPct = aiPredictions.length > 0 ? Math.round((aiCount / aiPredictions.length) * 100) : 0;
-
-              return (
-                <div key={option.id} className="space-y-0.5">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-foreground font-medium">{option.label}</span>
-                    <span className="font-mono text-muted-foreground">
-                      {aiCount} <span className="text-[9px]">({aiPct}%)</span>
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700 bg-primary/70" style={{ width: `${aiPct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-[8px] text-muted-foreground mt-1.5 italic">Independent AI predictions from verified models</p>
-        </div>
-      )}
 
       {/* Post-vote: cross-promotion to Pro (only on detail page, not homepage) */}
       {!isHomepageMode && hasVoted && !isClosed && (

@@ -277,6 +277,19 @@ const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
   const optionMap: Record<string, string> = {};
   pollOptions.forEach((o) => { optionMap[o.id] = o.label; });
 
+  // Build agent name → slug map for clickable mentions
+  const agentMap = new Map<string, string>();
+  predictions.forEach((p) => {
+    if (p.ai_agents?.name && p.ai_agents?.slug) {
+      agentMap.set(p.ai_agents.name, p.ai_agents.slug);
+    }
+  });
+  aiComments.forEach((c) => {
+    if (c.ai_agents?.name && c.ai_agents?.slug) {
+      agentMap.set(c.ai_agents.name, c.ai_agents.slug);
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="rounded-xl border border-primary/10 bg-gradient-to-r from-primary/[0.03] to-transparent p-4">
@@ -424,7 +437,7 @@ const AIForecastCouncil = ({ pollId, pollOptions }: Props) => {
           ) : (
             <div className="space-y-3">
               {aiComments.map((comment) => (
-                <AICommentBubble key={comment.id} comment={comment} />
+                <AICommentBubble key={comment.id} comment={comment} agentMap={agentMap} />
               ))}
             </div>
           )}

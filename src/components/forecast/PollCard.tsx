@@ -465,6 +465,20 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
         )}
       </div>
 
+      {/* Bottom: Terms & sign-in prompt */}
+      {!hasVoted && !isClosed && (
+        <div className="text-center space-y-0.5">
+          {!isLoggedIn && PARTICIPATION_ENABLED && (
+            <p className="text-[9px] text-muted-foreground flex items-center justify-center gap-1">
+              <Rocket className="w-3 h-3 text-accent" /> Sign in to add your voice
+            </p>
+          )}
+          <p className="text-[9px] text-muted-foreground">
+            By participating, you agree to the{" "}
+            <Link to="/terms-of-use" className="text-primary underline hover:text-accent">Terms of Use</Link>.
+          </p>
+        </div>
+      )}
       {/* Post-vote: cross-promotion to Pro (only on detail page, not homepage) */}
       {!isHomepageMode && hasVoted && !isClosed && (
         <div className="mt-2 pt-2 border-t border-border">

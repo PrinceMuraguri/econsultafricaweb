@@ -26,8 +26,6 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const queryClient = useQueryClient();
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"wallet" | "paystack" | null>(null);
-  const { user, profile: authProfile } = useAuth();
-  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");

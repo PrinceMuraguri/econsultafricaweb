@@ -456,7 +456,11 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
         onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen}
         onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />
-      
+      <PhoneCollectionModal
+        open={phoneModalOpen}
+        onOpenChange={(v) => { setPhoneModalOpen(v); if (!v) setPendingCommit(false); }}
+        onSuccess={() => { if (pendingCommit) { setPendingCommit(false); doCommit(); } }}
+      />
     </div>
   );
 };

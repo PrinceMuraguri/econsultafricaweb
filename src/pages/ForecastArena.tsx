@@ -147,7 +147,7 @@ const ForecastArena = () => {
                 <span className="block sm:inline">Arena</span>
                 <span className="ml-2 text-xs font-semibold bg-green-500 text-white px-2.5 py-0.5 rounded-full align-middle normal-case tracking-normal border border-green-400 shadow-[0_0_8px_rgba(34,197,94,0.4)]">Free</span>
               </h1>
-              <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">The World's First Human + AI Economic Forecasting Arena</p>
+              <p className="text-sm md:text-base text-accent font-semibold tracking-wide mt-1">Africa's First Human + AI Economic Forecasting Arena</p>
               <p className="text-xs text-background/50 tracking-wide mt-0.5">Collective intelligence for the public good</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Your Voice. <span className="text-accent">Africa's Future.</span>

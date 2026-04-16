@@ -11,6 +11,7 @@ import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 
 interface StakeModalProps {
   open: boolean;
@@ -23,6 +24,8 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const { toast } = useToast();
   const { user, profile: authProfile } = useAuth();
   const queryClient = useQueryClient();
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"wallet" | "paystack" | null>(null);
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -82,6 +85,11 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
   const handleWalletPay = async () => {
     if (!selectedOption || shares < 1) return;
+    if (!authProfile?.phone) {
+      setPendingAction("wallet");
+      setPhoneModalOpen(true);
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("buy-shares", {
@@ -105,6 +113,11 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const handleStake = async () => {
     if (!selectedOption || !email || !fullName || !phoneNumber || shares < 1) {
       toast({ title: "Missing info", description: "Please fill in all fields.", variant: "destructive" });
+      return;
+    }
+    if (user && !authProfile?.phone) {
+      setPendingAction("paystack");
+      setPhoneModalOpen(true);
       return;
     }
 
@@ -157,6 +170,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     : 50;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -312,6 +326,16 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         </div>
       </DialogContent>
     </Dialog>
+    <PhoneCollectionModal
+      open={phoneModalOpen}
+      onOpenChange={(v) => { setPhoneModalOpen(v); if (!v) setPendingAction(null); }}
+      onSuccess={() => {
+        if (pendingAction === "wallet") handleWalletPay();
+        else if (pendingAction === "paystack") handleStake();
+        setPendingAction(null);
+      }}
+    />
+    </>
   );
 };
 

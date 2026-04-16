@@ -9,6 +9,7 @@ import { Minus, Plus, Wallet, TrendingUp, Loader2, Shield, AlertTriangle, HelpCi
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
+import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 
 
 interface TradingPanelProps {
@@ -18,7 +19,7 @@ interface TradingPanelProps {
 }
 
 const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
-  const { user, wallet, refreshWallet } = useAuth();
+  const { user, wallet, refreshWallet, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"commit" | "adjust">("commit");
@@ -27,6 +28,8 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [pendingCommit, setPendingCommit] = useState(false);
   
   const [partialSellOpen, setPartialSellOpen] = useState(false);
   const [sellShares, setSellShares] = useState(1);
@@ -92,10 +95,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const partialSellFee = parseFloat((partialSellGross * fee).toFixed(2));
   const partialSellNet = parseFloat((partialSellGross - partialSellFee).toFixed(2));
 
-  const handleCommit = async () => {
-    if (!user) { setRegisterOpen(true); return; }
-    if (isClosed) return;
-
+  const doCommit = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("buy-shares", {
@@ -114,6 +114,20 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally { setLoading(false); }
+  };
+
+  const handleCommit = async () => {
+    if (!user) { setRegisterOpen(true); return; }
+    if (isClosed) return;
+
+    // Check if phone is missing — needed for M-Pesa payouts
+    if (!profile?.phone) {
+      setPendingCommit(true);
+      setPhoneModalOpen(true);
+      return;
+    }
+
+    await doCommit();
   };
 
   const handleExit = async (exitShares: number) => {
@@ -442,7 +456,11 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
         onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen}
         onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />
-      
+      <PhoneCollectionModal
+        open={phoneModalOpen}
+        onOpenChange={(v) => { setPhoneModalOpen(v); if (!v) setPendingCommit(false); }}
+        onSuccess={() => { if (pendingCommit) { setPendingCommit(false); doCommit(); } }}
+      />
     </div>
   );
 };

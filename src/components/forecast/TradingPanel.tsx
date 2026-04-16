@@ -9,6 +9,7 @@ import { Minus, Plus, Wallet, TrendingUp, Loader2, Shield, AlertTriangle, HelpCi
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
+import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 
 
 interface TradingPanelProps {
@@ -27,6 +28,8 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const [loading, setLoading] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [pendingCommit, setPendingCommit] = useState(false);
   
   const [partialSellOpen, setPartialSellOpen] = useState(false);
   const [sellShares, setSellShares] = useState(1);
@@ -95,6 +98,10 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const handleCommit = async () => {
     if (!user) { setRegisterOpen(true); return; }
     if (isClosed) return;
+
+    // Check if phone is missing — needed for payouts
+    const { profile } = useAuth as any;
+    // We access profile from the hook above
 
     setLoading(true);
     try {

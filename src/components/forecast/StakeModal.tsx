@@ -170,6 +170,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     : 50;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>

@@ -3,10 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Phone } from "lucide-react";
+import { ALL_COUNTRIES } from "@/data/countries";
 
 interface PhoneCollectionModalProps {
   open: boolean;
@@ -16,9 +18,10 @@ interface PhoneCollectionModalProps {
 
 const PhoneCollectionModal = ({ open, onOpenChange, onSuccess }: PhoneCollectionModalProps) => {
   const { toast } = useToast();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [countryCode, setCountryCode] = useState("+254");
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState(profile?.country || "Kenya");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,19 +30,23 @@ const PhoneCollectionModal = ({ open, onOpenChange, onSuccess }: PhoneCollection
       toast({ title: "Please enter your phone number", variant: "destructive" });
       return;
     }
+    if (!country) {
+      toast({ title: "Please select your country", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     try {
       const fullPhone = `${countryCode}${phone.trim()}`;
       const { error } = await supabase
         .from("user_profiles")
-        .update({ phone: fullPhone })
+        .update({ phone: fullPhone, country })
         .eq("user_id", user!.id);
 
       if (error) throw error;
 
       await refreshProfile();
-      toast({ title: "Phone number saved!" });
+      toast({ title: "Details saved!" });
       onOpenChange(false);
       onSuccess();
     } catch (err: any) {
@@ -55,14 +62,28 @@ const PhoneCollectionModal = ({ open, onOpenChange, onSuccess }: PhoneCollection
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <Phone className="w-5 h-5 text-primary" />
-            Add Your Phone Number
+            Complete Your Details
           </DialogTitle>
           <DialogDescription>
-            We need your phone number for M-Pesa payouts when your forecasts are correct.
+            We need your phone number and country for payouts when your forecasts are correct.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Country</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+              <SelectContent className="max-h-60">
+                {ALL_COUNTRIES.map(c => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.flag ? `${c.flag} ${c.name}` : c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Phone Number</Label>
             <div className="flex gap-2">
@@ -84,7 +105,7 @@ const PhoneCollectionModal = ({ open, onOpenChange, onSuccess }: PhoneCollection
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading} size="lg">
+          <Button type="submit" className="w-full" disabled={loading || !country} size="lg">
             {loading ? "Saving..." : "Save & Continue"}
           </Button>
         </form>

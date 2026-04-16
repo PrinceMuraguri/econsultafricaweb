@@ -415,7 +415,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
           <div className="mt-auto pt-1.5 border-t border-border">
             <p className="text-[8px] text-muted-foreground italic">Submit your personal forecast on the outcome</p>
             {!homepage && (
-              <Link to="/forecast-arena-pro" className="inline-flex items-center gap-1 text-[9px] text-amber-600 hover:text-amber-700 font-semibold mt-1 transition-colors">
+              <Link to={`/forecast-arena-pro/${poll.slug}`} className="inline-flex items-center gap-1 text-[9px] text-amber-600 hover:text-amber-700 font-semibold mt-1 transition-colors">
                 <TrendingUp className="w-2.5 h-2.5" /> Try Pro to commit capital →
               </Link>
             )}

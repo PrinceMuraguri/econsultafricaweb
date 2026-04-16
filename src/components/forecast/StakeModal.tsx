@@ -11,6 +11,7 @@ import type { Poll, PollOption } from "@/hooks/use-polls";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 
 interface StakeModalProps {
   open: boolean;

@@ -128,7 +128,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     } finally { setVoting(false); }
   };
 
-  const handleAuthSuccess = () => { if (pendingVoteOptionId) { handleVote(pendingVoteOptionId); setPendingVoteOptionId(null); } };
+  const handleAuthSuccess = () => {
+    if (isHomepageMode) {
+      navigate(`/forecast-arena/${poll.slug}`);
+      setPendingVoteOptionId(null);
+      return;
+    }
+    if (pendingVoteOptionId) { handleVote(pendingVoteOptionId); setPendingVoteOptionId(null); }
+  };
 
   const activateOption = (optionId: string) => {
     const now = Date.now();
@@ -139,6 +146,13 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     }
 
     activationRef.current = { optionId, timestamp: now };
+
+    // On homepage, require auth before navigating
+    if (isHomepageMode && !isLoggedIn) {
+      setPendingVoteOptionId(optionId);
+      setRegisterOpen(true);
+      return;
+    }
 
     if (interactionMode === "vote") {
       if (hasVoted || voting || isClosed) {
@@ -243,6 +257,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const handleCardClick = () => {
     if (isHomepageMode) {
+      if (!isLoggedIn) {
+        setRegisterOpen(true);
+        return;
+      }
       navigate(`/forecast-arena/${poll.slug}`);
     }
   };
@@ -374,8 +392,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
                   onKeyDown={(e) => handleOptionKeyDown(option.id, e)}
                   disabled={false}
                   className={`relative z-10 w-full pointer-events-auto overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
-                    isVoted ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-primary/40 hover:bg-primary/5 bg-transparent"
-                  } ${canVote && isHomepageMode ? "hover:scale-[1.02] hover:shadow-sm" : ""} cursor-pointer`}
+                    isVoted ? `${selectedBorder} ${selectedBg}` : isHomepageMode ? "border-border bg-transparent" : "border-border hover:border-primary/40 hover:bg-primary/5 bg-transparent"
+                  } cursor-pointer`}
                 >
                   {(hasVoted || isClosed) && (
                     <div className={`pointer-events-none absolute inset-0 transition-all duration-700 ${isVoted ? selectedBg : "bg-muted/30"} opacity-40`} style={{ width: `${pct}%` }} />

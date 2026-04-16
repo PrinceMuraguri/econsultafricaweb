@@ -95,13 +95,37 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
   const partialSellFee = parseFloat((partialSellGross * fee).toFixed(2));
   const partialSellNet = parseFloat((partialSellGross - partialSellFee).toFixed(2));
 
+  const doCommit = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("buy-shares", {
+        body: { poll_id: poll.id, option_id: selectedOptionId, shares },
+      });
+      if (error || !data?.success) throw new Error(data?.error || "Could not commit capital");
+
+      toast({
+        title: "🎯 Capital committed!",
+        description: `${shares} shares at $${currentPrice.toFixed(2)} per share. If your forecast is correct, you receive $${shares.toFixed(2)}.`,
+      });
+
+      refreshWallet();
+      queryClient.invalidateQueries({ queryKey: ["positions", poll.id] });
+      queryClient.invalidateQueries({ queryKey: ["poll", poll.slug] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally { setLoading(false); }
+  };
+
   const handleCommit = async () => {
     if (!user) { setRegisterOpen(true); return; }
     if (isClosed) return;
 
-    // Check if phone is missing — needed for payouts
-    const { profile } = useAuth as any;
-    // We access profile from the hook above
+    // Check if phone is missing — needed for M-Pesa payouts
+    if (!profile?.phone) {
+      setPendingCommit(true);
+      setPhoneModalOpen(true);
+      return;
+    }
 
     setLoading(true);
     try {

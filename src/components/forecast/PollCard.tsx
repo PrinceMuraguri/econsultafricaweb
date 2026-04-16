@@ -140,6 +140,13 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
     activationRef.current = { optionId, timestamp: now };
 
+    // On homepage, require auth before navigating
+    if (isHomepageMode && !isLoggedIn) {
+      setPendingVoteOptionId(optionId);
+      setRegisterOpen(true);
+      return;
+    }
+
     if (interactionMode === "vote") {
       if (hasVoted || voting || isClosed) {
         navigate(`/forecast-arena/${poll.slug}`);

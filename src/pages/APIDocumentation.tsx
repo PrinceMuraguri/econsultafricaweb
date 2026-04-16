@@ -309,6 +309,21 @@ const APIDocumentation = () => {
               </Button>
             </div>
 
+            <div className="mt-6 flex justify-center">
+              <a
+                href="https://aiagentsdirectory.com/agent/econ-forecaster?utm_source=badge&utm_medium=referral&utm_campaign=free_listing&utm_content=econ-forecaster"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="https://aiagentsdirectory.com/featured-badge.svg?v=2024"
+                  alt="Econ Forecaster - Featured AI Agent on AI Agents Directory"
+                  width={200}
+                  height={50}
+                />
+              </a>
+            </div>
+
             {/* Live stats bar */}
             {stats && (
               <motion.div

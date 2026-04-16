@@ -257,6 +257,10 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
   const handleCardClick = () => {
     if (isHomepageMode) {
+      if (!isLoggedIn) {
+        setRegisterOpen(true);
+        return;
+      }
       navigate(`/forecast-arena/${poll.slug}`);
     }
   };

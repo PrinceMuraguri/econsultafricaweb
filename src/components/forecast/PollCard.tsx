@@ -128,7 +128,14 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
     } finally { setVoting(false); }
   };
 
-  const handleAuthSuccess = () => { if (pendingVoteOptionId) { handleVote(pendingVoteOptionId); setPendingVoteOptionId(null); } };
+  const handleAuthSuccess = () => {
+    if (isHomepageMode) {
+      navigate(`/forecast-arena/${poll.slug}`);
+      setPendingVoteOptionId(null);
+      return;
+    }
+    if (pendingVoteOptionId) { handleVote(pendingVoteOptionId); setPendingVoteOptionId(null); }
+  };
 
   const activateOption = (optionId: string) => {
     const now = Date.now();

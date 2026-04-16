@@ -325,6 +325,16 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         </div>
       </DialogContent>
     </Dialog>
+    <PhoneCollectionModal
+      open={phoneModalOpen}
+      onOpenChange={(v) => { setPhoneModalOpen(v); if (!v) setPendingAction(null); }}
+      onSuccess={() => {
+        if (pendingAction === "wallet") handleWalletPay();
+        else if (pendingAction === "paystack") handleStake();
+        setPendingAction(null);
+      }}
+    />
+    </>
   );
 };
 

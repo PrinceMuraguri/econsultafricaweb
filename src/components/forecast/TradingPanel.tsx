@@ -127,24 +127,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("buy-shares", {
-        body: { poll_id: poll.id, option_id: selectedOptionId, shares },
-      });
-      if (error || !data?.success) throw new Error(data?.error || "Could not commit capital");
-
-      toast({
-        title: "🎯 Capital committed!",
-        description: `${shares} shares at $${currentPrice.toFixed(2)} per share. If your forecast is correct, you receive $${shares.toFixed(2)}.`,
-      });
-
-      refreshWallet();
-      queryClient.invalidateQueries({ queryKey: ["positions", poll.id] });
-      queryClient.invalidateQueries({ queryKey: ["poll", poll.slug] });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setLoading(false); }
+    await doCommit();
   };
 
   const handleExit = async (exitShares: number) => {

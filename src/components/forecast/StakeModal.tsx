@@ -24,6 +24,10 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const { toast } = useToast();
   const { user, profile: authProfile } = useAuth();
   const queryClient = useQueryClient();
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"wallet" | "paystack" | null>(null);
+  const { user, profile: authProfile } = useAuth();
+  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -83,6 +87,11 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
   const handleWalletPay = async () => {
     if (!selectedOption || shares < 1) return;
+    if (!authProfile?.phone) {
+      setPendingAction("wallet");
+      setPhoneModalOpen(true);
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("buy-shares", {
@@ -106,6 +115,11 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
   const handleStake = async () => {
     if (!selectedOption || !email || !fullName || !phoneNumber || shares < 1) {
       toast({ title: "Missing info", description: "Please fill in all fields.", variant: "destructive" });
+      return;
+    }
+    if (user && !authProfile?.phone) {
+      setPendingAction("paystack");
+      setPhoneModalOpen(true);
       return;
     }
 

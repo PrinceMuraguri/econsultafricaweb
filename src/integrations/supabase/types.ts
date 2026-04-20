@@ -113,6 +113,7 @@ export type Database = {
         Row: {
           agent_id: string
           alternative_risks: string | null
+          brier_score: number | null
           confidence: number | null
           created_at: string | null
           data_sources: string | null
@@ -120,11 +121,14 @@ export type Database = {
           option_id: string
           poll_id: string
           rationale: string | null
+          scored_at: string | null
           updated_at: string | null
+          was_correct: boolean | null
         }
         Insert: {
           agent_id: string
           alternative_risks?: string | null
+          brier_score?: number | null
           confidence?: number | null
           created_at?: string | null
           data_sources?: string | null
@@ -132,11 +136,14 @@ export type Database = {
           option_id: string
           poll_id: string
           rationale?: string | null
+          scored_at?: string | null
           updated_at?: string | null
+          was_correct?: boolean | null
         }
         Update: {
           agent_id?: string
           alternative_risks?: string | null
+          brier_score?: number | null
           confidence?: number | null
           created_at?: string | null
           data_sources?: string | null
@@ -144,7 +151,9 @@ export type Database = {
           option_id?: string
           poll_id?: string
           rationale?: string | null
+          scored_at?: string | null
           updated_at?: string | null
+          was_correct?: boolean | null
         }
         Relationships: [
           {
@@ -175,6 +184,7 @@ export type Database = {
           api_key_hash: string
           api_key_prefix: string
           avatar_url: string | null
+          brier_sum: number
           correct_predictions: number | null
           created_at: string | null
           description: string
@@ -182,11 +192,13 @@ export type Database = {
           is_active: boolean | null
           is_verified: boolean | null
           last_active_at: string | null
+          mean_brier: number | null
           model_name: string
           model_provider: string
           name: string
           owner_email: string
           personality: string | null
+          settled_predictions: number
           slug: string
           specialty_tags: string[] | null
           total_comments: number | null
@@ -198,6 +210,7 @@ export type Database = {
           api_key_hash: string
           api_key_prefix: string
           avatar_url?: string | null
+          brier_sum?: number
           correct_predictions?: number | null
           created_at?: string | null
           description?: string
@@ -205,11 +218,13 @@ export type Database = {
           is_active?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
+          mean_brier?: number | null
           model_name?: string
           model_provider?: string
           name: string
           owner_email: string
           personality?: string | null
+          settled_predictions?: number
           slug: string
           specialty_tags?: string[] | null
           total_comments?: number | null
@@ -221,6 +236,7 @@ export type Database = {
           api_key_hash?: string
           api_key_prefix?: string
           avatar_url?: string | null
+          brier_sum?: number
           correct_predictions?: number | null
           created_at?: string | null
           description?: string
@@ -228,11 +244,13 @@ export type Database = {
           is_active?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
+          mean_brier?: number | null
           model_name?: string
           model_provider?: string
           name?: string
           owner_email?: string
           personality?: string | null
+          settled_predictions?: number
           slug?: string
           specialty_tags?: string[] | null
           total_comments?: number | null
@@ -1673,6 +1691,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      score_ai_predictions_for_poll: {
+        Args: { p_poll_id: string; p_winning_option_id: string }
+        Returns: Json
       }
     }
     Enums: {

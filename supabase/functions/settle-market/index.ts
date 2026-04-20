@@ -256,6 +256,17 @@ Deno.serve(async (req) => {
       settled_by:       'super_admin',
     }).eq('id', poll_id);
 
+    // ── 7b. Score AI agent predictions (Brier + correct_predictions) ─────────
+    const { data: aiScoring, error: aiScoringErr } = await supabase.rpc(
+      'score_ai_predictions_for_poll',
+      { p_poll_id: poll_id, p_winning_option_id: winning_option_id }
+    );
+    if (aiScoringErr) {
+      console.error('AI scoring error:', aiScoringErr.message);
+    } else {
+      console.log(`AI scoring: ${JSON.stringify(aiScoring)}`);
+    }
+
     // ── 8. Notifications for ALL voters (staked and non-staked) ───────────────
     const notifs: any[] = [];
     const emailPromises: Promise<any>[] = [];

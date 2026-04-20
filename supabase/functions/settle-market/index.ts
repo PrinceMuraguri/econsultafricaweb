@@ -256,6 +256,17 @@ Deno.serve(async (req) => {
       settled_by:       'super_admin',
     }).eq('id', poll_id);
 
+    // ── 7b. Score AI agent predictions (Brier + correct_predictions) ─────────
+    const { data: aiScoring, error: aiScoringErr } = await supabase.rpc(
+      'score_ai_predictions_for_poll',
+      { p_poll_id: poll_id, p_winning_option_id: winning_option_id }
+    );
+    if (aiScoringErr) {
+      console.error('AI scoring error:', aiScoringErr.message);
+    } else {
+      console.log(`AI scoring: ${JSON.stringify(aiScoring)}`);
+    }
+
     // ── 8. Notifications for ALL voters (staked and non-staked) ───────────────
     const notifs: any[] = [];
     const emailPromises: Promise<any>[] = [];
@@ -424,6 +435,9 @@ Deno.serve(async (req) => {
         total_net_payouts:      payoutRecords.reduce((s, p) => s + p.amount, 0),
         settlement_method:      'positions_based',
         notifications_sent:     notifs.length,
+        ai_agents_scored:       (aiScoring as any)?.ai_agents_scored ?? 0,
+        ai_agents_correct:      (aiScoring as any)?.ai_agents_correct ?? 0,
+        mean_brier_this_poll:   (aiScoring as any)?.mean_brier_this_poll ?? null,
       },
       performed_by: 'super_admin',
     });
@@ -453,6 +467,9 @@ Deno.serve(async (req) => {
         losers:               allVotes.filter(v => v.option_id !== winning_option_id).length,
         listings_cancelled:   listingsCancelled,
         total_payouts:        payoutRecords.reduce((s, p) => s + p.amount, 0),
+        ai_agents_scored:     (aiScoring as any)?.ai_agents_scored ?? 0,
+        ai_agents_correct:    (aiScoring as any)?.ai_agents_correct ?? 0,
+        mean_brier_this_poll: (aiScoring as any)?.mean_brier_this_poll ?? null,
       },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

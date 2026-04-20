@@ -467,6 +467,9 @@ Deno.serve(async (req) => {
         losers:               allVotes.filter(v => v.option_id !== winning_option_id).length,
         listings_cancelled:   listingsCancelled,
         total_payouts:        payoutRecords.reduce((s, p) => s + p.amount, 0),
+        ai_agents_scored:     (aiScoring as any)?.ai_agents_scored ?? 0,
+        ai_agents_correct:    (aiScoring as any)?.ai_agents_correct ?? 0,
+        mean_brier_this_poll: (aiScoring as any)?.mean_brier_this_poll ?? null,
       },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

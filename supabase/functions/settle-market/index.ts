@@ -435,6 +435,9 @@ Deno.serve(async (req) => {
         total_net_payouts:      payoutRecords.reduce((s, p) => s + p.amount, 0),
         settlement_method:      'positions_based',
         notifications_sent:     notifs.length,
+        ai_agents_scored:       (aiScoring as any)?.ai_agents_scored ?? 0,
+        ai_agents_correct:      (aiScoring as any)?.ai_agents_correct ?? 0,
+        mean_brier_this_poll:   (aiScoring as any)?.mean_brier_this_poll ?? null,
       },
       performed_by: 'super_admin',
     });

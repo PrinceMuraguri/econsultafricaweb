@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp as TrendingUpIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates homepage Pro banners
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -192,7 +193,10 @@ const ForecastArena = () => {
                   <p>This is a platform built on what people across Africa actually believe — not just headlines, not just reports.</p>
                   <p className="text-background/80 font-medium">How well can you read the economy?</p>
                   <p>100+ live economic questions across 10+ African economies. Track real-time sentiment on monetary policy, fiscal outlook, capital markets, and political dynamics.</p>
-                  <p className="text-accent/90 text-xs font-medium">🚀 Want to go further? Try <Link to="/forecast-arena-pro" className="underline font-bold hover:text-accent">Forecast Arena Pro</Link> to back your views with real capital and earn rewards.</p>
+                  {/* Pro flag: hero Pro mention hidden when Pro is paused */}
+                  {PRO_ENABLED && (
+                    <p className="text-accent/90 text-xs font-medium">🚀 Want to go further? Try <Link to="/forecast-arena-pro" className="underline font-bold hover:text-accent">Forecast Arena Pro</Link> to back your views with real capital and earn rewards.</p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -214,21 +218,23 @@ const ForecastArena = () => {
         </div>
       </div>
 
-      {/* Pro cross-promotion banner */}
-      <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-amber-500/20">
-        <div className="container-page py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <TrendingUpIcon className="w-4 h-4 text-amber-500" />
-            <p className="text-xs text-foreground">
-              You're on the free version of Forecast Arena.{" "}
-              <span className="font-bold">Upgrade to Pro</span> to back your predictions with real capital—and earn rewards when you get it right.
-            </p>
+      {/* Pro flag: upgrade banner hidden when Pro is paused */}
+      {PRO_ENABLED && (
+        <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-amber-500/20">
+          <div className="container-page py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <TrendingUpIcon className="w-4 h-4 text-amber-500" />
+              <p className="text-xs text-foreground">
+                You're on the free version of Forecast Arena.{" "}
+                <span className="font-bold">Upgrade to Pro</span> to back your predictions with real capital—and earn rewards when you get it right.
+              </p>
+            </div>
+            <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
+              Upgrade to Pro →
+            </Link>
           </div>
-          <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
-            Upgrade to Pro →
-          </Link>
         </div>
-      </div>
+      )}
 
       {/* AI Agent registration banner */}
       <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/5 border-b border-purple-500/20">

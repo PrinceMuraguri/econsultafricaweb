@@ -101,7 +101,7 @@ export function PollLink({ pollId, polls }: { pollId?: string | null; polls?: an
 }
 
 // OptionLabel — looks up the option label from a poll's poll_options
-function OptionLabel({ optionId, pollId, polls }: { optionId?: string | null; pollId?: string | null; polls?: any[] }) {
+export function OptionLabel({ optionId, pollId, polls }: { optionId?: string | null; pollId?: string | null; polls?: any[] }) {
   if (!optionId) return <span className="text-muted-foreground">—</span>;
   const poll = polls?.find((p: any) => p.id === pollId);
   const opt = poll?.poll_options?.find((o: any) => o.id === optionId);

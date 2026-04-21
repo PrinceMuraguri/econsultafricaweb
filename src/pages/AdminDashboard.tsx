@@ -430,7 +430,20 @@ const AdminDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Settle market mutation
+  // Identity resolver — combines user_id (registered) + voter_fingerprint (legacy/anon)
+  // sources across staked entries, all votes, and all transactions.
+  const identityUserIds = [
+    ...((entries || []).map((e: any) => e.user_id)),
+    ...((allVotes || []).map((v: any) => v.user_id)),
+  ];
+  const identityFingerprints = [
+    ...((entries || []).map((e: any) => e.voter_fingerprint)),
+    ...((allVotes || []).map((v: any) => v.voter_fingerprint)),
+    ...((allTransactions || []).map((t: any) => t.voter_fingerprint)),
+  ];
+  const resolveIdentity = useIdentityResolver(identityUserIds, identityFingerprints);
+
+
   const settleMutation = useMutation({
     mutationFn: async ({ pollId, winningOptionId }: { pollId: string; winningOptionId: string }) => {
       const { data, error } = await supabase.functions.invoke("settle-market", {

@@ -24,7 +24,7 @@ const ADMIN_EMAILS = ['princemuraguri@gmail.com'];
 // voter_profiles (by voter_fingerprint) and returns a `resolve(uid?, fp?)`
 // helper that yields { name, email } for any row.
 // ────────────────────────────────────────────────────────────────────────────
-function useIdentityResolver(userIds: (string | null | undefined)[], fingerprints: (string | null | undefined)[]) {
+export function useIdentityResolver(userIds: (string | null | undefined)[], fingerprints: (string | null | undefined)[]) {
   const distinctUserIds = Array.from(new Set(userIds.filter(Boolean) as string[]));
   const distinctFps = Array.from(new Set(fingerprints.filter(Boolean) as string[]));
   const userIdsKey = distinctUserIds.sort().join(",");

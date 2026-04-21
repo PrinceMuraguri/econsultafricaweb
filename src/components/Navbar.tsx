@@ -8,10 +8,10 @@ import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import NotificationBell from "@/components/NotificationBell";
 import logo from "@/assets/econsult-africa-logo.png";
+import { PRO_ENABLED } from "@/lib/features";
 
-const navLinks = [
+const baseNavLinks = [
   { label: "Forecast Arena", href: "/" },
-  { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "AI Council API", href: "/api-docs" },
   { label: "Shop", href: "/intelligence-marketplace" },
@@ -20,6 +20,20 @@ const navLinks = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
+
+const navLinks = PRO_ENABLED
+  ? [
+      { label: "Forecast Arena", href: "/" },
+      { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
+      { label: "Leaderboard", href: "/leaderboard" },
+      { label: "AI Council API", href: "/api-docs" },
+      { label: "Shop", href: "/intelligence-marketplace" },
+      { label: "Philosophy", href: "/our-philosophy" },
+      { label: "Insights", href: "/insights" },
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
+    ]
+  : baseNavLinks;
 
 const Navbar = () => {
   const location = useLocation();

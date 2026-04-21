@@ -19,6 +19,101 @@ import { useAuth } from "@/contexts/AuthContext";
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 const ADMIN_EMAILS = ['princemuraguri@gmail.com'];
 
+// ────────────────────────────────────────────────────────────────────────────
+// Identity resolver — batch-fetches user_profiles (by user_id) and
+// voter_profiles (by voter_fingerprint) and returns a `resolve(uid?, fp?)`
+// helper that yields { name, email } for any row.
+// ────────────────────────────────────────────────────────────────────────────
+function useIdentityResolver(userIds: (string | null | undefined)[], fingerprints: (string | null | undefined)[]) {
+  const distinctUserIds = Array.from(new Set(userIds.filter(Boolean) as string[]));
+  const distinctFps = Array.from(new Set(fingerprints.filter(Boolean) as string[]));
+  const userIdsKey = distinctUserIds.sort().join(",");
+  const fpsKey = distinctFps.sort().join(",");
+
+  const { data: profiles } = useQuery({
+    queryKey: ["identity-user-profiles", userIdsKey],
+    queryFn: async () => {
+      if (distinctUserIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("user_id, full_name, username")
+        .in("user_id", distinctUserIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: distinctUserIds.length > 0,
+    staleTime: 30000,
+  });
+
+  const { data: voters } = useQuery({
+    queryKey: ["identity-voter-profiles", fpsKey],
+    queryFn: async () => {
+      if (distinctFps.length === 0) return [];
+      const { data, error } = await supabase
+        .from("voter_profiles")
+        .select("voter_fingerprint, full_name, email")
+        .in("voter_fingerprint", distinctFps);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: distinctFps.length > 0,
+    staleTime: 30000,
+  });
+
+  const profileMap = new Map<string, { full_name: string; username: string }>();
+  (profiles || []).forEach((p: any) => profileMap.set(p.user_id, p));
+
+  const voterMap = new Map<string, { full_name: string; email: string }>();
+  (voters || []).forEach((v: any) => voterMap.set(v.voter_fingerprint, v));
+
+  return (userId?: string | null, fingerprint?: string | null) => {
+    const profile = userId ? profileMap.get(userId) : undefined;
+    const voter = fingerprint ? voterMap.get(fingerprint) : undefined;
+    return {
+      name: profile?.full_name || voter?.full_name || "Anonymous",
+      email: voter?.email || "—",
+      username: profile?.username || null,
+    };
+  };
+}
+
+// PollLink — admin-side clickable poll reference. Looks up title from already-loaded polls.
+function PollLink({ pollId, polls }: { pollId?: string | null; polls?: any[] }) {
+  if (!pollId) return <span className="text-muted-foreground">—</span>;
+  const poll = polls?.find((p: any) => p.id === pollId);
+  const slug = poll?.slug;
+  const title = poll?.title;
+  const short = pollId.slice(0, 8);
+  if (!slug) {
+    return <span className="font-mono text-xs text-muted-foreground" title={pollId}>{short}…</span>;
+  }
+  return (
+    <a
+      href={`/forecast-arena-pro/${slug}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-primary hover:underline text-xs"
+      title={title || pollId}
+    >
+      {title ? (title.length > 40 ? title.slice(0, 40) + "…" : title) : `${short}…`}
+    </a>
+  );
+}
+
+// OptionLabel — looks up the option label from a poll's poll_options
+function OptionLabel({ optionId, pollId, polls }: { optionId?: string | null; pollId?: string | null; polls?: any[] }) {
+  if (!optionId) return <span className="text-muted-foreground">—</span>;
+  const poll = polls?.find((p: any) => p.id === pollId);
+  const opt = poll?.poll_options?.find((o: any) => o.id === optionId);
+  const short = optionId.slice(0, 8);
+  return (
+    <div className="leading-tight">
+      <div className="text-xs text-foreground">{opt?.label || `${short}…`}</div>
+      {opt?.label && <div className="text-[10px] font-mono text-muted-foreground">{short}…</div>}
+    </div>
+  );
+}
+
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();

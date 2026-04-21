@@ -10,4 +10,4 @@
  * instruction. If this flag is deleted, every conditional guard in the
  * codebase marked "// Pro flag:" will break.
  */
-export const PRO_ENABLED = false;   // Set to false to pause Pro across the site.
+export const PRO_ENABLED = true;   // Set to false to pause Pro across the site.

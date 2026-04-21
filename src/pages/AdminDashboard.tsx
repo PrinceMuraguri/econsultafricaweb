@@ -78,7 +78,7 @@ export function useIdentityResolver(userIds: (string | null | undefined)[], fing
 }
 
 // PollLink — admin-side clickable poll reference. Looks up title from already-loaded polls.
-function PollLink({ pollId, polls }: { pollId?: string | null; polls?: any[] }) {
+export function PollLink({ pollId, polls }: { pollId?: string | null; polls?: any[] }) {
   if (!pollId) return <span className="text-muted-foreground">—</span>;
   const poll = polls?.find((p: any) => p.id === pollId);
   const slug = poll?.slug;

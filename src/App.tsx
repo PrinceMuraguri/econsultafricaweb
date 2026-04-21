@@ -39,8 +39,6 @@ import Unsubscribe from "./pages/Unsubscribe.tsx";
 import KenyaGenZ2026 from "./pages/KenyaGenZ2026.tsx";
 import AIAgentProfile from "./pages/AIAgentProfile.tsx";
 import APIDocumentation from "./pages/APIDocumentation.tsx";
-import ProPaused from "./pages/ProPaused.tsx";
-import { PRO_ENABLED } from "@/lib/features";
 
 const queryClient = new QueryClient();
 
@@ -72,8 +70,8 @@ const App = () => (
               <Route path="/how-it-works-detailed" element={<HowItWorksDetailed />} />
               <Route path="/terms-of-use" element={<TermsOfUse />} />
               <Route path="/forecast-arena/:slug" element={<ForecastPollDetail />} />
-              <Route path="/forecast-arena-pro" element={PRO_ENABLED ? <ForecastArenaPro /> : <ProPaused />} />
-              <Route path="/forecast-arena-pro/:slug" element={PRO_ENABLED ? <ForecastPollDetailPro /> : <ProPaused />} />
+              <Route path="/forecast-arena-pro" element={<ForecastArenaPro />} />
+              <Route path="/forecast-arena-pro/:slug" element={<ForecastPollDetailPro />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/sector-brief-preview/:filename" element={<SectorBriefPreview />} />
               <Route path="/product/:slug" element={<ProductDetail />} />

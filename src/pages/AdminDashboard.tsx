@@ -241,6 +241,13 @@ const AdminDashboard = () => {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-trading-activity"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'listings' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-trading-activity"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-trading-activity"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });

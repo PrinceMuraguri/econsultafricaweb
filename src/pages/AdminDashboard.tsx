@@ -1258,7 +1258,7 @@ const AdminDashboard = () => {
           {activeTab === "sales-funnel" && <SalesFunnelTab />}
 
           {/* Tab: Trading */}
-          {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} />}
+          {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} polls={polls} />}
 
           {/* Tab: Revenue & Finance */}
           {activeTab === "revenue" && <RevenueFinanceTab isAuthenticated={isAuthenticated} />}

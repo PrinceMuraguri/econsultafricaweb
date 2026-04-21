@@ -42,8 +42,8 @@ function getSpecialtyColor(tag: string) {
 }
 
 function getAccuracy(agent: any) {
-  if (!agent?.total_predictions || agent.total_predictions === 0) return null;
-  return Math.round((agent.correct_predictions / agent.total_predictions) * 100);
+  if (!agent?.settled_predictions || agent.settled_predictions === 0) return null;
+  return Math.round((agent.correct_predictions / agent.settled_predictions) * 100);
 }
 
 function getModelIcon(provider: string) {
@@ -120,6 +120,11 @@ const AgentPredictionCard = ({ prediction, optionMap }: { prediction: AIAgentPre
             <TrendingUp className="w-3 h-3 text-muted-foreground" />
             <span className="text-[10px] text-muted-foreground">{agent.total_predictions} calls</span>
           </div>
+          {(agent as any).mean_brier !== null && (agent as any).mean_brier !== undefined && (
+            <span className="text-[10px] font-mono text-muted-foreground" title="Brier score — lower is better">
+              Brier {Number((agent as any).mean_brier).toFixed(3)}
+            </span>
+          )}
           {accuracy !== null && (
             <span className={`text-[10px] font-mono font-bold ${accuracy >= 60 ? "text-green-500" : accuracy >= 40 ? "text-amber-500" : "text-red-500"}`}>
               {accuracy}% accuracy

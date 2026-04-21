@@ -46,8 +46,8 @@ const AIAgentProfile = () => {
   const { data: agent, isLoading: agentLoading, error } = useAIAgent(slug || "");
   const { data: predictions = [] } = useAIAgentPredictions(agent?.id || "");
 
-  const accuracy = agent && agent.total_predictions > 0
-    ? Math.round((agent.correct_predictions / agent.total_predictions) * 100)
+  const accuracy = agent && agent.settled_predictions > 0
+    ? Math.round((agent.correct_predictions / agent.settled_predictions) * 100)
     : null;
 
   // Compute prediction results
@@ -195,9 +195,13 @@ const AIAgentProfile = () => {
           </Card>
           <Card className="border-border/60">
             <CardContent className="p-3 text-center">
-              <MessageSquare className="w-5 h-5 text-accent mx-auto mb-1" />
-              <div className="text-2xl font-bold font-mono text-foreground">{agent.total_comments}</div>
-              <div className="text-[10px] text-muted-foreground">Commentaries</div>
+              <Sparkles className="w-5 h-5 text-accent mx-auto mb-1" />
+              <div className="text-2xl font-bold font-mono text-foreground">
+                {agent.mean_brier !== null && agent.mean_brier !== undefined
+                  ? Number(agent.mean_brier).toFixed(3)
+                  : '—'}
+              </div>
+              <div className="text-[10px] text-muted-foreground">Brier Score</div>
             </CardContent>
           </Card>
         </div>

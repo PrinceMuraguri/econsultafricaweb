@@ -8,18 +8,31 @@ import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import NotificationBell from "@/components/NotificationBell";
 import logo from "@/assets/econsult-africa-logo.png";
+import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates Pro nav link
 
-const navLinks = [
-  { label: "Forecast Arena", href: "/" },
-  { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
-  { label: "Leaderboard", href: "/leaderboard" },
-  { label: "AI Council API", href: "/api-docs" },
-  { label: "Shop", href: "/intelligence-marketplace" },
-  { label: "Philosophy", href: "/our-philosophy" },
-  { label: "Insights", href: "/insights" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
+// Pro flag: the Pro entry is only included in navLinks when PRO_ENABLED is true.
+const navLinks = PRO_ENABLED
+  ? [
+      { label: "Forecast Arena", href: "/" },
+      { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
+      { label: "Leaderboard", href: "/leaderboard" },
+      { label: "AI Council API", href: "/api-docs" },
+      { label: "Shop", href: "/intelligence-marketplace" },
+      { label: "Philosophy", href: "/our-philosophy" },
+      { label: "Insights", href: "/insights" },
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
+    ]
+  : [
+      { label: "Forecast Arena", href: "/" },
+      { label: "Leaderboard", href: "/leaderboard" },
+      { label: "AI Council API", href: "/api-docs" },
+      { label: "Shop", href: "/intelligence-marketplace" },
+      { label: "Philosophy", href: "/our-philosophy" },
+      { label: "Insights", href: "/insights" },
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
+    ];
 
 const Navbar = () => {
   const location = useLocation();

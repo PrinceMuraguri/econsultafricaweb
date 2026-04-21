@@ -17,6 +17,7 @@ import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 import { useAIPredictions } from "@/hooks/use-ai-council";
 import { Bot } from "lucide-react";
+import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates poll-card Pro CTAs
 
 const PARTICIPATION_ENABLED = true;
 const CONTEXT_PREVIEW_LENGTH = 120;
@@ -414,7 +415,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
 
           <div className="mt-auto pt-1.5 border-t border-border">
             <p className="text-[8px] text-muted-foreground italic">Submit your personal forecast on the outcome</p>
-            {!homepage && (
+            {/* Pro flag: inline "Try Pro" hint hidden when Pro is paused */}
+            {!homepage && PRO_ENABLED && (
               <Link to={`/forecast-arena-pro/${poll.slug}`} className="inline-flex items-center gap-1 text-[9px] text-amber-600 hover:text-amber-700 font-semibold mt-1 transition-colors">
                 <TrendingUp className="w-2.5 h-2.5" /> Try Pro to commit capital →
               </Link>
@@ -524,18 +526,22 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       {/* Post-vote: cross-promotion to Pro (only on detail page, not homepage) */}
       {!isHomepageMode && hasVoted && !isClosed && (
         <div className="mt-2 pt-2 border-t border-border">
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 text-center space-y-1.5">
-            <p className="text-xs font-semibold text-foreground">💰 Want to back your forecast with real capital?</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              Commit capital to your view and earn rewards if you're right. Each share pays $1.00 if the outcome matches.
-            </p>
-            <Link
-              to={`/forecast-arena-pro/${poll.slug}`}
-              className="inline-flex items-center justify-center rounded-md bg-amber-500 text-white px-4 py-1.5 text-xs font-bold shadow hover:bg-amber-600 transition-colors"
-            >
-              Try Forecast Arena Pro →
-            </Link>
-          </div>
+          {/* Pro flag: post-vote "back with real capital" card hidden when Pro is paused */}
+          {PRO_ENABLED && (
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 text-center space-y-1.5">
+              <p className="text-xs font-semibold text-foreground">💰 Want to back your forecast with real capital?</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Commit capital to your view and earn rewards if you're right. Each share pays $1.00 if the outcome matches.
+              </p>
+              <Link
+                to={`/forecast-arena-pro/${poll.slug}`}
+                className="inline-flex items-center justify-center rounded-md bg-amber-500 text-white px-4 py-1.5 text-xs font-bold shadow hover:bg-amber-600 transition-colors"
+              >
+                Try Forecast Arena Pro →
+              </Link>
+            </div>
+          )}
+          {/* Share-view row: always shown post-vote, independent of Pro flag */}
           {hasVoted && (
             <div className="flex items-center justify-center gap-3 mt-1 pt-1 border-t border-border">
               <span className="text-[9px] text-muted-foreground">Share your view:</span>

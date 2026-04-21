@@ -1131,7 +1131,9 @@ const AdminDashboard = () => {
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fingerprint</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Name</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Currency</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Channel</th>
@@ -1140,23 +1142,28 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {allTransactions?.map((tx: any) => (
-                      <tr key={tx.id} className="border-t border-border/50">
-                        <td className="px-3 py-1.5 text-foreground">{new Date(tx.created_at).toLocaleString()}</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{tx.voter_fingerprint?.slice(0, 12)}…</td>
-                        <td className="px-3 py-1.5 font-mono font-semibold">${tx.amount?.toFixed(2)}</td>
-                        <td className="px-3 py-1.5">{tx.currency}</td>
-                        <td className="px-3 py-1.5 capitalize">{tx.channel}</td>
-                        <td className="px-3 py-1.5">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                            tx.status === "completed" ? "bg-green-100 text-green-700" :
-                            tx.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                          }`}>{tx.status}</span>
-                        </td>
-                        <td className="px-3 py-1.5 font-mono text-[10px] text-muted-foreground">{tx.reference}</td>
-                      </tr>
-                    ))}
+                    {allTransactions?.map((tx: any) => {
+                      const id = resolveIdentity(null, tx.voter_fingerprint);
+                      return (
+                        <tr key={tx.id} className="border-t border-border/50">
+                          <td className="px-3 py-1.5 text-foreground">{new Date(tx.created_at).toLocaleString()}</td>
+                          <td className="px-3 py-1.5 text-foreground">{id.name}</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">{id.email}</td>
+                          <td className="px-3 py-1.5"><PollLink pollId={tx.poll_id} polls={polls} /></td>
+                          <td className="px-3 py-1.5 font-mono font-semibold">${tx.amount?.toFixed(2)}</td>
+                          <td className="px-3 py-1.5">{tx.currency}</td>
+                          <td className="px-3 py-1.5 capitalize">{tx.channel}</td>
+                          <td className="px-3 py-1.5">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                              tx.status === "completed" ? "bg-green-100 text-green-700" :
+                              tx.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }`}>{tx.status}</span>
+                          </td>
+                          <td className="px-3 py-1.5 font-mono text-[10px] text-muted-foreground">{tx.reference}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {(!allTransactions || allTransactions.length === 0) && (

@@ -800,22 +800,29 @@ const AdminDashboard = () => {
                     <thead>
                       <tr className="border-b border-border text-left">
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Date</th>
-                        <th className="pb-2 text-xs text-muted-foreground font-medium">Fingerprint</th>
+                        <th className="pb-2 text-xs text-muted-foreground font-medium">Name</th>
+                        <th className="pb-2 text-xs text-muted-foreground font-medium">Email</th>
+                        <th className="pb-2 text-xs text-muted-foreground font-medium">Poll</th>
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Option</th>
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Stake</th>
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Reference</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {entries?.map((entry: any) => (
-                        <tr key={entry.id} className="border-b border-border/50">
-                          <td className="py-2 font-mono text-xs">{new Date(entry.created_at).toLocaleDateString()}</td>
-                          <td className="py-2 font-mono text-xs">{entry.voter_fingerprint?.slice(0, 12)}...</td>
-                          <td className="py-2 text-xs">{entry.option_id?.slice(0, 8)}</td>
-                          <td className="py-2 font-mono text-xs font-semibold">${entry.stake_amount?.toFixed(2)}</td>
-                          <td className="py-2 font-mono text-xs">{entry.payment_reference || "—"}</td>
-                        </tr>
-                      ))}
+                      {entries?.map((entry: any) => {
+                        const id = resolveIdentity(entry.user_id, entry.voter_fingerprint);
+                        return (
+                          <tr key={entry.id} className="border-b border-border/50">
+                            <td className="py-2 font-mono text-xs">{new Date(entry.created_at).toLocaleDateString()}</td>
+                            <td className="py-2 text-xs text-foreground">{id.name}</td>
+                            <td className="py-2 text-xs text-muted-foreground">{id.email}</td>
+                            <td className="py-2"><PollLink pollId={entry.poll_id} polls={polls} /></td>
+                            <td className="py-2"><OptionLabel optionId={entry.option_id} pollId={entry.poll_id} polls={polls} /></td>
+                            <td className="py-2 font-mono text-xs font-semibold">${entry.stake_amount?.toFixed(2)}</td>
+                            <td className="py-2 font-mono text-xs">{entry.payment_reference || "—"}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                   {(!entries || entries.length === 0) && (

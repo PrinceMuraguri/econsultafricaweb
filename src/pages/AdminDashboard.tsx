@@ -19,6 +19,101 @@ import { useAuth } from "@/contexts/AuthContext";
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 const ADMIN_EMAILS = ['princemuraguri@gmail.com'];
 
+// ────────────────────────────────────────────────────────────────────────────
+// Identity resolver — batch-fetches user_profiles (by user_id) and
+// voter_profiles (by voter_fingerprint) and returns a `resolve(uid?, fp?)`
+// helper that yields { name, email } for any row.
+// ────────────────────────────────────────────────────────────────────────────
+export function useIdentityResolver(userIds: (string | null | undefined)[], fingerprints: (string | null | undefined)[]) {
+  const distinctUserIds = Array.from(new Set(userIds.filter(Boolean) as string[]));
+  const distinctFps = Array.from(new Set(fingerprints.filter(Boolean) as string[]));
+  const userIdsKey = distinctUserIds.sort().join(",");
+  const fpsKey = distinctFps.sort().join(",");
+
+  const { data: profiles } = useQuery({
+    queryKey: ["identity-user-profiles", userIdsKey],
+    queryFn: async () => {
+      if (distinctUserIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("user_id, full_name, username")
+        .in("user_id", distinctUserIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: distinctUserIds.length > 0,
+    staleTime: 30000,
+  });
+
+  const { data: voters } = useQuery({
+    queryKey: ["identity-voter-profiles", fpsKey],
+    queryFn: async () => {
+      if (distinctFps.length === 0) return [];
+      const { data, error } = await supabase
+        .from("voter_profiles")
+        .select("voter_fingerprint, full_name, email")
+        .in("voter_fingerprint", distinctFps);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: distinctFps.length > 0,
+    staleTime: 30000,
+  });
+
+  const profileMap = new Map<string, { full_name: string; username: string }>();
+  (profiles || []).forEach((p: any) => profileMap.set(p.user_id, p));
+
+  const voterMap = new Map<string, { full_name: string; email: string }>();
+  (voters || []).forEach((v: any) => voterMap.set(v.voter_fingerprint, v));
+
+  return (userId?: string | null, fingerprint?: string | null) => {
+    const profile = userId ? profileMap.get(userId) : undefined;
+    const voter = fingerprint ? voterMap.get(fingerprint) : undefined;
+    return {
+      name: profile?.full_name || voter?.full_name || "Anonymous",
+      email: voter?.email || "—",
+      username: profile?.username || null,
+    };
+  };
+}
+
+// PollLink — admin-side clickable poll reference. Looks up title from already-loaded polls.
+export function PollLink({ pollId, polls }: { pollId?: string | null; polls?: any[] }) {
+  if (!pollId) return <span className="text-muted-foreground">—</span>;
+  const poll = polls?.find((p: any) => p.id === pollId);
+  const slug = poll?.slug;
+  const title = poll?.title;
+  const short = pollId.slice(0, 8);
+  if (!slug) {
+    return <span className="font-mono text-xs text-muted-foreground" title={pollId}>{short}…</span>;
+  }
+  return (
+    <a
+      href={`/forecast-arena-pro/${slug}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-primary hover:underline text-xs"
+      title={title || pollId}
+    >
+      {title ? (title.length > 40 ? title.slice(0, 40) + "…" : title) : `${short}…`}
+    </a>
+  );
+}
+
+// OptionLabel — looks up the option label from a poll's poll_options
+export function OptionLabel({ optionId, pollId, polls }: { optionId?: string | null; pollId?: string | null; polls?: any[] }) {
+  if (!optionId) return <span className="text-muted-foreground">—</span>;
+  const poll = polls?.find((p: any) => p.id === pollId);
+  const opt = poll?.poll_options?.find((o: any) => o.id === optionId);
+  const short = optionId.slice(0, 8);
+  return (
+    <div className="leading-tight">
+      <div className="text-xs text-foreground">{opt?.label || `${short}…`}</div>
+      {opt?.label && <div className="text-[10px] font-mono text-muted-foreground">{short}…</div>}
+    </div>
+  );
+}
+
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -146,6 +241,13 @@ const AdminDashboard = () => {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-trading-activity"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'listings' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-trading-activity"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-trading-activity"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });
@@ -335,7 +437,20 @@ const AdminDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Settle market mutation
+  // Identity resolver — combines user_id (registered) + voter_fingerprint (legacy/anon)
+  // sources across staked entries, all votes, and all transactions.
+  const identityUserIds = [
+    ...((entries || []).map((e: any) => e.user_id)),
+    ...((allVotes || []).map((v: any) => v.user_id)),
+  ];
+  const identityFingerprints = [
+    ...((entries || []).map((e: any) => e.voter_fingerprint)),
+    ...((allVotes || []).map((v: any) => v.voter_fingerprint)),
+    ...((allTransactions || []).map((t: any) => t.voter_fingerprint)),
+  ];
+  const resolveIdentity = useIdentityResolver(identityUserIds, identityFingerprints);
+
+
   const settleMutation = useMutation({
     mutationFn: async ({ pollId, winningOptionId }: { pollId: string; winningOptionId: string }) => {
       const { data, error } = await supabase.functions.invoke("settle-market", {
@@ -692,22 +807,29 @@ const AdminDashboard = () => {
                     <thead>
                       <tr className="border-b border-border text-left">
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Date</th>
-                        <th className="pb-2 text-xs text-muted-foreground font-medium">Fingerprint</th>
+                        <th className="pb-2 text-xs text-muted-foreground font-medium">Name</th>
+                        <th className="pb-2 text-xs text-muted-foreground font-medium">Email</th>
+                        <th className="pb-2 text-xs text-muted-foreground font-medium">Poll</th>
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Option</th>
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Stake</th>
                         <th className="pb-2 text-xs text-muted-foreground font-medium">Reference</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {entries?.map((entry: any) => (
-                        <tr key={entry.id} className="border-b border-border/50">
-                          <td className="py-2 font-mono text-xs">{new Date(entry.created_at).toLocaleDateString()}</td>
-                          <td className="py-2 font-mono text-xs">{entry.voter_fingerprint?.slice(0, 12)}...</td>
-                          <td className="py-2 text-xs">{entry.option_id?.slice(0, 8)}</td>
-                          <td className="py-2 font-mono text-xs font-semibold">${entry.stake_amount?.toFixed(2)}</td>
-                          <td className="py-2 font-mono text-xs">{entry.payment_reference || "—"}</td>
-                        </tr>
-                      ))}
+                      {entries?.map((entry: any) => {
+                        const id = resolveIdentity(entry.user_id, entry.voter_fingerprint);
+                        return (
+                          <tr key={entry.id} className="border-b border-border/50">
+                            <td className="py-2 font-mono text-xs">{new Date(entry.created_at).toLocaleDateString()}</td>
+                            <td className="py-2 text-xs text-foreground">{id.name}</td>
+                            <td className="py-2 text-xs text-muted-foreground">{id.email}</td>
+                            <td className="py-2"><PollLink pollId={entry.poll_id} polls={polls} /></td>
+                            <td className="py-2"><OptionLabel optionId={entry.option_id} pollId={entry.poll_id} polls={polls} /></td>
+                            <td className="py-2 font-mono text-xs font-semibold">${entry.stake_amount?.toFixed(2)}</td>
+                            <td className="py-2 font-mono text-xs">{entry.payment_reference || "—"}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                   {(!entries || entries.length === 0) && (
@@ -979,24 +1101,29 @@ const AdminDashboard = () => {
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fingerprint</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll ID</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Option ID</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Name</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Option</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Staked</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allVotes?.map((v: any) => (
-                      <tr key={v.id} className="border-t border-border/50">
-                        <td className="px-3 py-1.5 text-foreground">{new Date(v.created_at).toLocaleString()}</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.voter_fingerprint?.slice(0, 12)}…</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.poll_id?.slice(0, 8)}…</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.option_id?.slice(0, 8)}…</td>
-                        <td className="px-3 py-1.5">{v.is_staked ? "✅" : "—"}</td>
-                        <td className="px-3 py-1.5 font-mono">{v.stake_amount ? `$${v.stake_amount.toFixed(2)}` : "—"}</td>
-                      </tr>
-                    ))}
+                    {allVotes?.map((v: any) => {
+                      const id = resolveIdentity(v.user_id, v.voter_fingerprint);
+                      return (
+                        <tr key={v.id} className="border-t border-border/50">
+                          <td className="px-3 py-1.5 text-foreground">{new Date(v.created_at).toLocaleString()}</td>
+                          <td className="px-3 py-1.5 text-foreground">{id.name}</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">{id.email}</td>
+                          <td className="px-3 py-1.5"><PollLink pollId={v.poll_id} polls={polls} /></td>
+                          <td className="px-3 py-1.5"><OptionLabel optionId={v.option_id} pollId={v.poll_id} polls={polls} /></td>
+                          <td className="px-3 py-1.5">{v.is_staked ? "✅" : "—"}</td>
+                          <td className="px-3 py-1.5 font-mono">{v.stake_amount ? `$${v.stake_amount.toFixed(2)}` : "—"}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {(!allVotes || allVotes.length === 0) && (
@@ -1011,7 +1138,9 @@ const AdminDashboard = () => {
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fingerprint</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Name</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Currency</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Channel</th>
@@ -1020,23 +1149,28 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {allTransactions?.map((tx: any) => (
-                      <tr key={tx.id} className="border-t border-border/50">
-                        <td className="px-3 py-1.5 text-foreground">{new Date(tx.created_at).toLocaleString()}</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{tx.voter_fingerprint?.slice(0, 12)}…</td>
-                        <td className="px-3 py-1.5 font-mono font-semibold">${tx.amount?.toFixed(2)}</td>
-                        <td className="px-3 py-1.5">{tx.currency}</td>
-                        <td className="px-3 py-1.5 capitalize">{tx.channel}</td>
-                        <td className="px-3 py-1.5">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                            tx.status === "completed" ? "bg-green-100 text-green-700" :
-                            tx.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                          }`}>{tx.status}</span>
-                        </td>
-                        <td className="px-3 py-1.5 font-mono text-[10px] text-muted-foreground">{tx.reference}</td>
-                      </tr>
-                    ))}
+                    {allTransactions?.map((tx: any) => {
+                      const id = resolveIdentity(null, tx.voter_fingerprint);
+                      return (
+                        <tr key={tx.id} className="border-t border-border/50">
+                          <td className="px-3 py-1.5 text-foreground">{new Date(tx.created_at).toLocaleString()}</td>
+                          <td className="px-3 py-1.5 text-foreground">{id.name}</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">{id.email}</td>
+                          <td className="px-3 py-1.5"><PollLink pollId={tx.poll_id} polls={polls} /></td>
+                          <td className="px-3 py-1.5 font-mono font-semibold">${tx.amount?.toFixed(2)}</td>
+                          <td className="px-3 py-1.5">{tx.currency}</td>
+                          <td className="px-3 py-1.5 capitalize">{tx.channel}</td>
+                          <td className="px-3 py-1.5">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                              tx.status === "completed" ? "bg-green-100 text-green-700" :
+                              tx.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }`}>{tx.status}</span>
+                          </td>
+                          <td className="px-3 py-1.5 font-mono text-[10px] text-muted-foreground">{tx.reference}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {(!allTransactions || allTransactions.length === 0) && (
@@ -1124,7 +1258,7 @@ const AdminDashboard = () => {
           {activeTab === "sales-funnel" && <SalesFunnelTab />}
 
           {/* Tab: Trading */}
-          {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} />}
+          {activeTab === "trading" && <AdminTradingTab adminKey={adminKey} polls={polls} />}
 
           {/* Tab: Revenue & Finance */}
           {activeTab === "revenue" && <RevenueFinanceTab isAuthenticated={isAuthenticated} />}

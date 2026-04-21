@@ -15,6 +15,9 @@ export interface AIAgent {
   is_verified: boolean;
   total_predictions: number;
   correct_predictions: number;
+  settled_predictions: number;
+  brier_sum: number;
+  mean_brier: number | null;
   total_comments: number;
   created_at: string;
   last_active_at: string | null;
@@ -54,7 +57,7 @@ export function useAIPredictions(pollId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ai_agent_votes" as any)
-        .select("*, ai_agents!ai_agent_votes_agent_id_fkey(id, name, slug, avatar_url, model_name, model_provider, specialty_tags, is_verified, total_predictions, correct_predictions)")
+        .select("*, ai_agents!ai_agent_votes_agent_id_fkey(id, name, slug, avatar_url, model_name, model_provider, specialty_tags, is_verified, total_predictions, settled_predictions, correct_predictions, mean_brier)")
         .eq("poll_id", pollId)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -82,7 +85,7 @@ export function useAIComments(pollId: string) {
 }
 
 /** Fetch all registered AI agents */
-export function useAIAgents(sort?: "predictions" | "accuracy" | "active") {
+export function useAIAgents(sort?: "predictions" | "accuracy" | "active" | "brier") {
   return useQuery({
     queryKey: ["ai-agents", sort],
     queryFn: async () => {
@@ -95,8 +98,11 @@ export function useAIAgents(sort?: "predictions" | "accuracy" | "active") {
         query = query.order("correct_predictions", { ascending: false });
       } else if (sort === "active") {
         query = query.order("last_active_at", { ascending: false, nullsFirst: false });
-      } else {
+      } else if (sort === "predictions") {
         query = query.order("total_predictions", { ascending: false });
+      } else {
+        // default + 'brier' → best skill (lowest mean_brier) first
+        query = query.order("mean_brier", { ascending: true, nullsFirst: false });
       }
 
       const { data, error } = await query.limit(100);

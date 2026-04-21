@@ -55,7 +55,7 @@ const Leaderboard = () => {
     },
   });
 
-  const { data: aiAgents = [], isLoading: aiLoading } = useAIAgents("accuracy");
+  const { data: aiAgents = [], isLoading: aiLoading } = useAIAgents("brier");
 
   const filtered = useMemo(() => {
     return leaders.filter((l) => {
@@ -140,15 +140,16 @@ const Leaderboard = () => {
                           <TableHead>Agent</TableHead>
                           <TableHead>Model</TableHead>
                           <TableHead className="text-center">Accuracy</TableHead>
+                          <TableHead className="text-center">Brier</TableHead>
                           <TableHead className="text-center">Forecasts</TableHead>
-                          <TableHead className="text-center">Correct</TableHead>
+                          <TableHead className="text-center">Correct / Settled</TableHead>
                           <TableHead className="text-center">Comments</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {aiAgents.map((agent, i) => {
-                          const acc = agent.total_predictions > 0
-                            ? Math.round((agent.correct_predictions / agent.total_predictions) * 100)
+                          const acc = agent.settled_predictions > 0
+                            ? Math.round((agent.correct_predictions / agent.settled_predictions) * 100)
                             : null;
                           return (
                             <TableRow key={agent.id}>
@@ -172,8 +173,13 @@ const Leaderboard = () => {
                                   {acc !== null ? `${acc}%` : "—"}
                                 </span>
                               </TableCell>
+                              <TableCell className="text-center font-mono text-sm">
+                                {agent.mean_brier !== null && agent.mean_brier !== undefined
+                                  ? Number(agent.mean_brier).toFixed(3)
+                                  : '—'}
+                              </TableCell>
                               <TableCell className="text-center font-mono text-sm">{agent.total_predictions}</TableCell>
-                              <TableCell className="text-center font-mono text-sm text-green-600">{agent.correct_predictions}</TableCell>
+                              <TableCell className="text-center font-mono text-sm text-green-600">{agent.correct_predictions} / {agent.settled_predictions}</TableCell>
                               <TableCell className="text-center font-mono text-sm">{agent.total_comments}</TableCell>
                             </TableRow>
                           );
@@ -185,8 +191,8 @@ const Leaderboard = () => {
                   {/* Mobile */}
                   <div className="md:hidden space-y-2">
                     {aiAgents.map((agent, i) => {
-                      const acc = agent.total_predictions > 0
-                        ? Math.round((agent.correct_predictions / agent.total_predictions) * 100)
+                      const acc = agent.settled_predictions > 0
+                        ? Math.round((agent.correct_predictions / agent.settled_predictions) * 100)
                         : null;
                       return (
                         <Link key={agent.id} to={`/ai-agent/${agent.slug}`} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:border-primary/30 transition-colors">
@@ -204,6 +210,11 @@ const Leaderboard = () => {
                               {acc !== null ? `${acc}%` : "—"}
                             </p>
                             <p className="text-[10px] text-muted-foreground">{agent.total_predictions} calls</p>
+                            {agent.mean_brier !== null && agent.mean_brier !== undefined && (
+                              <p className="text-[9px] font-mono text-muted-foreground">
+                                Brier {Number(agent.mean_brier).toFixed(3)}
+                              </p>
+                            )}
                           </div>
                         </Link>
                       );

@@ -1094,24 +1094,29 @@ const AdminDashboard = () => {
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Fingerprint</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll ID</th>
-                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Option ID</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Name</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Email</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Poll</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Option</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Staked</th>
                       <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allVotes?.map((v: any) => (
-                      <tr key={v.id} className="border-t border-border/50">
-                        <td className="px-3 py-1.5 text-foreground">{new Date(v.created_at).toLocaleString()}</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.voter_fingerprint?.slice(0, 12)}…</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.poll_id?.slice(0, 8)}…</td>
-                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{v.option_id?.slice(0, 8)}…</td>
-                        <td className="px-3 py-1.5">{v.is_staked ? "✅" : "—"}</td>
-                        <td className="px-3 py-1.5 font-mono">{v.stake_amount ? `$${v.stake_amount.toFixed(2)}` : "—"}</td>
-                      </tr>
-                    ))}
+                    {allVotes?.map((v: any) => {
+                      const id = resolveIdentity(v.user_id, v.voter_fingerprint);
+                      return (
+                        <tr key={v.id} className="border-t border-border/50">
+                          <td className="px-3 py-1.5 text-foreground">{new Date(v.created_at).toLocaleString()}</td>
+                          <td className="px-3 py-1.5 text-foreground">{id.name}</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">{id.email}</td>
+                          <td className="px-3 py-1.5"><PollLink pollId={v.poll_id} polls={polls} /></td>
+                          <td className="px-3 py-1.5"><OptionLabel optionId={v.option_id} pollId={v.poll_id} polls={polls} /></td>
+                          <td className="px-3 py-1.5">{v.is_staked ? "✅" : "—"}</td>
+                          <td className="px-3 py-1.5 font-mono">{v.stake_amount ? `$${v.stake_amount.toFixed(2)}` : "—"}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 {(!allVotes || allVotes.length === 0) && (

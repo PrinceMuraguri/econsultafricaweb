@@ -24,6 +24,25 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    if (proMode === "demo") {
+      return new Response(JSON.stringify({
+        demo: true,
+        skipped: true,
+        message: "Verification not required in demo mode",
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // First check our own DB — the webhook may have already processed it
     const { data: tx } = await supabase
       .from('transactions')

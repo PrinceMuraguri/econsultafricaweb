@@ -30,11 +30,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "poll_id, option_id, shares, price_per_share are required" }), { status: 400, headers: corsHeaders });
     }
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    const rpcName = proMode === "demo" ? "demo_create_listing_atomic" : "create_listing_atomic";
+
     // Delegate to Postgres RPC.
     // The RPC uses SELECT FOR UPDATE on the positions row, preventing concurrent
     // sell-shares or create-listing calls from double-spending the same shares.
     // cost_basis is computed and stored inside the transaction for accurate cancellation.
-    const { data, error } = await supabase.rpc("create_listing_atomic", {
+    const { data, error } = await supabase.rpc(rpcName, {
       p_seller_id:       user.id,
       p_poll_id:         poll_id,
       p_option_id:       option_id,

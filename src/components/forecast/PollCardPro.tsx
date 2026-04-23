@@ -51,7 +51,8 @@ interface PeerListing {
 
 const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = false }: PollCardProProps) => {
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, proMode } = useAuth();
+  const isDemo = proMode === "demo";
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();

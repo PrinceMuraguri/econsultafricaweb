@@ -327,12 +327,14 @@ Deno.serve(async (req) => {
         const correctLine = `Correct answer: ${winningOption.label}`;
         const pollBlock = `${pollLine}\n${predLine}\n${correctLine}`;
 
+        const demoTag = proMode === 'demo' ? ' (demo)' : '';
+
         if (isWinner && isStaked && payoutEntry) {
           notifs.push({
             user_id: vote.user_id,
             type:    'position_won',
             title:   `You got it right — and it paid off. 🎯`,
-            body:    `${pollBlock}\nYou staked $${stakeAmt.toFixed(2)} and earned $${payoutEntry.amount.toFixed(2)}. Navigate to your dashboard to view or withdraw earnings.\nKeep building your edge on the Forecast Arena.`,
+            body:    `${pollBlock}\nYou staked $${stakeAmt.toFixed(2)}${demoTag} and earned $${payoutEntry.amount.toFixed(2)}${demoTag}. Navigate to your dashboard to view or withdraw earnings.\nKeep building your edge on the Forecast Arena.`,
             poll_id,
             link:    '/my-dashboard',
           });
@@ -350,7 +352,7 @@ Deno.serve(async (req) => {
             user_id: vote.user_id,
             type:    'position_lost',
             title:   `Missed this one. 📊`,
-            body:    `${pollBlock}\nYou staked $${stakeAmt.toFixed(2)} → Outcome didn't go your way.\nRefine your thinking and take another shot. Take another position on the Forecast Arena.`,
+            body:    `${pollBlock}\nYou staked $${stakeAmt.toFixed(2)}${demoTag} → Outcome didn't go your way.\nRefine your thinking and take another shot. Take another position on the Forecast Arena.`,
             poll_id,
             link:    '/forecast-arena',
           });

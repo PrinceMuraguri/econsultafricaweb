@@ -366,13 +366,13 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Email notifications
+      // Email notifications — SKIPPED entirely in demo mode (no real $ to report)
+      if (proMode === 'demo') continue;
+
       const resolveEmail = async (): Promise<string | null> => {
         if (vote.user_id) return resolveUserEmail(vote.user_id);
         return resolveEmailFromFingerprint(vote.voter_fingerprint);
       };
-
-
 
       if (isWinner) {
         emailPromises.push(

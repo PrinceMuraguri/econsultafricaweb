@@ -618,7 +618,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => { localStorage.setItem(`nudge_dismissed_pro_${poll.id}`, "1"); handleAllocate(votedOption); }}
-                      className="flex-1 text-xs font-bold gap-1 bg-amber-600 hover:bg-amber-700">
+                      className="flex-1 text-xs font-bold gap-1 bg-amber-600 hover:bg-amber-700 animate-subtle-blink">
                       <DollarSign className="w-3 h-3" /> Commit capital
                     </Button>
                     <Button size="sm" variant="outline" onClick={handleTogglePeerOffers}

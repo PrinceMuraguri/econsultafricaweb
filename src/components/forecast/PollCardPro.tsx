@@ -51,7 +51,8 @@ interface PeerListing {
 
 const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = false }: PollCardProProps) => {
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, proMode } = useAuth();
+  const isDemo = proMode === "demo";
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -75,11 +76,11 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
   const isLoggedIn = !!user;
   const isHomepageMode = homepage;
 
-  // Fetch user's vote
+  // Fetch user's vote (live mode only — demo has no votes row, just demo_positions)
   const { data: userStake } = useQuery({
-    queryKey: ["user-stake", poll.id, user?.id],
+    queryKey: ["user-stake", poll.id, user?.id, isDemo],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user || isDemo) return null;
       const { data } = await supabase
         .from("votes")
         .select("stake_amount, created_at, option_id, is_staked")
@@ -88,27 +89,29 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
         .maybeSingle();
       return data;
     },
-    enabled: !!user,
+    enabled: !!user && !isDemo,
   });
 
-  // Fetch user's positions
+  // Fetch user's positions — demo_positions in demo mode, positions in live mode
   const { data: userPositions = [] } = useQuery({
-    queryKey: ["positions-card", poll.id, user?.id],
+    queryKey: ["positions-card", poll.id, user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase.from("positions").select("*").eq("user_id", user.id).eq("poll_id", poll.id);
+      const table = isDemo ? "demo_positions" : "positions";
+      const { data } = await (supabase as any).from(table).select("*").eq("user_id", user.id).eq("poll_id", poll.id);
       return data || [];
     },
     enabled: !!user,
   });
 
-  // Fetch user's active listings
+  // Fetch user's active listings — demo_listings in demo mode
   const { data: userListings = [] } = useQuery({
-    queryKey: ["user-listings", poll.id, user?.id],
+    queryKey: ["user-listings", poll.id, user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
+      const table = isDemo ? "demo_listings" : "listings";
       const { data } = await (supabase as any)
-        .from("listings")
+        .from(table)
         .select("id, option_id, shares, price_per_share, total_ask, cost_basis, created_at")
         .eq("poll_id", poll.id)
         .eq("seller_id", user.id)
@@ -246,7 +249,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
         return {
           optionId: opt.id,
           label: opt.label,
-          amount: Number(best.total_cost) || 0,
+          amount: Number(best.total_cost ?? best.cost_basis) || 0,
           source: "position" as const,
         };
       }

@@ -292,6 +292,231 @@ export type Database = {
           },
         ]
       }
+      demo_listings: {
+        Row: {
+          buyer_id: string | null
+          cost_basis: number
+          created_at: string
+          id: string
+          option_id: string
+          poll_id: string
+          price_per_share: number
+          seller_id: string
+          shares: number
+          status: string
+          total_ask: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id?: string | null
+          cost_basis?: number
+          created_at?: string
+          id?: string
+          option_id: string
+          poll_id: string
+          price_per_share: number
+          seller_id: string
+          shares: number
+          status?: string
+          total_ask: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string | null
+          cost_basis?: number
+          created_at?: string
+          id?: string
+          option_id?: string
+          poll_id?: string
+          price_per_share?: number
+          seller_id?: string
+          shares?: number
+          status?: string
+          total_ask?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      demo_orders: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          filled_shares: number
+          id: string
+          option_id: string
+          order_type: string
+          poll_id: string
+          price: number
+          shares: number
+          side: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          filled_shares?: number
+          id?: string
+          option_id: string
+          order_type?: string
+          poll_id: string
+          price: number
+          shares: number
+          side: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          filled_shares?: number
+          id?: string
+          option_id?: string
+          order_type?: string
+          poll_id?: string
+          price?: number
+          shares?: number
+          side?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_positions: {
+        Row: {
+          avg_price: number
+          cost_basis: number
+          created_at: string
+          id: string
+          option_id: string
+          poll_id: string
+          shares: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_price?: number
+          cost_basis?: number
+          created_at?: string
+          id?: string
+          option_id: string
+          poll_id: string
+          shares?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_price?: number
+          cost_basis?: number
+          created_at?: string
+          id?: string
+          option_id?: string
+          poll_id?: string
+          shares?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_trades: {
+        Row: {
+          created_at: string
+          fee: number
+          id: string
+          option_id: string
+          poll_id: string
+          price: number
+          reference: string | null
+          shares: number
+          side: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fee?: number
+          id?: string
+          option_id: string
+          poll_id: string
+          price: number
+          reference?: string | null
+          shares: number
+          side: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fee?: number
+          id?: string
+          option_id?: string
+          poll_id?: string
+          price?: number
+          reference?: string | null
+          shares?: number
+          side?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -695,6 +920,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_config: {
+        Row: {
+          id: number
+          pro_mode: string
+          updated_at: string
+        }
+        Insert: {
+          id: number
+          pro_mode?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          pro_mode?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       platform_fees: {
         Row: {
@@ -1279,6 +1522,7 @@ export type Database = {
           country: string | null
           created_at: string | null
           full_name: string
+          has_acknowledged_demo: boolean
           id: string
           interests: Json | null
           occupation: string | null
@@ -1295,6 +1539,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           full_name: string
+          has_acknowledged_demo?: boolean
           id?: string
           interests?: Json | null
           occupation?: string | null
@@ -1311,6 +1556,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           full_name?: string
+          has_acknowledged_demo?: boolean
           id?: string
           interests?: Json | null
           occupation?: string | null
@@ -1625,6 +1871,94 @@ export type Database = {
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      demo_buy_listing_atomic: {
+        Args: { p_buyer_id: string; p_listing_id: string }
+        Returns: Json
+      }
+      demo_buy_shares_atomic: {
+        Args: {
+          p_option_id: string
+          p_poll_id: string
+          p_price: number
+          p_shares: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      demo_cancel_listing_atomic: {
+        Args: { p_listing_id: string; p_seller_id: string }
+        Returns: Json
+      }
+      demo_cancel_order_atomic: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: Json
+      }
+      demo_create_listing_atomic: {
+        Args: {
+          p_option_id: string
+          p_poll_id: string
+          p_price_per_share: number
+          p_seller_id: string
+          p_shares: number
+        }
+        Returns: Json
+      }
+      demo_listings_depth: {
+        Args: { p_poll_id: string }
+        Returns: {
+          listing_count_at_level: number
+          option_id: string
+          poll_id: string
+          price_per_share: number
+          total_shares_at_level: number
+        }[]
+      }
+      demo_orders_depth: {
+        Args: { p_poll_id: string }
+        Returns: {
+          option_id: string
+          order_count_at_level: number
+          poll_id: string
+          price: number
+          side: string
+          total_shares_at_level: number
+        }[]
+      }
+      demo_place_order_atomic: {
+        Args: {
+          p_option_id: string
+          p_poll_id: string
+          p_price: number
+          p_shares: number
+          p_side: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      demo_sell_shares_atomic: {
+        Args: {
+          p_option_id: string
+          p_poll_id: string
+          p_price: number
+          p_shares: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      demo_settle_market: {
+        Args: { p_poll_id: string; p_winning_option_id: string }
+        Returns: Json
+      }
+      demo_stake_atomic: {
+        Args: {
+          p_amount: number
+          p_entry_price: number
+          p_option_id: string
+          p_poll_id: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }

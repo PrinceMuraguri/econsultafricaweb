@@ -1,146 +1,78 @@
 
 
-## Phase 2 — Batch 1: Edge Function Routing for Demo/Live
+## Goal
 
-Both adjustments accepted:
-- **`paystack-webhook`**: Pro-reference events in demo mode log via `console.error("[PRO_REFERENCE_IN_DEMO_MODE]", ...)` with the full event payload (reference, user_id, amount, metadata, event_type, full event object) so logs are greppable. HTTP response stays `200`.
-- **`_shared/` correction noted**. The project does use `_shared/` (e.g. settle-market imports email templates). For this batch I'm keeping the prelude inline-duplicated to avoid mid-batch refactor risk; **all 13 copies will be byte-identical** for grep auditability. Centralizing into `_shared/pro-mode.ts` is queued as a follow-up at the end of Batch 3.
+Stop Forecast Arena Pro from auto-highlighting historical Free votes as if they were Pro selections. Only carry over a Free vote when the user comes to Pro **immediately after** voting via a "Try Pro" CTA for that exact poll.
 
----
+## Current behavior (the bug)
 
-### The byte-identical prelude (12 lines, in every Pro function)
+In `src/components/forecast/PollCardPro.tsx` (lines 160–170), on every Pro card mount we query the `votes` table for any vote (by `user.id` or `voter_fingerprint`) and set:
+- `hasVoted = true`
+- `votedOptionId = <the free vote's option>`
 
-Placed immediately after `const supabase = createClient(...)` and before any business logic:
+Those values drive the option button's `isSelected` styling (lines 377–391, the colored border + ring + tinted bg) and the small `— voted Yes/No` label (lines 360–367). Because the query is unconditional, **any historical Free vote** — even from days ago — appears as a pre-selection on Pro, making the user feel they've already chosen.
 
-```ts
-// Pro mode dispatch: fail-closed to demo
-const { data: __cfg, error: __cfgErr } = await supabase
-  .from("platform_config")
-  .select("pro_mode")
-  .eq("id", 1)
-  .maybeSingle();
-const proMode: "demo" | "live" =
-  !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
-```
+The user's intent: Pro is a separate, capital-based mechanic. A Free sentiment vote is not a Pro position and should not visually pre-fill Pro. Only a **just-now** Free vote, followed by an explicit "Try Pro" hand-off, should briefly reflect on Pro.
 
-Single grep target: `Pro mode dispatch: fail-closed to demo`. If we ever see drift, one line catches all 13 files.
+## Plan
 
----
+### 1. Decouple Pro highlight from Free votes by default
 
-### Per-function changes
+In `PollCardPro.tsx`:
+- Remove the unconditional `votes` lookup that sets `hasVoted` / `votedOptionId` from Free vote history.
+- The Pro card's `isSelected` highlight should be driven **only** by Pro signals:
+  - `userPositions` (user has shares in the option), or
+  - `userStake` (user has a stake on Pro), or
+  - The "just-voted hand-off" signal (see step 2).
+- The "— voted Yes" sub-label next to "Back with capital" is also removed in the default case (since it implied Free vote = Pro selection). It will only show in the hand-off case below.
 
-**1. `stake-checkout/index.ts`** — Dual-mode rewrite.
-- After validation, branch on `proMode`.
-- **Demo branch**: skip Paystack, skip transactions table, skip FX. Call `supabase.rpc("demo_stake_atomic", { p_user_id: user_id, p_poll_id, p_option_id, p_amount: amount, p_entry_price: entry_price ?? 0.5 })`. Requires `user_id` in body (frontend already sends it for logged-in users). If missing, return 400 `"Demo mode requires authenticated user"`. Return synthetic `{ demo: true, success: true, ...rpc.data }` so the frontend recognizes "no redirect needed".
-- **Live branch**: existing Paystack flow unchanged.
+### 2. Add a one-shot "just-voted" hand-off from Free → Pro
 
-**2. `verify-stake/index.ts`** — Demo no-op.
-- After parsing `{ reference }`, branch on `proMode`.
-- **Demo**: return `{ demo: true, skipped: true, message: "Verification not required in demo mode" }` with `200`.
-- **Live**: existing flow unchanged.
+The only legitimate carry-over is when a user votes on Free and *immediately* clicks "Try Pro" for the **same poll**. We pass that intent via React Router navigation state, never via a persistent DB lookup.
 
-**3. `paystack-webhook/index.ts`** — Selective demo no-op (Pro refs only).
-- Inside the `charge.success` handler, **after parsing the event** but before processing, classify the reference:
-  - `wallet_deposit` metadata type OR reference starts with `stake_` → Pro reference.
-  - Inside `transfer.*` handlers, references starting with `withdraw_` or `payout_` → Pro reference.
-  - Marketplace references (no `stake_`/`withdraw_`/`payout_` prefix, no `wallet_deposit` metadata) → never blocked.
-- For Pro references in demo mode:
-  ```ts
-  console.error("[PRO_REFERENCE_IN_DEMO_MODE]", JSON.stringify({
-    event_type: event.event,
-    reference: event.data?.reference,
-    user_id: event.data?.metadata?.user_id ?? null,
-    amount: event.data?.amount ?? null,
-    metadata: event.data?.metadata ?? null,
-    full_event: event,
-  }));
-  return new Response(JSON.stringify({ received: true, demo_mode_skipped: true }), {
-    status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-  ```
-- Marketplace references continue normally regardless of `pro_mode`.
+**On the Free side** (`src/components/forecast/PollCard.tsx`):
+- Replace the static `<Link to="/forecast-arena-pro/...">Try Pro to commit capital</Link>` (line 419-423) with a `useNavigate()` call that:
+  - Only runs when `hasVoted === true` AND `userVoteId` is known for this poll
+  - Calls `navigate(`/forecast-arena-pro/${poll.slug}`, { state: { justVotedOptionId: <id>, justVotedAt: Date.now(), pollId: poll.id } })`
+- If the user hasn't voted yet, the link still works as a plain navigation — Pro will simply show no selection.
 
-**4. `withdraw/index.ts`** — Demo returns 503.
-- After auth + body parse, branch on `proMode`.
-- **Demo**: return `{ error: "Withdrawals are disabled in demo mode. Arena Coins have no cash value.", demo: true }` with `503`. No table writes, no Paystack calls.
-- **Live**: existing flow unchanged.
+**On the Pro side** (`PollCardPro.tsx` and `src/pages/ForecastPollDetailPro.tsx`):
+- Read `useLocation().state` once on mount.
+- If `state?.justVotedOptionId` exists AND `state.pollId === poll.id` AND `state.justVotedAt` is within the last ~60 seconds, set `votedOptionId` and `hasVoted` from that state (so the option highlights and the "— voted X" sub-label appears).
+- Then immediately clear it via `navigate(location.pathname, { replace: true, state: {} })` so a page refresh doesn't keep showing the highlight forever.
+- Result: the highlight is a one-time, contextual hand-off, not a persistent inheritance.
 
-**5. `run-payouts/index.ts`** — Demo returns 503.
-- After admin_key check + body parse, branch on `proMode`.
-- **Demo**: return `{ error: "Payouts are disabled in demo mode", demo: true }` with `503`.
-- **Live**: existing wallet/M-Pesa payout flow unchanged.
+### 3. Keep all Pro-native selection logic intact
 
-**6. `place-order/index.ts`** — Dual-mode.
-- After auth + input validation, branch on `proMode`.
-- **Demo**: call `supabase.rpc("demo_place_order_atomic", { p_user_id: user.id, p_poll_id, p_option_id, p_side: side, p_price: price ?? 0.5, p_shares: shares })`. Return `{ demo: true, ...rpc.data }`. (No matching engine in demo — orders rest until manually cancelled or filled by counter-orders. Phase 2 batch 2 frontend can show this clearly.)
-- **Live**: existing CLOB matching engine unchanged.
+The existing visual selection rules stay for genuinely Pro-derived state:
+- Owning shares in an option (`userPositions`) → highlighted.
+- Having a stake recorded with `is_staked = true` on the Pro flow → highlighted.
+- Active P2P listing for the option → unchanged.
 
-**7. `buy-shares/index.ts`** — Dual-mode.
-- After auth + validation + AMM price calc, branch on `proMode`.
-- **Demo**: call `supabase.rpc("demo_buy_shares_atomic", { p_user_id: user.id, p_poll_id, p_option_id, p_shares: shares, p_price: currentPrice })`. Skip wallet/positions/trades/votes/email — RPC handles wallet, positions, trades, ledger. Return `{ demo: true, ...rpc.data }`.
-- **Live**: existing flow unchanged.
+Nothing in the StakeModal flow, listings, P2P, or AMM math changes.
 
-**8. `sell-shares/index.ts`** — Dual-mode.
-- After auth + validation + AMM price calc, branch on `proMode`.
-- **Demo**: call `supabase.rpc("demo_sell_shares_atomic", { p_user_id: user.id, p_poll_id, p_option_id, p_shares: shares, p_price: currentPrice })`. Return `{ demo: true, ...rpc.data }`.
-- **Live**: existing flow unchanged.
+### 4. No DB / migration changes
 
-**9. `create-listing/index.ts`** — Dual-mode.
-- **Demo**: call `supabase.rpc("demo_create_listing_atomic", { p_seller_id: user.id, p_poll_id, p_option_id, p_shares: Number(shares), p_price_per_share: Number(price_per_share) })`.
-- **Live**: existing `create_listing_atomic` call unchanged.
+Pure frontend behavior change. No schema, RLS, or edge function edits.
 
-**10. `buy-listing/index.ts`** — Dual-mode.
-- **Demo**: call `supabase.rpc("demo_buy_listing_atomic", { p_buyer_id: user.id, p_listing_id })`. Notification block also runs in demo, reading `demo_listings` instead of `listings` for seller_id/poll_id/shares/total_ask, and uses the same `notifications` table (notifications are not currency).
-- **Live**: existing `buy_listing_atomic` + `listings` notification path unchanged.
+## Files to edit
 
-**11. `cancel-listing/index.ts`** — Dual-mode.
-- **Demo**: call `supabase.rpc("demo_cancel_listing_atomic", { p_listing_id, p_seller_id: user.id })`.
-- **Live**: existing `cancel_listing_atomic` call unchanged.
+1. `src/components/forecast/PollCardPro.tsx`
+   - Remove the `votes` table lookup that seeds `hasVoted` / `votedOptionId`.
+   - Add a `useLocation()` reader for the one-shot `justVotedOptionId` hand-off (with timestamp + pollId guard, then `replace`).
+   - Tighten `isSelected` to depend only on Pro positions + the hand-off signal.
 
-**12. `cancel-order/index.ts`** — Dual-mode.
-- **Demo**: call `supabase.rpc("demo_cancel_order_atomic", { p_order_id: order_id, p_user_id: user.id })`.
-- **Live**: existing inline order-cancel + wallet-refund logic unchanged.
+2. `src/components/forecast/PollCard.tsx`
+   - Convert the inline "Try Pro to commit capital →" link into a `useNavigate()` button that passes `{ justVotedOptionId, justVotedAt, pollId }` in router state when the user has just voted on this poll.
 
-**13. `settle-market/index.ts`** — Dual-mode with skips.
-- After auth + poll validation + winning option check, branch on `proMode`.
-- **Demo branch**:
-  1. Skip live `cancel_listing_atomic` loop. Instead, mark all `demo_listings` for this poll with `status='active'` → `'cancelled'` directly.
-  2. Skip live `payouts` table inserts and live `wallets`/`wallet_transactions` credits.
-  3. Call `supabase.rpc("demo_settle_market", { p_poll_id: poll_id, p_winning_option_id: winning_option_id })` — credits demo wallets.
-  4. Update `polls` row exactly as in live (status='settled', outcome, winning_option_id, settled_at, settled_by). This must run in both modes — Free tier and AI scoring depend on it.
-  5. **Still call** `score_ai_predictions_for_poll` — Brier scoring is currency-agnostic.
-  6. **Still insert** in-app `notifications` for ALL voters (winners and losers) — these are currency-agnostic engagement signals. The body text uses dollar amounts from `votes.stake_amount`; for demo we'll keep showing those values but **prepend "(demo)"** to position-related lines (e.g., `You staked $X.XX (demo)`). This is a deliberate, minimal change inside the existing notification builders.
-  7. **Skip** `settlement-winner` and `settlement-loser` transactional emails entirely. They reference dollar payouts and are unsuitable for demo. (No silent attempt — just skip the `emailPromises` push.)
-- **Live branch**: existing flow exactly as today.
+3. `src/pages/ForecastPollDetailPro.tsx`
+   - No structural changes; the `PollCardPro` it renders will pick up the router state directly. (Listed only because it's the entry point for the Pro detail view that consumes the hand-off.)
 
----
+## Acceptance criteria
 
-### Validation tests (after deploy)
-
-For each function in current state (`pro_mode='demo'`):
-
-| Test | Expected |
-|---|---|
-| `stake-checkout` with valid body | `200`, `{ demo: true, success: true }`, `demo_wallets` debited, `demo_positions` upserted, no `transactions` row |
-| `verify-stake` with any reference | `200`, `{ demo: true, skipped: true }` |
-| `withdraw` with valid auth | `503`, `{ error: "...disabled in demo mode...", demo: true }` |
-| `run-payouts` with admin_key | `503`, `{ error: "...disabled in demo mode", demo: true }` |
-| `paystack-webhook` simulated `charge.success` with `stake_*` ref | `200`, console.error log with `[PRO_REFERENCE_IN_DEMO_MODE]` prefix, no DB writes to `wallets`/`votes`/`positions` |
-| `paystack-webhook` simulated `charge.success` with marketplace ref (no Pro prefix, no `wallet_deposit` metadata) | Processes normally |
-| `place-order` / `buy-shares` / `sell-shares` / `create-listing` / `buy-listing` / `cancel-listing` / `cancel-order` | Each returns `{ demo: true, ... }` from the corresponding `demo_*_atomic` RPC; no rows in live `wallets` / `positions` / `orders` / `listings` / `trades` |
-| `settle-market` on a test poll | Polls row settled, AI scoring runs, in-app notifications inserted, **zero** writes to `payouts` / `wallets` / `wallet_transactions`, **zero** `settlement-*` emails, demo winners credited via `demo_settle_market` |
-
-After live testing:
-- Manually flip `platform_config.pro_mode='live'` via SQL, re-run `stake-checkout` smoke test, confirm Paystack initialization URL returned. Flip back to `'demo'`.
-- Manually corrupt `platform_config` (set `pro_mode='typo'`) and confirm `stake-checkout` routes to demo (fail-closed verification). Restore.
-
----
-
-### Files modified (13)
-
-`stake-checkout/index.ts`, `verify-stake/index.ts`, `paystack-webhook/index.ts`, `withdraw/index.ts`, `run-payouts/index.ts`, `place-order/index.ts`, `buy-shares/index.ts`, `sell-shares/index.ts`, `create-listing/index.ts`, `buy-listing/index.ts`, `cancel-listing/index.ts`, `cancel-order/index.ts`, `settle-market/index.ts`.
-
-Untouched: `paystack-checkout` (marketplace), `agent-api`, `auto-forecast`, `admin-polls`, `report-download`, all email functions, all `_shared/`.
-
-After approval and successful deploy + smoke tests, Batch 2 (frontend: DemoBanner, DemoOnboardingModal, AboutDemoMode, AC currency formatting, AuthContext extension) follows.
+- A user with an old Free vote on poll X who navigates to `/forecast-arena-pro/X` sees **no pre-selected option** (unless they hold a Pro position).
+- A user who votes Yes on Free poll X and immediately clicks "Try Pro" on that same poll lands on Pro with **Yes highlighted** and the "— voted Yes" label, exactly once.
+- Refreshing the Pro page after the hand-off clears the highlight (since router state is wiped).
+- Navigating directly to a Pro poll URL never inherits a Free vote.
+- Users who own Pro shares still see their option highlighted, as today.
 

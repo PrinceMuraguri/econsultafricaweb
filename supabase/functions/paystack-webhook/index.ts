@@ -80,6 +80,31 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    // Helper: log + drop a Pro reference event in demo mode
+    const dropProRefInDemo = (reason: string) => {
+      console.error("[PRO_REFERENCE_IN_DEMO_MODE]", JSON.stringify({
+        reason,
+        event_type: event.event,
+        reference: event.data?.reference,
+        user_id: event.data?.metadata?.user_id ?? null,
+        amount: event.data?.amount ?? null,
+        metadata: event.data?.metadata ?? null,
+        full_event: event,
+      }));
+      return new Response(JSON.stringify({ received: true, demo_mode_skipped: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    };
+
     if (event.event === 'charge.success') {
       const { reference, metadata, amount, status, currency } = event.data;
       // currency comes from Paystack event (e.g. "KES", "NGN")
@@ -93,6 +118,9 @@ Deno.serve(async (req) => {
 
       // ── WALLET DEPOSIT ──
       if (metadata?.type === 'wallet_deposit') {
+        if (proMode === 'demo') {
+          return dropProRefInDemo('wallet_deposit_in_demo');
+        }
         const userId = metadata.user_id;
 
         if (!userId) {
@@ -174,6 +202,11 @@ Deno.serve(async (req) => {
       }
 
       // ── FORECAST STAKE ──
+      // Forecast stakes use 'stake_*' references and are Pro-only.
+      if (typeof reference === 'string' && reference.startsWith('stake_') && proMode === 'demo') {
+        return dropProRefInDemo('stake_reference_in_demo');
+      }
+
       const { data: existingTx } = await supabase
         .from('transactions')
         .select('id, status')
@@ -415,6 +448,14 @@ Deno.serve(async (req) => {
     // ── TRANSFER EVENTS (withdrawals + payouts) ──
     if (event.event === 'transfer.success' || event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
       const { reference, transfer_code, reason, status: transferStatus } = event.data;
+
+      // All transfer.* events from Pro flows use 'withdraw_' or 'payout_' references.
+      // In demo mode, never touch real-money tables for these.
+      if (proMode === 'demo' && typeof reference === 'string' &&
+          (reference.startsWith('withdraw_') || reference.startsWith('payout_'))) {
+        return dropProRefInDemo('transfer_reference_in_demo');
+      }
+
       const recipient = event.data.recipient;
 
       console.log(`Transfer event: ${event.event}, ref: ${reference}, status: ${transferStatus}`);

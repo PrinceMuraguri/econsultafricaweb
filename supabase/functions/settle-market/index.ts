@@ -41,6 +41,15 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
     // ── 1. Fetch poll ──────────────────────────────────────────────────────────
     const { data: poll, error: pollError } = await supabase
       .from('polls')
@@ -70,22 +79,32 @@ Deno.serve(async (req) => {
     }
 
     // ── 2. Cancel all open listings for this poll ─────────────────────────────
-    const { data: openListings } = await supabase
-      .from('listings')
-      .select('id, seller_id')
-      .eq('poll_id', poll_id)
-      .eq('status', 'active');
-
     let listingsCancelled = 0;
-    for (const listing of openListings || []) {
-      const { error: cancelErr } = await supabase.rpc('cancel_listing_atomic', {
-        p_listing_id: listing.id,
-        p_seller_id:  listing.seller_id,
-      });
-      if (cancelErr) {
-        console.error(`Failed to cancel listing ${listing.id}:`, cancelErr.message);
-      } else {
-        listingsCancelled++;
+    if (proMode === 'demo') {
+      const { data: cancelledRows } = await supabase
+        .from('demo_listings')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('poll_id', poll_id)
+        .eq('status', 'active')
+        .select('id');
+      listingsCancelled = cancelledRows?.length ?? 0;
+    } else {
+      const { data: openListings } = await supabase
+        .from('listings')
+        .select('id, seller_id')
+        .eq('poll_id', poll_id)
+        .eq('status', 'active');
+
+      for (const listing of openListings || []) {
+        const { error: cancelErr } = await supabase.rpc('cancel_listing_atomic', {
+          p_listing_id: listing.id,
+          p_seller_id:  listing.seller_id,
+        });
+        if (cancelErr) {
+          console.error(`Failed to cancel listing ${listing.id}:`, cancelErr.message);
+        } else {
+          listingsCancelled++;
+        }
       }
     }
     console.log(`Cancelled ${listingsCancelled} open listing(s) before settlement`);
@@ -184,7 +203,18 @@ Deno.serve(async (req) => {
     // ── 5. Payouts (only if there are winning positions) ─────────────────────
     const payoutRecords: any[] = [];
 
-    if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
+    if (proMode === 'demo') {
+      // Demo mode: credit demo wallets via RPC, skip live payouts/wallets writes
+      const { data: demoSettleData, error: demoSettleErr } = await supabase.rpc('demo_settle_market', {
+        p_poll_id: poll_id,
+        p_winning_option_id: winning_option_id,
+      });
+      if (demoSettleErr) {
+        console.error('demo_settle_market error:', demoSettleErr.message);
+      } else {
+        console.log('demo_settle_market result:', JSON.stringify(demoSettleData));
+      }
+    } else if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
       const grossPerShare = Math.min(1.0, totalPool / totalWinningShares);
       console.log(`Gross/share: $${grossPerShare.toFixed(4)}`);
 
@@ -239,8 +269,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 6. Persist payout records ──────────────────────────────────────────────
-    if (payoutRecords.length > 0) {
+    // ── 6. Persist payout records (live only) ─────────────────────────────────
+    if (proMode === 'live' && payoutRecords.length > 0) {
       const { error: payoutError } = await supabase.from('payouts').insert(payoutRecords);
       if (payoutError) {
         console.error('Payout insert error:', payoutError.message);

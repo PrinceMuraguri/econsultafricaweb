@@ -23,6 +23,29 @@ Deno.serve(async (req) => {
     const { order_id } = await req.json();
     if (!order_id) return new Response(JSON.stringify({ error: "order_id required" }), { status: 400, headers: corsHeaders });
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    if (proMode === "demo") {
+      const { data: rpcData, error: rpcErr } = await supabase.rpc("demo_cancel_order_atomic", {
+        p_order_id: order_id,
+        p_user_id: user.id,
+      });
+      if (rpcErr) {
+        return new Response(JSON.stringify({ error: rpcErr.message, demo: true }), { status: 500, headers: corsHeaders });
+      }
+      if (rpcData?.error) {
+        return new Response(JSON.stringify({ error: rpcData.error, demo: true }), { status: 400, headers: corsHeaders });
+      }
+      return new Response(JSON.stringify({ demo: true, ...rpcData }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Get the order
     const { data: order } = await supabase
       .from("orders")

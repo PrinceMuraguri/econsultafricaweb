@@ -33,7 +33,33 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Price must be between 0 and 1" }), { status: 400, headers: corsHeaders });
     }
 
-    // Check poll is active
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    if (proMode === "demo") {
+      const { data: rpcData, error: rpcErr } = await supabase.rpc("demo_place_order_atomic", {
+        p_user_id: user.id,
+        p_poll_id: poll_id,
+        p_option_id: option_id,
+        p_side: side,
+        p_price: price ?? 0.5,
+        p_shares: shares,
+      });
+      if (rpcErr) {
+        return new Response(JSON.stringify({ error: rpcErr.message, demo: true }), { status: 500, headers: corsHeaders });
+      }
+      if (rpcData?.error) {
+        return new Response(JSON.stringify({ error: rpcData.error, demo: true }), { status: 400, headers: corsHeaders });
+      }
+      return new Response(JSON.stringify({ demo: true, ...rpcData }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const { data: poll } = await supabase.from("polls").select("status, close_at").eq("id", poll_id).single();
     if (!poll || poll.status !== "active" || new Date(poll.close_at) < new Date()) {
       return new Response(JSON.stringify({ error: "Market is closed" }), { status: 400, headers: corsHeaders });

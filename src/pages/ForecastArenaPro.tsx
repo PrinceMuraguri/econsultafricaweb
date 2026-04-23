@@ -139,7 +139,7 @@ const ForecastArenaPro = () => {
                 </h1>
               </div>
               <p className="text-sm md:text-base text-amber-400 font-semibold tracking-wide mt-1">Back Your Forecasts with Real Stakes</p>
-              <p className="text-xs text-background/50 tracking-wide mt-0.5">Put real funds behind the outcomes you believe in. Get rewarded when your forecast is right.</p>
+              <p className="text-xs text-background/50 tracking-wide mt-0.5">You get $100 free Arena Credits.<br />Commit capital behind the outcomes you believe in. Get rewarded when your forecast is right.</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Put Your Money Where Your <span className="text-amber-400">Insight Is.</span>
               </p>

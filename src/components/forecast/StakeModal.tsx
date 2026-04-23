@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
+import { CurrencyAmount } from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 interface StakeModalProps {
   open: boolean;
@@ -22,10 +24,12 @@ interface StakeModalProps {
 
 const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProps) => {
   const { toast } = useToast();
-  const { user, profile: authProfile } = useAuth();
+  const { user, profile: authProfile, proMode, demoBalance } = useAuth();
   const queryClient = useQueryClient();
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"wallet" | "paystack" | null>(null);
+
+  const isDemo = proMode === "demo";
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -57,16 +61,16 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
     }
   }, [open, user, authProfile]);
 
-  const { data: wallet } = useQuery({
+  const { data: liveWallet } = useQuery({
     queryKey: ["wallet-balance", user?.id],
     queryFn: async () => {
       if (!user) return null;
       const { data } = await supabase.from("wallets").select("balance_usd").eq("user_id", user.id).single();
       return data;
     },
-    enabled: !!user,
+    enabled: !!user && !isDemo,
   });
-  const walletBalance = Number(wallet?.balance_usd || 0);
+  const walletBalance = isDemo ? Number(demoBalance ?? 0) : Number(liveWallet?.balance_usd || 0);
 
   const totalStake = poll.poll_options.reduce((s, o) => s + (o.total_stake_amount || 0), 0);
 
@@ -85,7 +89,8 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
 
   const handleWalletPay = async () => {
     if (!selectedOption || shares < 1) return;
-    if (!authProfile?.phone) {
+    // In demo mode, no phone required (no payouts).
+    if (!isDemo && !authProfile?.phone) {
       setPendingAction("wallet");
       setPhoneModalOpen(true);
       return;
@@ -96,7 +101,10 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         body: { poll_id: poll.id, option_id: selectedOption.id, shares },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
-      toast({ title: "Shares purchased! 🎉", description: `You bought ${shares} shares of "${selectedOption.label}" from your wallet.` });
+      toast({
+        title: "Shares purchased! 🎉",
+        description: `You bought ${shares} shares of "${selectedOption.label}" — ${formatCurrency(totalDebit, proMode)} debited.`,
+      });
       queryClient.invalidateQueries({ queryKey: ["wallet-balance", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });
@@ -176,7 +184,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         <DialogHeader>
           <DialogTitle className="font-display text-lg">Commit Capital — Back Your Forecast</DialogTitle>
           <DialogDescription>
-            Each unit resolves at $1 if your forecast is correct. Platform fees: 3.5%.
+            {isDemo
+              ? "Each share resolves at 1.00 AC if your forecast is correct. Platform fees: 3.5%."
+              : "Each unit resolves at $1 if your forecast is correct. Platform fees: 3.5%."}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,7 +204,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           <div className="flex items-center justify-between bg-primary/5 rounded-lg px-4 py-3 border border-primary/10">
             <div>
               <p className="text-xs text-muted-foreground">Market Price</p>
-              <p className="font-mono text-xl font-bold text-foreground">${sharePrice.toFixed(2)}</p>
+              <p className="text-xl"><CurrencyAmount amount={sharePrice} /></p>
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Market Probability</p>
@@ -227,34 +237,36 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           {/* Allocation breakdown */}
           <div className="bg-muted/30 rounded-lg p-3 border border-border space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{shares} units × ${sharePrice.toFixed(2)}</span>
-              <span className="font-mono font-semibold text-foreground">${totalCost.toFixed(2)}</span>
+              <span className="text-muted-foreground">{shares} units × <CurrencyAmount amount={sharePrice} showSuffixBadge={false} /></span>
+              <CurrencyAmount amount={totalCost} />
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Platform fees (3.5%)</span>
-              <span className="font-mono text-muted-foreground">${platformFee.toFixed(2)}</span>
+              <CurrencyAmount amount={platformFee} className="text-muted-foreground" />
             </div>
             <div className="border-t border-border pt-2 flex justify-between text-sm">
               <span className="text-muted-foreground flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-primary" />If correct, you receive
               </span>
-              <span className="font-mono font-bold text-primary">${potentialPayout.toFixed(2)}</span>
+              <CurrencyAmount amount={potentialPayout} className="text-primary" />
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Potential accuracy reward</span>
               <span className={`font-mono font-bold ${potentialProfit > 0 ? "text-green-600" : "text-red-500"}`}>
-                {potentialProfit > 0 ? "+" : ""}${potentialProfit.toFixed(2)}
+                {potentialProfit > 0 ? "+" : ""}{formatCurrency(potentialProfit, proMode)}
               </span>
             </div>
           </div>
 
-          {/* User details */}
-          <div className="bg-muted/30 rounded-lg p-3 border border-border">
-            <p className="text-xs font-semibold text-foreground mb-1">Your Details</p>
-            <p className="text-[11px] text-muted-foreground">
-              {fullName || "—"} · {email || "—"} · {countryCode}{phoneNumber || "—"}
-            </p>
-          </div>
+          {/* User details — hidden in demo (no payouts so no phone required) */}
+          {!isDemo && (
+            <div className="bg-muted/30 rounded-lg p-3 border border-border">
+              <p className="text-xs font-semibold text-foreground mb-1">Your Details</p>
+              <p className="text-[11px] text-muted-foreground">
+                {fullName || "—"} · {email || "—"} · {countryCode}{phoneNumber || "—"}
+              </p>
+            </div>
+          )}
 
           {/* Wallet pay option — logged-in users only */}
           {!!user && (
@@ -262,57 +274,69 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-                    <Wallet className="w-3.5 h-3.5" /> Pay from wallet
+                    <Wallet className="w-3.5 h-3.5" /> {isDemo ? "Pay from demo wallet" : "Pay from wallet"}
                   </p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    Balance: <span className="font-semibold text-foreground">${walletBalance.toFixed(2)}</span>
+                  <p className="text-xs text-muted-foreground">
+                    Balance: <CurrencyAmount amount={walletBalance} className="font-semibold" />
                   </p>
                 </div>
                 <Button
                   onClick={handleWalletPay}
                   disabled={!hasEnoughInWallet || loading || shares < 1}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-display font-semibold"
+                  className={`w-full font-display font-semibold ${isDemo ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-primary hover:bg-primary/90 text-primary-foreground"}`}
                   size="lg"
                 >
                   {loading
                     ? "Processing..."
                     : <>
                         <Wallet className="w-4 h-4 mr-2" />
-                        Pay ${totalDebit.toFixed(2)} from Wallet
+                        {isDemo ? `Commit ${totalDebit.toFixed(2)} AC to my forecast` : `Pay $${totalDebit.toFixed(2)} from Wallet`}
                       </>
                   }
                 </Button>
-                {!hasEnoughInWallet && (
+                {!hasEnoughInWallet && !isDemo && (
                   <p className="text-[10px] text-destructive text-center">
                     Insufficient balance — <Link to="/my-dashboard" className="underline hover:text-destructive/80" onClick={() => onOpenChange(false)}>add funds on your Dashboard</Link>
                   </p>
                 )}
+                {!hasEnoughInWallet && isDemo && (
+                  <p className="text-[10px] text-destructive text-center">
+                    Insufficient Arena Coins. This is demo mode; you cannot top up.
+                  </p>
+                )}
               </div>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-muted-foreground">or</span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
+              {/* Divider — Paystack route only in live mode */}
+              {!isDemo && (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              )}
             </>
           )}
 
-          {/* Paystack CTA button */}
-          <Button
-            onClick={handleStake}
-            disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-display font-semibold"
-            size="lg"
-          >
-            {loading
-              ? "Redirecting to payment..."
-              : `Commit $${totalCost.toFixed(2)} — Pay with Mobile Money or Card`}
-          </Button>
+          {/* Paystack CTA — live mode only */}
+          {!isDemo && (
+            <Button
+              onClick={handleStake}
+              disabled={loading || !email || !fullName || !phoneNumber || shares < 1}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-display font-semibold"
+              size="lg"
+            >
+              {loading
+                ? "Redirecting to payment..."
+                : `Commit $${totalCost.toFixed(2)} — Pay with Mobile Money or Card`}
+            </Button>
+          )}
 
           {/* Trust + How it works */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><Shield className="w-3 h-3" />Secure checkout via Paystack</span>
+            <span className="flex items-center gap-1">
+              <Shield className="w-3 h-3" />
+              {isDemo ? "Demo mode · no real money" : "Secure checkout via Paystack"}
+            </span>
             <Link to="/how-it-works" className="flex items-center gap-1 text-primary hover:text-accent transition-colors" onClick={() => onOpenChange(false)}>
               <HelpCircle className="w-3 h-3" />How it works
             </Link>

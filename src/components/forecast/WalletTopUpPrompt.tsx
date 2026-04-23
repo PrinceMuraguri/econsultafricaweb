@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Wallet, ArrowRight, X } from "lucide-react";
+import { Wallet, ArrowRight } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const WALLET_PROMPT_KEY = "wallet_topup_prompted";
 
 const WalletTopUpPrompt = () => {
-  const { user, wallet, profile } = useAuth();
+  const { user, wallet, profile, proMode } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,9 +17,11 @@ const WalletTopUpPrompt = () => {
 
   useEffect(() => {
     if (!user) return;
+    // Suppress entirely in demo mode — no real-money funding makes sense.
+    if (proMode === "demo" || proMode === "loading") return;
     // Only show on forecast arena pages
     if (!location.pathname.startsWith("/forecast-arena")) return;
-    
+
     const alreadyPrompted = sessionStorage.getItem(WALLET_PROMPT_KEY);
     if (alreadyPrompted) return;
 
@@ -32,7 +34,7 @@ const WalletTopUpPrompt = () => {
     }, 45000);
 
     return () => clearTimeout(timer);
-  }, [user, wallet, location.pathname]);
+  }, [user, wallet, location.pathname, proMode]);
 
   const handleTopUp = () => {
     setOpen(false);
@@ -42,6 +44,9 @@ const WalletTopUpPrompt = () => {
   const handleSkip = () => {
     setOpen(false);
   };
+
+  // Hard guard: never render in demo or loading.
+  if (proMode !== "live") return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

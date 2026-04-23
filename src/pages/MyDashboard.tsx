@@ -74,18 +74,26 @@ const MyDashboard = () => {
     }
   }, [user]);
 
-  // Realtime subscriptions
+  // Realtime subscriptions (live + demo tables — both safe to subscribe to; only the active mode renders)
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
       .channel(`dashboard-${user.id}`)
+      // Live wallet
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, () => refreshWallet())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-wallet-transactions', user.id] });
         queryClient.invalidateQueries({ queryKey: ['my-wallet-payouts', user.id] });
         refreshWallet();
       })
+      // Demo wallet
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_wallets', filter: `user_id=eq.${user.id}` }, () => refreshDemoWallet())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_wallet_transactions', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-wallet-transactions', user.id] });
+        refreshDemoWallet();
+      })
+      // Votes (shared by free + pro)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
       })
@@ -93,17 +101,28 @@ const MyDashboard = () => {
         queryClient.invalidateQueries({ queryKey: ['my-payouts', user.id] });
         queryClient.invalidateQueries({ queryKey: ['my-wallet-payouts', user.id] });
       })
+      // Live trading
       .on('postgres_changes', { event: '*', schema: 'public', table: 'positions', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-share-positions', user.id] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-trades', user.id] });
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ['my-notifications', user.id] });
-      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'listings', filter: `seller_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-active-listings', user.id] });
+      })
+      // Demo trading
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_positions', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-share-positions', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_trades', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-trades', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_listings', filter: `seller_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-active-listings', user.id] });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-notifications', user.id] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });

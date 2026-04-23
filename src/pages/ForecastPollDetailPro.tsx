@@ -5,7 +5,7 @@ import PollDiscussionTabs from "@/components/forecast/PollDiscussionTabs";
 import PollPerformanceChart from "@/components/forecast/PollPerformanceChart";
 import ListingsPanel from "@/components/forecast/ListingsPanel";
 import UserPollActivity from "@/components/forecast/UserPollActivity";
-import TradingPanel from "@/components/forecast/TradingPanel";
+
 import { usePoll } from "@/hooks/use-polls";
 import AIForecastCouncil from "@/components/forecast/AIForecastCouncil";
 import { ArrowLeft, Scale, BarChart3, DollarSign } from "lucide-react";
@@ -58,9 +58,6 @@ const ForecastPollDetailPro = () => {
       <div className="container-page max-w-3xl py-6 space-y-6">
         {/* PollCardPro — the main interactive card */}
         <PollCardPro poll={poll} />
-
-        {/* Trading Panel — commit capital / adjust position */}
-        <TradingPanel poll={poll} />
 
         {/* P2P marketplace */}
         <ListingsPanel poll={poll} />

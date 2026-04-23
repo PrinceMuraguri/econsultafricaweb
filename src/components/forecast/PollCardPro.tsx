@@ -374,8 +374,11 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
               const isNo = option.label.toLowerCase() === "no";
               const optStake = option.total_stake_amount || 0;
 
-              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-blue-500 ring-1 ring-blue-500/30" : "border-primary ring-1 ring-primary/30";
-              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-blue-500/10" : "bg-primary/10";
+              const hasPosition = userPositions.some((p: any) => p.option_id === option.id && Number(p.shares) > 0);
+              const isSelected = votedOptionId === option.id || hasPosition;
+
+              const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-blue-500 ring-1 ring-blue-500/30" : "border-amber-500 ring-1 ring-amber-500/30";
+              const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-blue-500/10" : "bg-amber-500/10";
 
               return (
                 <button
@@ -383,9 +386,9 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                   type="button"
                   onClick={(e) => handleOptionClick(option.id, e)}
                   disabled={isClosed}
-                  className={`relative z-10 w-full pointer-events-auto overflow-hidden rounded-md border transition-all text-left touch-manipulation border-border hover:border-amber-500/40 hover:bg-amber-500/5 bg-transparent ${
-                    isHomepageMode ? "hover:scale-[1.02] hover:shadow-sm" : ""
-                  } cursor-pointer`}
+                  className={`relative z-10 w-full pointer-events-auto overflow-hidden rounded-md border transition-all text-left touch-manipulation ${
+                    isSelected ? `${selectedBorder} ${selectedBg}` : "border-border hover:border-amber-500/40 hover:bg-amber-500/5 bg-transparent"
+                  } ${isHomepageMode ? "hover:scale-[1.02] hover:shadow-sm" : ""} cursor-pointer`}
                 >
                   <div className="relative z-10 flex items-center justify-between px-2.5 py-2">
                     <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">

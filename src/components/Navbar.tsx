@@ -175,7 +175,9 @@ const Navbar = () => {
                     <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
                       className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
                       <User className="w-4 h-4" /> {profile?.full_name?.split(" ")[0] || "Dashboard"}
-                      {wallet && <span className="text-xs font-mono text-primary ml-auto">${wallet.balance_usd.toFixed(2)}</span>}
+                      {showDemo
+                        ? <span className="text-xs font-mono text-amber-600 ml-auto">{(demoBalance ?? 0).toFixed(2)} AC</span>
+                        : wallet && <span className="text-xs font-mono text-primary ml-auto">${wallet.balance_usd.toFixed(2)}</span>}
                     </Link>
                     <Button variant="ghost" size="sm" onClick={() => { signOut(); setMobileOpen(false); }} className="justify-start text-muted-foreground hover:text-destructive gap-1">
                       <LogOut className="w-3.5 h-3.5" /> Sign Out

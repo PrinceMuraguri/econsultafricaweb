@@ -1754,27 +1754,6 @@ export type Database = {
       }
     }
     Views: {
-      demo_listings_public: {
-        Row: {
-          listing_count_at_level: number | null
-          option_id: string | null
-          poll_id: string | null
-          price_per_share: number | null
-          total_shares_at_level: number | null
-        }
-        Relationships: []
-      }
-      demo_orders_public: {
-        Row: {
-          option_id: string | null
-          order_count_at_level: number | null
-          poll_id: string | null
-          price: number | null
-          side: string | null
-          total_shares_at_level: number | null
-        }
-        Relationships: []
-      }
       leaderboard_view: {
         Row: {
           active_positions: number | null
@@ -1924,6 +1903,27 @@ export type Database = {
           p_shares: number
         }
         Returns: Json
+      }
+      demo_listings_depth: {
+        Args: { p_poll_id: string }
+        Returns: {
+          listing_count_at_level: number
+          option_id: string
+          poll_id: string
+          price_per_share: number
+          total_shares_at_level: number
+        }[]
+      }
+      demo_orders_depth: {
+        Args: { p_poll_id: string }
+        Returns: {
+          option_id: string
+          order_count_at_level: number
+          poll_id: string
+          price: number
+          side: string
+          total_shares_at_level: number
+        }[]
       }
       demo_place_order_atomic: {
         Args: {

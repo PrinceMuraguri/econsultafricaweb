@@ -1,36 +1,123 @@
 
 
-## Pro Tier Feature Flag — Scaffold
+## Phase 1 — Pro Demo Mode SQL Migration (final, approved)
 
-Add a single hardcoded constant `PRO_ENABLED` that gates every Forecast Arena Pro surface across the Free tier without affecting Free behavior. Initial value is `true` (no behavior change). Flipping to `false` cleanly hides the Pro nav link, redirects Pro routes to a "paused" landing page, and removes every Pro upsell across the Free tier.
+Two adjustments folded in:
+1. Migration-email exposure query (Phase 2) uses `pl.settled_at IS NULL` only — no `status` filter.
+2. `demo_orders_public` and `demo_listings_public` are **price-level aggregated depth views** (CLOB-standard, à la Polymarket/Kalshi). Plus explicit `REVOKE SELECT ... FROM anon, authenticated` on the underlying tables so the views are the sole public path.
 
-Every guard added is tagged with an inline `// Pro flag:` comment so future edits recognize and preserve them.
+### File
 
-### New files
+**Create:** `supabase/migrations/20260422_pro_demo_mode.sql`
 
-1. **`src/lib/features.ts`** — exports `export const PRO_ENABLED = true;` with documentation comments. Single source of truth.
-2. **`src/pages/ProPaused.tsx`** — landing page rendered on `/forecast-arena-pro*` when the flag is off. Explains the pause, reassures wallet balances are safe, and links back to Free Arena and Contact.
-3. **`FEATURE_FLAGS.md`** (project root) — operator documentation: how to toggle, what gets gated, what's intentionally not gated yet, and the known client-side-only limitation.
+### What the migration creates
 
-### Edits (all conditionals tagged `// Pro flag:`)
+**1. `platform_config`** — single-row toggle.
+- `id int primary key check (id=1)`, `pro_mode text default 'demo' check in ('demo','live')`, `updated_at`.
+- RLS: public SELECT; service_role UPDATE.
+- Seed `(1, 'demo')`.
 
-4. **`src/App.tsx`** — import `ProPaused` and `PRO_ENABLED`; wrap the two Pro routes so they conditionally render `ProPaused` when off. Imports for `ForecastArenaPro` / `ForecastPollDetailPro` are kept so re-enabling is a one-line flip.
-5. **`src/components/Navbar.tsx`** — replace the static `navLinks` array with a conditional that omits the Pro entry when off. Rendering logic untouched.
-6. **`src/pages/ForecastArena.tsx`** — wrap (a) the amber "Upgrade to Pro" cross-promotion banner under the hero and (b) the "🚀 Want to go further? Try Forecast Arena Pro" line inside the hero's expandable details.
-7. **`src/components/forecast/PollCard.tsx`** — wrap (a) the inline "Try Pro to commit capital →" link under the vote box and (b) the post-vote amber "Want to back your forecast with real capital?" card. Restructure the post-vote block so the amber card is gated but the "Share your view" row beneath it remains unconditional.
-8. **`src/pages/ForecastPollDetail.tsx`** — wrap the amber "Forecast Arena Pro — Capital Markets / Trade Pro →" banner.
-9. **`src/components/forecast/ForecastWidget.tsx`** — wrap the "💰 Try Pro — back forecasts with capital" footer link in the floating widget.
+**2. `demo_wallets`** — 1:1 with `auth.users`.
+- `id, user_id unique, balance numeric(15,2) default 100 check (>=0), created_at, updated_at`.
+- RLS: user reads own; service_role writes.
 
-### Files intentionally NOT touched (Round 1 scope)
+**3. `demo_positions`** — mirrors `positions`.
+- `(id, user_id, poll_id, option_id, shares numeric(15,4), avg_price numeric(10,4), cost_basis numeric(15,2), created_at, updated_at)` + unique `(user_id, poll_id, option_id)`.
+- RLS: user reads own; service_role writes.
 
-`ForecastArenaPro.tsx`, `ForecastPollDetailPro.tsx`, `StakeResult.tsx`, `UserProfile.tsx`, `MyDashboard.tsx`, `PollCardPro.tsx`, `ProTradingTab.tsx`, `FreeForecastsTab.tsx`. These live inside Pro territory; the route-level redirect is sufficient for now. Component-level guards and Edge Function server-side guards are deferred to a follow-up.
+**4. `demo_orders`** — mirrors `orders`.
+- `(id, user_id, poll_id, option_id, side check in ('buy','sell'), price numeric(10,4), shares numeric(15,4), filled_shares numeric(15,4) default 0, status check in ('open','partial','filled','cancelled','expired'), expires_at, created_at, updated_at)`.
+- **RLS — locked down:**
+  - `REVOKE SELECT ON demo_orders FROM anon, authenticated;`
+  - Owner-only SELECT policy: `auth.uid() = user_id`.
+  - Service role full access.
+  - Public order-book reads go **only** through `demo_orders_public` view below.
 
-### Acceptance check
+**5. `demo_listings`** — mirrors `listings`.
+- `(id, seller_id, buyer_id, poll_id, option_id, shares, price_per_share, total_ask, cost_basis, status check in ('active','sold','cancelled'), created_at, updated_at)`.
+- **RLS — locked down:**
+  - `REVOKE SELECT ON demo_listings FROM anon, authenticated;`
+  - Owner-only SELECT: `auth.uid() in (seller_id, buyer_id)`.
+  - Service role full access.
+  - Public listings reads go **only** through `demo_listings_public` view.
 
-- **Flag ON (default):** every current Pro surface renders identically — no visual change. Verified by visiting homepage, a Free poll detail, the floating widget, and the Pro routes.
-- **Flag OFF:** Pro nav link gone (desktop + mobile), Pro routes show ProPaused, all 6 Free-tier upsells gone, "Share your view" row still present after voting on a Free poll.
+**6. `demo_trades`** and **`demo_wallet_transactions`** — for activity feed and ledger.
+- Standard shape; user reads own; service_role writes.
 
-### Known limitation (documented in FEATURE_FLAGS.md)
+**7. Public CLOB views (the security boundary):**
 
-This is a client-only flag. Pro Edge Functions remain reachable directly with a crafted request. Server-side guards are a follow-up task.
+```sql
+-- Price-level depth, one row per (poll, option, side, price). No order IDs, no users.
+create view public.demo_orders_public
+with (security_invoker = false) as
+select
+  poll_id,
+  option_id,
+  side,
+  price,
+  sum(shares - filled_shares)::numeric(15,4) as total_shares_at_level,
+  count(*)::int                              as order_count_at_level
+from public.demo_orders
+where status in ('open','partial')
+  and shares - filled_shares > 0
+group by poll_id, option_id, side, price;
+
+grant select on public.demo_orders_public to anon, authenticated;
+```
+
+```sql
+-- Listings aggregated to price level, one row per (poll, option, price).
+create view public.demo_listings_public
+with (security_invoker = false) as
+select
+  poll_id,
+  option_id,
+  price_per_share,
+  sum(shares)::numeric(15,4) as total_shares_at_level,
+  count(*)::int              as listing_count_at_level
+from public.demo_listings
+where status = 'active'
+group by poll_id, option_id, price_per_share;
+
+grant select on public.demo_listings_public to anon, authenticated;
+```
+
+This eliminates the partial-fill execution-gaming vector at the schema layer. Owners still see their own raw rows via the base-table policy.
+
+**8. `user_profiles.has_acknowledged_demo boolean not null default false`** — column add for first-time onboarding modal.
+
+**9. Trigger + backfill for `demo_wallets`:**
+- Function `create_demo_wallet_for_new_profile()` (`security definer`, `search_path=public`) inserts a `demo_wallets` row on every `INSERT` into `user_profiles`, `ON CONFLICT DO NOTHING`.
+- Trigger `after insert on user_profiles`.
+- One-shot backfill: `INSERT INTO demo_wallets (user_id) SELECT user_id FROM user_profiles ON CONFLICT DO NOTHING;` — every existing user gets 100 AC.
+
+**10. Atomic `SECURITY DEFINER` RPCs** mirroring the live ones, all writing to `demo_*`:
+- `demo_stake_atomic(user, poll, option, amount, entry_price)`
+- `demo_buy_shares_atomic`, `demo_sell_shares_atomic`
+- `demo_create_listing_atomic`, `demo_buy_listing_atomic`, `demo_cancel_listing_atomic`
+- `demo_place_order_atomic`, `demo_cancel_order_atomic`
+- `demo_settle_market(poll_id, winning_option_id)` — credits winners' `demo_wallets`, no Paystack.
+
+Each is a functional copy of its live counterpart with table names swapped. Live RPCs untouched.
+
+### What is NOT in this migration
+
+- No changes to `wallets`, `positions`, `orders`, `listings`, `trades`, `votes`, `polls`, `voter_profiles`.
+- No Edge Function changes (Phase 2).
+- No frontend changes (Phase 2).
+- No email template (Phase 2).
+- The Phase 2 migration-notification query (drafted, not executed here) will use `pl.settled_at IS NULL` for position exposure — confirmed.
+
+### Acceptance for Phase 1
+
+- Migration runs cleanly.
+- `platform_config` has one row, `pro_mode='demo'`.
+- Every existing `user_profiles` row has a matching `demo_wallets` row with `balance=100.00`.
+- New signup auto-creates a demo wallet (verified by inspecting the trigger).
+- `select * from demo_orders` as `anon` or `authenticated` returns **0 rows for non-owners** (RLS + revoke).
+- `select * from demo_orders_public` as `anon` returns aggregated depth only — no `id`, no `user_id`, no `filled_shares`.
+- Same for `demo_listings` / `demo_listings_public`.
+- Zero rows changed in any live-money table.
+
+After you approve and the migration runs, I'll produce Phase 2 in three reviewable batches: Edge Functions → frontend → email template + admin toggle + manual default-withdrawal function.
 

@@ -36,9 +36,7 @@ const navLinks = PRO_ENABLED
 
 const Navbar = () => {
   const location = useLocation();
-  const { user, profile, wallet, demoBalance, signOut } = useAuth();
-  const isProRoute = location.pathname.startsWith("/forecast-arena-pro");
-  const showDemo = isProRoute;
+  const { user, profile, demoBalance, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -110,15 +108,9 @@ const Navbar = () => {
 
             {isLoggedIn ? (
               <>
-                {showDemo ? (
-                  <Link to="/forecast-arena-pro" className="flex items-center gap-1 text-xs font-mono font-semibold text-amber-600 bg-amber-500/10 px-2 py-1 rounded-full hover:bg-amber-500/20 transition-colors" title="Demo Arena Coins">
-                    <Wallet className="w-3 h-3" />{(demoBalance ?? 0).toFixed(2)} AC
-                  </Link>
-                ) : wallet && (
-                  <Link to="/my-dashboard" className="flex items-center gap-1 text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full hover:bg-primary/20 transition-colors">
-                    <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}
-                  </Link>
-                )}
+                <Link to="/forecast-arena-pro" className="flex items-center gap-1 text-xs font-mono font-semibold text-amber-600 bg-amber-500/10 px-2 py-1 rounded-full hover:bg-amber-500/20 transition-colors" title="Demo Arena Coins">
+                  <Wallet className="w-3 h-3" />{(demoBalance ?? 0).toFixed(2)} AC
+                </Link>
                 <NotificationBell />
                 <Link to="/watchlist"
                   className={`text-sm font-medium transition-colors flex items-center gap-1 ${
@@ -175,9 +167,7 @@ const Navbar = () => {
                     <Link to="/my-dashboard" onClick={() => setMobileOpen(false)}
                       className={`text-sm font-medium py-2 flex items-center gap-1.5 ${location.pathname === "/my-dashboard" ? "text-primary" : "text-muted-foreground"}`}>
                       <User className="w-4 h-4" /> {profile?.full_name?.split(" ")[0] || "Dashboard"}
-                      {showDemo
-                        ? <span className="text-xs font-mono text-amber-600 ml-auto">{(demoBalance ?? 0).toFixed(2)} AC</span>
-                        : wallet && <span className="text-xs font-mono text-primary ml-auto">${wallet.balance_usd.toFixed(2)}</span>}
+                      <span className="text-xs font-mono text-amber-600 ml-auto">{(demoBalance ?? 0).toFixed(2)} AC</span>
                     </Link>
                     <Button variant="ghost" size="sm" onClick={() => { signOut(); setMobileOpen(false); }} className="justify-start text-muted-foreground hover:text-destructive gap-1">
                       <LogOut className="w-3.5 h-3.5" /> Sign Out

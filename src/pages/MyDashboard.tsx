@@ -230,12 +230,13 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch wallet transactions
+  // Fetch wallet transactions (live or demo)
   const { data: walletTxns } = useQuery({
-    queryKey: ["my-wallet-transactions", user?.id],
+    queryKey: ["my-wallet-transactions", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase.from("wallet_transactions").select("*")
+      const table = isDemo ? "demo_wallet_transactions" : "wallet_transactions";
+      const { data, error } = await (supabase as any).from(table).select("*")
         .eq("user_id", user.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -244,24 +245,27 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch share positions
+  // Fetch share positions (live or demo)
   const { data: sharePositions = [] } = useQuery({
-    queryKey: ["my-share-positions", user?.id],
+    queryKey: ["my-share-positions", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase.from("positions").select("*").eq("user_id", user.id);
+      const table = isDemo ? "demo_positions" : "positions";
+      const { data, error } = await (supabase as any).from(table).select("*").eq("user_id", user.id);
       if (error) throw error;
       if (!data || data.length === 0) return [];
-      const pollIds = [...new Set(data.map(p => p.poll_id))];
-      const optionIds = [...new Set(data.map(p => p.option_id))];
+      const pollIds = [...new Set(data.map((p: any) => p.poll_id))] as string[];
+      const optionIds = [...new Set(data.map((p: any) => p.option_id))] as string[];
       const [pollsRes, optionsRes] = await Promise.all([
         supabase.from("polls").select("id, title, slug, status, close_at").in("id", pollIds),
         supabase.from("poll_options").select("id, label").in("id", optionIds),
       ]);
       const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
       const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
-      return data.map(pos => ({
+      return data.map((pos: any) => ({
         ...pos,
+        // Demo positions store cost as `cost_basis`; live uses `total_cost`. Normalize for downstream UI.
+        total_cost: isDemo ? Number(pos.cost_basis ?? 0) : Number(pos.total_cost ?? 0),
         poll_title: pollMap.get(pos.poll_id)?.title || "Unknown",
         poll_slug: pollMap.get(pos.poll_id)?.slug || "",
         poll_status: pollMap.get(pos.poll_id)?.status || "unknown",
@@ -273,12 +277,13 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch active listings
+  // Fetch active listings (live or demo)
   const { data: myActiveListings = [] } = useQuery({
-    queryKey: ["my-active-listings", user?.id],
+    queryKey: ["my-active-listings", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await (supabase as any).from("listings").select("*")
+      const table = isDemo ? "demo_listings" : "listings";
+      const { data, error } = await (supabase as any).from(table).select("*")
         .eq("seller_id", user.id).eq("status", "active").order("created_at", { ascending: false });
       if (error) return [];
       if (!data || data.length === 0) return [];
@@ -296,24 +301,25 @@ const MyDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Fetch trade history
+  // Fetch trade history (live or demo)
   const { data: tradeHistory = [] } = useQuery({
-    queryKey: ["my-trades", user?.id],
+    queryKey: ["my-trades", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase.from("trades").select("*")
+      const table = isDemo ? "demo_trades" : "trades";
+      const { data, error } = await (supabase as any).from(table).select("*")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       if (!data || data.length === 0) return [];
-      const pollIds = [...new Set(data.map(t => t.poll_id))];
-      const optionIds = [...new Set(data.map(t => t.option_id))];
+      const pollIds = [...new Set(data.map((t: any) => t.poll_id))] as string[];
+      const optionIds = [...new Set(data.map((t: any) => t.option_id))] as string[];
       const [pollsRes, optionsRes] = await Promise.all([
         supabase.from("polls").select("id, title, slug").in("id", pollIds),
         supabase.from("poll_options").select("id, label").in("id", optionIds),
       ]);
       const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
       const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
-      return data.map(t => ({ ...t, poll_title: pollMap.get(t.poll_id)?.title || "Unknown", poll_slug: pollMap.get(t.poll_id)?.slug || "", option_label: optionMap.get(t.option_id)?.label || "Unknown" }));
+      return data.map((t: any) => ({ ...t, poll_title: pollMap.get(t.poll_id)?.title || "Unknown", poll_slug: pollMap.get(t.poll_id)?.slug || "", option_label: optionMap.get(t.option_id)?.label || "Unknown" }));
     },
     enabled: !!user,
     refetchInterval: 15000,

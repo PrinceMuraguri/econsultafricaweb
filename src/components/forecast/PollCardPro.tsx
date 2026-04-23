@@ -249,7 +249,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
         return {
           optionId: opt.id,
           label: opt.label,
-          amount: Number(best.total_cost) || 0,
+          amount: Number(best.total_cost ?? best.cost_basis) || 0,
           source: "position" as const,
         };
       }

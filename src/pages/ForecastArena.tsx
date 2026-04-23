@@ -225,6 +225,7 @@ const ForecastArena = () => {
             <div className="flex items-center gap-2">
               <TrendingUpIcon className="w-4 h-4 text-amber-500" />
               <p className="text-xs text-foreground">
+                <span className="font-bold uppercase tracking-wider text-amber-600 mr-1">Demo mode:</span>
                 You're on the free version of Forecast Arena.{" "}
                 <span className="font-bold">Upgrade to Pro</span> to back your predictions with real capital—and earn rewards when you get it right.
               </p>

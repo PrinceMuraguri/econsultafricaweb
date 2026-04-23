@@ -36,9 +36,7 @@ const navLinks = PRO_ENABLED
 
 const Navbar = () => {
   const location = useLocation();
-  const { user, profile, wallet, demoBalance, signOut } = useAuth();
-  const isProRoute = location.pathname.startsWith("/forecast-arena-pro");
-  const showDemo = isProRoute;
+  const { user, profile, demoBalance, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);

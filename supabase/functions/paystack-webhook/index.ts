@@ -118,6 +118,9 @@ Deno.serve(async (req) => {
 
       // ── WALLET DEPOSIT ──
       if (metadata?.type === 'wallet_deposit') {
+        if (proMode === 'demo') {
+          return dropProRefInDemo('wallet_deposit_in_demo');
+        }
         const userId = metadata.user_id;
 
         if (!userId) {

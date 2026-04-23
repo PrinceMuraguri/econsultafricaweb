@@ -422,7 +422,8 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
               const optStake = option.total_stake_amount || 0;
 
               const hasPosition = userPositions.some((p: any) => p.option_id === option.id && Number(p.shares) > 0);
-              const isSelected = votedOptionId === option.id || hasPosition;
+              const isPrimaryCommit = userPrimaryCommit?.optionId === option.id;
+              const isSelected = votedOptionId === option.id || hasPosition || isPrimaryCommit;
 
               const selectedBorder = isYes ? "border-green-500 ring-1 ring-green-500/30" : isNo ? "border-blue-500 ring-1 ring-blue-500/30" : "border-amber-500 ring-1 ring-amber-500/30";
               const selectedBg = isYes ? "bg-green-500/10" : isNo ? "bg-blue-500/10" : "bg-amber-500/10";

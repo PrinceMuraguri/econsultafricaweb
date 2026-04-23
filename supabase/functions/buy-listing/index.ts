@@ -31,11 +31,22 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "listing_id is required" }), { status: 400, headers: corsHeaders });
     }
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    const rpcName = proMode === "demo" ? "demo_buy_listing_atomic" : "buy_listing_atomic";
+
     // Delegate entirely to the Postgres RPC.
     // All six mutations (claim listing, debit buyer, credit seller, upsert position,
     // wallet transactions, trade records) execute inside ONE database transaction.
     // Any failure at any step automatically rolls back everything — no partial state.
-    const { data, error } = await supabase.rpc("buy_listing_atomic", {
+    const { data, error } = await supabase.rpc(rpcName, {
       p_listing_id: listing_id,
       p_buyer_id:   user.id,
     });

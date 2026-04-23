@@ -606,10 +606,14 @@ const MyDashboard = () => {
                   <p className="font-semibold text-foreground">{profile.full_name}</p>
                   <p className="text-xs text-muted-foreground">@{profile.username} · {profile.country} · {profile.occupation || "—"}</p>
                 </div>
-                {wallet && (
+                {(isDemo || wallet) && (
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Wallet</p>
-                    <p className="font-mono font-bold text-foreground"><DualCurrency amount={wallet.balance_usd} /></p>
+                    <p className="text-xs text-muted-foreground">{isDemo ? "Arena Coins" : "Wallet"}</p>
+                    {isDemo ? (
+                      <p className="font-mono font-bold text-amber-600">{Number(demoBalance ?? 0).toFixed(2)} AC</p>
+                    ) : (
+                      <p className="font-mono font-bold text-foreground"><DualCurrency amount={wallet!.balance_usd} /></p>
+                    )}
                   </div>
                 )}
               </div>

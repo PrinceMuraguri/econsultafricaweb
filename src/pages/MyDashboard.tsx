@@ -449,18 +449,33 @@ const MyDashboard = () => {
     });
 
     walletTxns?.forEach((tx: any) => {
-      if (tx.type === 'deposit') {
-        items.push({ id: `wtx-${tx.id}`, kind: 'deposit', label: 'Wallet funded', description: tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '+', timestamp: tx.created_at });
-      } else if (tx.type === 'withdrawal') {
-        items.push({ id: `wtx-${tx.id}`, kind: 'withdrawal', label: 'Withdrawal initiated', description: tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '-', timestamp: tx.created_at });
-      } else if (tx.type === 'payout' || tx.type === 'payout_mpesa') {
-        items.push({ id: `wtx-${tx.id}`, kind: 'payout', label: 'Payout received', description: tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '+', timestamp: tx.created_at });
-      } else if (tx.type === 'share_purchase') {
+      // Demo wallet types are prefixed `demo_*`. Normalize sign by stored amount.
+      const t = tx.type as string;
+      const isPositive = Number(tx.amount) >= 0;
+      const sign: '+' | '-' = isPositive ? '+' : '-';
+      const absAmt = Math.abs(Number(tx.amount));
+
+      if (t === 'deposit') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'deposit', label: 'Wallet funded', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else if (t === 'withdrawal') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'withdrawal', label: 'Withdrawal initiated', description: tx.description || undefined, amount: absAmt, amountSign: '-', timestamp: tx.created_at });
+      } else if (t === 'payout' || t === 'payout_mpesa' || t === 'demo_settle_win' || t === 'demo_payout') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'payout', label: 'Payout received', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else if (t === 'share_purchase' || t === 'demo_buy') {
         const trade = tradeByRef.get(tx.reference);
-        items.push({ id: `wtx-${tx.id}`, kind: 'share_purchase', label: trade ? `Bought shares — ${trade.option_label}` : 'Bought shares (P2P)', description: trade?.poll_title || tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '-', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
-      } else if (tx.type === 'share_sale') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_purchase', label: trade ? `Bought shares — ${trade.option_label}` : 'Bought shares', description: trade?.poll_title || tx.description || undefined, amount: absAmt, amountSign: '-', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
+      } else if (t === 'share_sale' || t === 'demo_sell') {
         const trade = tradeByRef.get(tx.reference);
-        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: trade ? `Sold shares — ${trade.option_label}` : 'Sold shares (P2P)', description: trade?.poll_title || tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '+', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: trade ? `Sold shares — ${trade.option_label}` : 'Sold shares', description: trade?.poll_title || tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
+      } else if (t === 'demo_stake' || t === 'stake') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'stake', label: 'Committed capital', description: tx.description || undefined, amount: absAmt, amountSign: '-', timestamp: tx.created_at });
+      } else if (t === 'demo_listing_sold' || t === 'listing_sold') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: 'Listing sold', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else if (t === 'demo_listing_refund') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: 'Listing canceled (refund)', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else {
+        // Generic fallback so any new demo type still appears in the feed
+        items.push({ id: `wtx-${tx.id}`, kind: sign === '+' ? 'payout' : 'stake', label: t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), description: tx.description || undefined, amount: absAmt, amountSign: sign, timestamp: tx.created_at });
       }
     });
 

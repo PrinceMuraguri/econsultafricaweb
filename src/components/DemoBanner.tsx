@@ -32,7 +32,7 @@ const DemoBanner = () => {
             to="/about-demo-mode"
             className="ml-2 underline text-[#F4714D] hover:text-[#F4714D]/80 font-semibold"
           >
-            Learn why →
+            Learn more →
           </Link>
         </p>
       </div>

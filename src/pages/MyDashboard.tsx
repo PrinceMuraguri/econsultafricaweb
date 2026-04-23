@@ -44,7 +44,8 @@ type ActivityItem = {
 };
 
 const MyDashboard = () => {
-  const { user, profile, wallet, loading, refreshWallet, refreshProfile } = useAuth();
+  const { user, profile, wallet, loading, refreshWallet, refreshProfile, proMode, demoBalance, refreshDemoWallet } = useAuth();
+  const isDemo = proMode === "demo";
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();

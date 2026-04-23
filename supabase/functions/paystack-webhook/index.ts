@@ -80,6 +80,31 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    // Helper: log + drop a Pro reference event in demo mode
+    const dropProRefInDemo = (reason: string) => {
+      console.error("[PRO_REFERENCE_IN_DEMO_MODE]", JSON.stringify({
+        reason,
+        event_type: event.event,
+        reference: event.data?.reference,
+        user_id: event.data?.metadata?.user_id ?? null,
+        amount: event.data?.amount ?? null,
+        metadata: event.data?.metadata ?? null,
+        full_event: event,
+      }));
+      return new Response(JSON.stringify({ received: true, demo_mode_skipped: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    };
+
     if (event.event === 'charge.success') {
       const { reference, metadata, amount, status, currency } = event.data;
       // currency comes from Paystack event (e.g. "KES", "NGN")

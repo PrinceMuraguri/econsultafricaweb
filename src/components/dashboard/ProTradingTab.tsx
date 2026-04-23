@@ -13,6 +13,8 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DualCurrency from "@/components/DualCurrency";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Position {
   id: string;
@@ -75,6 +77,9 @@ const ProTradingTab = ({
   isLoading,
 }: ProTradingTabProps) => {
   const { toast } = useToast();
+  const { proMode, demoBalance } = useAuth();
+  const isDemo = proMode === "demo";
+  const displayWalletBalance = isDemo ? Number(demoBalance ?? 0) : Number(wallet?.balance_usd || 0);
 
   // Expand/collapse states
   const [showAllActivity, setShowAllActivity] = useState(false);
@@ -233,10 +238,16 @@ const ProTradingTab = ({
       {/* Pro Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         {[
-          { icon: Wallet, label: "Wallet Balance", value: <DualCurrency amount={wallet?.balance_usd || 0} /> },
+          { icon: Wallet, label: "Wallet Balance", value: isDemo
+              ? <CurrencyAmount amount={displayWalletBalance} />
+              : <DualCurrency amount={wallet?.balance_usd || 0} /> },
           { icon: Activity, label: "Active Positions", value: proActive.length },
-          { icon: DollarSign, label: "Capital Committed", value: <DualCurrency amount={totalCommitted} /> },
-          { icon: TrendingUp, label: "Total Earnings", value: <DualCurrency amount={totalEarnings} /> },
+          { icon: DollarSign, label: "Capital Committed", value: isDemo
+              ? <CurrencyAmount amount={totalCommitted} />
+              : <DualCurrency amount={totalCommitted} /> },
+          { icon: TrendingUp, label: "Total Earnings", value: isDemo
+              ? <CurrencyAmount amount={totalEarnings} />
+              : <DualCurrency amount={totalEarnings} /> },
           { icon: CheckCircle, label: "Pro Accuracy", value: accuracy != null ? `${accuracy}%` : "—" },
         ].map((stat) => (
           <div key={stat.label} className="bg-card border border-border rounded-lg p-4">
@@ -249,32 +260,49 @@ const ProTradingTab = ({
 
       {/* Quick Actions */}
       <div className="mb-8 space-y-4">
-        {/* Add Funds */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground mb-2">Add Funds to Wallet</h3>
-          <div className="flex flex-wrap gap-2">
-            {DEPOSIT_AMOUNTS.slice(0, 6).map(amount => (
-              <Button key={amount} variant="outline" size="sm"
-                onClick={() => handleDeposit(amount)} disabled={depositLoading}
-                className="font-mono">
-                <Plus className="w-3 h-3 mr-1" />${amount}
+        {/* Add Funds — hidden in demo (no real-money deposits) */}
+        {!isDemo && (
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-2">Add Funds to Wallet</h3>
+            <div className="flex flex-wrap gap-2">
+              {DEPOSIT_AMOUNTS.slice(0, 6).map(amount => (
+                <Button key={amount} variant="outline" size="sm"
+                  onClick={() => handleDeposit(amount)} disabled={depositLoading}
+                  className="font-mono">
+                  <Plus className="w-3 h-3 mr-1" />${amount}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Withdraw Funds — disabled card in demo */}
+        {isDemo ? (
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-1.5">
+              <ArrowDownToLine className="w-4 h-4 text-amber-600" />
+              Withdrawals paused
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Forecast Arena Pro is in demo mode. Arena Coins are virtual and cannot be withdrawn.{" "}
+              <Link to="/about-demo-mode" className="text-primary underline hover:text-accent">
+                Learn why →
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-2">Withdraw Funds from Wallet</h3>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1} onClick={() => setWithdrawOpen(true)}>
+                <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Mobile Money
               </Button>
-            ))}
+              <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1}
+                onClick={() => { setWithdrawBankOpen(true); fetchBanks(bankCurrency); }}>
+                <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Bank
+              </Button>
+            </div>
           </div>
-        </div>
-        {/* Withdraw Funds */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground mb-2">Withdraw Funds from Wallet</h3>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1} onClick={() => setWithdrawOpen(true)}>
-              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Mobile Money
-            </Button>
-            <Button variant="outline" size="sm" disabled={(wallet?.balance_usd || 0) < 1}
-              onClick={() => { setWithdrawBankOpen(true); fetchBanks(bankCurrency); }}>
-              <ArrowDownToLine className="w-3 h-3 mr-1" /> Withdraw to Bank
-            </Button>
-          </div>
-        </div>
+        )}
         {/* Browse */}
         <Link to="/forecast-arena-pro">
           <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-700 hover:bg-amber-50">

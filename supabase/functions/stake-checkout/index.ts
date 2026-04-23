@@ -43,6 +43,56 @@ Deno.serve(async (req) => {
       });
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    if (proMode === "demo") {
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: 'Demo mode requires authenticated user' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: rpcData, error: rpcErr } = await supabase.rpc('demo_stake_atomic', {
+        p_user_id: user_id,
+        p_poll_id: poll_id,
+        p_option_id: option_id,
+        p_amount: amount,
+        p_entry_price: entry_price ?? 0.5,
+      });
+
+      if (rpcErr) {
+        console.error('demo_stake_atomic error:', rpcErr.message);
+        return new Response(JSON.stringify({ error: rpcErr.message || 'Demo stake failed', demo: true }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (rpcData?.error) {
+        return new Response(JSON.stringify({ error: rpcData.error, demo: true }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ demo: true, success: true, ...rpcData }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ── LIVE MODE ──
     const paystackSecretKey = (Deno.env.get('PAYSTACK_SECRET_KEY') ?? Deno.env.get('Paystack_KEY') ?? '').trim();
     if (!paystackSecretKey) {
       console.error('No Paystack key found. Available env keys:', Object.keys(Deno.env.toObject()).filter(k => k.toLowerCase().includes('pay')));
@@ -51,10 +101,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Convert USD to KES
     const usdToKesRate = await getUsdToKesRate();

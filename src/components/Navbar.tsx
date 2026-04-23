@@ -109,9 +109,15 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 {showDemo ? (
+                {showDemo ? (
                   <Link to="/forecast-arena-pro" className="flex items-center gap-1 text-xs font-mono font-semibold text-amber-600 bg-amber-500/10 px-2 py-1 rounded-full hover:bg-amber-500/20 transition-colors" title="Demo Arena Coins">
                     <Wallet className="w-3 h-3" />{(demoBalance ?? 0).toFixed(2)} AC
                   </Link>
+                ) : wallet && (
+                  <Link to="/my-dashboard" className="flex items-center gap-1 text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full hover:bg-primary/20 transition-colors">
+                    <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}
+                  </Link>
+                )}
                 ) : wallet && (
                   <Link to="/my-dashboard" className="flex items-center gap-1 text-xs font-mono font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full hover:bg-primary/20 transition-colors">
                     <Wallet className="w-3 h-3" />${wallet.balance_usd.toFixed(2)}

@@ -233,6 +233,38 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
     return rank(a.label.toLowerCase()) - rank(b.label.toLowerCase());
   }), [localOptions]);
 
+  // The user's primary committed option on THIS Pro poll, derived from real
+  // Pro signals only (positions first, then a recorded stake). This drives
+  // the persistent "You staked $X on Yes" sub-label on the homepage card so
+  // users can see their previous Pro selections as they scroll.
+  const userPrimaryCommit = useMemo(() => {
+    if (userPositions.length > 0) {
+      // Pick the position with the most shares
+      const best = [...userPositions].sort((a: any, b: any) => Number(b.shares) - Number(a.shares))[0];
+      const opt = localOptions.find(o => o.id === best.option_id);
+      if (opt && Number(best.shares) > 0) {
+        return {
+          optionId: opt.id,
+          label: opt.label,
+          amount: Number(best.total_cost) || 0,
+          source: "position" as const,
+        };
+      }
+    }
+    if (userStake?.option_id && userStake.is_staked && Number(userStake.stake_amount) > 0) {
+      const opt = localOptions.find(o => o.id === userStake.option_id);
+      if (opt) {
+        return {
+          optionId: opt.id,
+          label: opt.label,
+          amount: Number(userStake.stake_amount) || 0,
+          source: "stake" as const,
+        };
+      }
+    }
+    return null;
+  }, [userPositions, userStake, localOptions]);
+
   const optionLabels = useMemo(
     () => new Map(localOptions.map((option) => [option.id, option.label])),
     [localOptions]

@@ -1,123 +1,146 @@
 
 
-## Phase 1 — Pro Demo Mode SQL Migration (final, approved)
+## Phase 2 — Batch 1: Edge Function Routing for Demo/Live
 
-Two adjustments folded in:
-1. Migration-email exposure query (Phase 2) uses `pl.settled_at IS NULL` only — no `status` filter.
-2. `demo_orders_public` and `demo_listings_public` are **price-level aggregated depth views** (CLOB-standard, à la Polymarket/Kalshi). Plus explicit `REVOKE SELECT ... FROM anon, authenticated` on the underlying tables so the views are the sole public path.
+Both adjustments accepted:
+- **`paystack-webhook`**: Pro-reference events in demo mode log via `console.error("[PRO_REFERENCE_IN_DEMO_MODE]", ...)` with the full event payload (reference, user_id, amount, metadata, event_type, full event object) so logs are greppable. HTTP response stays `200`.
+- **`_shared/` correction noted**. The project does use `_shared/` (e.g. settle-market imports email templates). For this batch I'm keeping the prelude inline-duplicated to avoid mid-batch refactor risk; **all 13 copies will be byte-identical** for grep auditability. Centralizing into `_shared/pro-mode.ts` is queued as a follow-up at the end of Batch 3.
 
-### File
+---
 
-**Create:** `supabase/migrations/20260422_pro_demo_mode.sql`
+### The byte-identical prelude (12 lines, in every Pro function)
 
-### What the migration creates
+Placed immediately after `const supabase = createClient(...)` and before any business logic:
 
-**1. `platform_config`** — single-row toggle.
-- `id int primary key check (id=1)`, `pro_mode text default 'demo' check in ('demo','live')`, `updated_at`.
-- RLS: public SELECT; service_role UPDATE.
-- Seed `(1, 'demo')`.
-
-**2. `demo_wallets`** — 1:1 with `auth.users`.
-- `id, user_id unique, balance numeric(15,2) default 100 check (>=0), created_at, updated_at`.
-- RLS: user reads own; service_role writes.
-
-**3. `demo_positions`** — mirrors `positions`.
-- `(id, user_id, poll_id, option_id, shares numeric(15,4), avg_price numeric(10,4), cost_basis numeric(15,2), created_at, updated_at)` + unique `(user_id, poll_id, option_id)`.
-- RLS: user reads own; service_role writes.
-
-**4. `demo_orders`** — mirrors `orders`.
-- `(id, user_id, poll_id, option_id, side check in ('buy','sell'), price numeric(10,4), shares numeric(15,4), filled_shares numeric(15,4) default 0, status check in ('open','partial','filled','cancelled','expired'), expires_at, created_at, updated_at)`.
-- **RLS — locked down:**
-  - `REVOKE SELECT ON demo_orders FROM anon, authenticated;`
-  - Owner-only SELECT policy: `auth.uid() = user_id`.
-  - Service role full access.
-  - Public order-book reads go **only** through `demo_orders_public` view below.
-
-**5. `demo_listings`** — mirrors `listings`.
-- `(id, seller_id, buyer_id, poll_id, option_id, shares, price_per_share, total_ask, cost_basis, status check in ('active','sold','cancelled'), created_at, updated_at)`.
-- **RLS — locked down:**
-  - `REVOKE SELECT ON demo_listings FROM anon, authenticated;`
-  - Owner-only SELECT: `auth.uid() in (seller_id, buyer_id)`.
-  - Service role full access.
-  - Public listings reads go **only** through `demo_listings_public` view.
-
-**6. `demo_trades`** and **`demo_wallet_transactions`** — for activity feed and ledger.
-- Standard shape; user reads own; service_role writes.
-
-**7. Public CLOB views (the security boundary):**
-
-```sql
--- Price-level depth, one row per (poll, option, side, price). No order IDs, no users.
-create view public.demo_orders_public
-with (security_invoker = false) as
-select
-  poll_id,
-  option_id,
-  side,
-  price,
-  sum(shares - filled_shares)::numeric(15,4) as total_shares_at_level,
-  count(*)::int                              as order_count_at_level
-from public.demo_orders
-where status in ('open','partial')
-  and shares - filled_shares > 0
-group by poll_id, option_id, side, price;
-
-grant select on public.demo_orders_public to anon, authenticated;
+```ts
+// Pro mode dispatch: fail-closed to demo
+const { data: __cfg, error: __cfgErr } = await supabase
+  .from("platform_config")
+  .select("pro_mode")
+  .eq("id", 1)
+  .maybeSingle();
+const proMode: "demo" | "live" =
+  !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
 ```
 
-```sql
--- Listings aggregated to price level, one row per (poll, option, price).
-create view public.demo_listings_public
-with (security_invoker = false) as
-select
-  poll_id,
-  option_id,
-  price_per_share,
-  sum(shares)::numeric(15,4) as total_shares_at_level,
-  count(*)::int              as listing_count_at_level
-from public.demo_listings
-where status = 'active'
-group by poll_id, option_id, price_per_share;
+Single grep target: `Pro mode dispatch: fail-closed to demo`. If we ever see drift, one line catches all 13 files.
 
-grant select on public.demo_listings_public to anon, authenticated;
-```
+---
 
-This eliminates the partial-fill execution-gaming vector at the schema layer. Owners still see their own raw rows via the base-table policy.
+### Per-function changes
 
-**8. `user_profiles.has_acknowledged_demo boolean not null default false`** — column add for first-time onboarding modal.
+**1. `stake-checkout/index.ts`** — Dual-mode rewrite.
+- After validation, branch on `proMode`.
+- **Demo branch**: skip Paystack, skip transactions table, skip FX. Call `supabase.rpc("demo_stake_atomic", { p_user_id: user_id, p_poll_id, p_option_id, p_amount: amount, p_entry_price: entry_price ?? 0.5 })`. Requires `user_id` in body (frontend already sends it for logged-in users). If missing, return 400 `"Demo mode requires authenticated user"`. Return synthetic `{ demo: true, success: true, ...rpc.data }` so the frontend recognizes "no redirect needed".
+- **Live branch**: existing Paystack flow unchanged.
 
-**9. Trigger + backfill for `demo_wallets`:**
-- Function `create_demo_wallet_for_new_profile()` (`security definer`, `search_path=public`) inserts a `demo_wallets` row on every `INSERT` into `user_profiles`, `ON CONFLICT DO NOTHING`.
-- Trigger `after insert on user_profiles`.
-- One-shot backfill: `INSERT INTO demo_wallets (user_id) SELECT user_id FROM user_profiles ON CONFLICT DO NOTHING;` — every existing user gets 100 AC.
+**2. `verify-stake/index.ts`** — Demo no-op.
+- After parsing `{ reference }`, branch on `proMode`.
+- **Demo**: return `{ demo: true, skipped: true, message: "Verification not required in demo mode" }` with `200`.
+- **Live**: existing flow unchanged.
 
-**10. Atomic `SECURITY DEFINER` RPCs** mirroring the live ones, all writing to `demo_*`:
-- `demo_stake_atomic(user, poll, option, amount, entry_price)`
-- `demo_buy_shares_atomic`, `demo_sell_shares_atomic`
-- `demo_create_listing_atomic`, `demo_buy_listing_atomic`, `demo_cancel_listing_atomic`
-- `demo_place_order_atomic`, `demo_cancel_order_atomic`
-- `demo_settle_market(poll_id, winning_option_id)` — credits winners' `demo_wallets`, no Paystack.
+**3. `paystack-webhook/index.ts`** — Selective demo no-op (Pro refs only).
+- Inside the `charge.success` handler, **after parsing the event** but before processing, classify the reference:
+  - `wallet_deposit` metadata type OR reference starts with `stake_` → Pro reference.
+  - Inside `transfer.*` handlers, references starting with `withdraw_` or `payout_` → Pro reference.
+  - Marketplace references (no `stake_`/`withdraw_`/`payout_` prefix, no `wallet_deposit` metadata) → never blocked.
+- For Pro references in demo mode:
+  ```ts
+  console.error("[PRO_REFERENCE_IN_DEMO_MODE]", JSON.stringify({
+    event_type: event.event,
+    reference: event.data?.reference,
+    user_id: event.data?.metadata?.user_id ?? null,
+    amount: event.data?.amount ?? null,
+    metadata: event.data?.metadata ?? null,
+    full_event: event,
+  }));
+  return new Response(JSON.stringify({ received: true, demo_mode_skipped: true }), {
+    status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+  ```
+- Marketplace references continue normally regardless of `pro_mode`.
 
-Each is a functional copy of its live counterpart with table names swapped. Live RPCs untouched.
+**4. `withdraw/index.ts`** — Demo returns 503.
+- After auth + body parse, branch on `proMode`.
+- **Demo**: return `{ error: "Withdrawals are disabled in demo mode. Arena Coins have no cash value.", demo: true }` with `503`. No table writes, no Paystack calls.
+- **Live**: existing flow unchanged.
 
-### What is NOT in this migration
+**5. `run-payouts/index.ts`** — Demo returns 503.
+- After admin_key check + body parse, branch on `proMode`.
+- **Demo**: return `{ error: "Payouts are disabled in demo mode", demo: true }` with `503`.
+- **Live**: existing wallet/M-Pesa payout flow unchanged.
 
-- No changes to `wallets`, `positions`, `orders`, `listings`, `trades`, `votes`, `polls`, `voter_profiles`.
-- No Edge Function changes (Phase 2).
-- No frontend changes (Phase 2).
-- No email template (Phase 2).
-- The Phase 2 migration-notification query (drafted, not executed here) will use `pl.settled_at IS NULL` for position exposure — confirmed.
+**6. `place-order/index.ts`** — Dual-mode.
+- After auth + input validation, branch on `proMode`.
+- **Demo**: call `supabase.rpc("demo_place_order_atomic", { p_user_id: user.id, p_poll_id, p_option_id, p_side: side, p_price: price ?? 0.5, p_shares: shares })`. Return `{ demo: true, ...rpc.data }`. (No matching engine in demo — orders rest until manually cancelled or filled by counter-orders. Phase 2 batch 2 frontend can show this clearly.)
+- **Live**: existing CLOB matching engine unchanged.
 
-### Acceptance for Phase 1
+**7. `buy-shares/index.ts`** — Dual-mode.
+- After auth + validation + AMM price calc, branch on `proMode`.
+- **Demo**: call `supabase.rpc("demo_buy_shares_atomic", { p_user_id: user.id, p_poll_id, p_option_id, p_shares: shares, p_price: currentPrice })`. Skip wallet/positions/trades/votes/email — RPC handles wallet, positions, trades, ledger. Return `{ demo: true, ...rpc.data }`.
+- **Live**: existing flow unchanged.
 
-- Migration runs cleanly.
-- `platform_config` has one row, `pro_mode='demo'`.
-- Every existing `user_profiles` row has a matching `demo_wallets` row with `balance=100.00`.
-- New signup auto-creates a demo wallet (verified by inspecting the trigger).
-- `select * from demo_orders` as `anon` or `authenticated` returns **0 rows for non-owners** (RLS + revoke).
-- `select * from demo_orders_public` as `anon` returns aggregated depth only — no `id`, no `user_id`, no `filled_shares`.
-- Same for `demo_listings` / `demo_listings_public`.
-- Zero rows changed in any live-money table.
+**8. `sell-shares/index.ts`** — Dual-mode.
+- After auth + validation + AMM price calc, branch on `proMode`.
+- **Demo**: call `supabase.rpc("demo_sell_shares_atomic", { p_user_id: user.id, p_poll_id, p_option_id, p_shares: shares, p_price: currentPrice })`. Return `{ demo: true, ...rpc.data }`.
+- **Live**: existing flow unchanged.
 
-After you approve and the migration runs, I'll produce Phase 2 in three reviewable batches: Edge Functions → frontend → email template + admin toggle + manual default-withdrawal function.
+**9. `create-listing/index.ts`** — Dual-mode.
+- **Demo**: call `supabase.rpc("demo_create_listing_atomic", { p_seller_id: user.id, p_poll_id, p_option_id, p_shares: Number(shares), p_price_per_share: Number(price_per_share) })`.
+- **Live**: existing `create_listing_atomic` call unchanged.
+
+**10. `buy-listing/index.ts`** — Dual-mode.
+- **Demo**: call `supabase.rpc("demo_buy_listing_atomic", { p_buyer_id: user.id, p_listing_id })`. Notification block also runs in demo, reading `demo_listings` instead of `listings` for seller_id/poll_id/shares/total_ask, and uses the same `notifications` table (notifications are not currency).
+- **Live**: existing `buy_listing_atomic` + `listings` notification path unchanged.
+
+**11. `cancel-listing/index.ts`** — Dual-mode.
+- **Demo**: call `supabase.rpc("demo_cancel_listing_atomic", { p_listing_id, p_seller_id: user.id })`.
+- **Live**: existing `cancel_listing_atomic` call unchanged.
+
+**12. `cancel-order/index.ts`** — Dual-mode.
+- **Demo**: call `supabase.rpc("demo_cancel_order_atomic", { p_order_id: order_id, p_user_id: user.id })`.
+- **Live**: existing inline order-cancel + wallet-refund logic unchanged.
+
+**13. `settle-market/index.ts`** — Dual-mode with skips.
+- After auth + poll validation + winning option check, branch on `proMode`.
+- **Demo branch**:
+  1. Skip live `cancel_listing_atomic` loop. Instead, mark all `demo_listings` for this poll with `status='active'` → `'cancelled'` directly.
+  2. Skip live `payouts` table inserts and live `wallets`/`wallet_transactions` credits.
+  3. Call `supabase.rpc("demo_settle_market", { p_poll_id: poll_id, p_winning_option_id: winning_option_id })` — credits demo wallets.
+  4. Update `polls` row exactly as in live (status='settled', outcome, winning_option_id, settled_at, settled_by). This must run in both modes — Free tier and AI scoring depend on it.
+  5. **Still call** `score_ai_predictions_for_poll` — Brier scoring is currency-agnostic.
+  6. **Still insert** in-app `notifications` for ALL voters (winners and losers) — these are currency-agnostic engagement signals. The body text uses dollar amounts from `votes.stake_amount`; for demo we'll keep showing those values but **prepend "(demo)"** to position-related lines (e.g., `You staked $X.XX (demo)`). This is a deliberate, minimal change inside the existing notification builders.
+  7. **Skip** `settlement-winner` and `settlement-loser` transactional emails entirely. They reference dollar payouts and are unsuitable for demo. (No silent attempt — just skip the `emailPromises` push.)
+- **Live branch**: existing flow exactly as today.
+
+---
+
+### Validation tests (after deploy)
+
+For each function in current state (`pro_mode='demo'`):
+
+| Test | Expected |
+|---|---|
+| `stake-checkout` with valid body | `200`, `{ demo: true, success: true }`, `demo_wallets` debited, `demo_positions` upserted, no `transactions` row |
+| `verify-stake` with any reference | `200`, `{ demo: true, skipped: true }` |
+| `withdraw` with valid auth | `503`, `{ error: "...disabled in demo mode...", demo: true }` |
+| `run-payouts` with admin_key | `503`, `{ error: "...disabled in demo mode", demo: true }` |
+| `paystack-webhook` simulated `charge.success` with `stake_*` ref | `200`, console.error log with `[PRO_REFERENCE_IN_DEMO_MODE]` prefix, no DB writes to `wallets`/`votes`/`positions` |
+| `paystack-webhook` simulated `charge.success` with marketplace ref (no Pro prefix, no `wallet_deposit` metadata) | Processes normally |
+| `place-order` / `buy-shares` / `sell-shares` / `create-listing` / `buy-listing` / `cancel-listing` / `cancel-order` | Each returns `{ demo: true, ... }` from the corresponding `demo_*_atomic` RPC; no rows in live `wallets` / `positions` / `orders` / `listings` / `trades` |
+| `settle-market` on a test poll | Polls row settled, AI scoring runs, in-app notifications inserted, **zero** writes to `payouts` / `wallets` / `wallet_transactions`, **zero** `settlement-*` emails, demo winners credited via `demo_settle_market` |
+
+After live testing:
+- Manually flip `platform_config.pro_mode='live'` via SQL, re-run `stake-checkout` smoke test, confirm Paystack initialization URL returned. Flip back to `'demo'`.
+- Manually corrupt `platform_config` (set `pro_mode='typo'`) and confirm `stake-checkout` routes to demo (fail-closed verification). Restore.
+
+---
+
+### Files modified (13)
+
+`stake-checkout/index.ts`, `verify-stake/index.ts`, `paystack-webhook/index.ts`, `withdraw/index.ts`, `run-payouts/index.ts`, `place-order/index.ts`, `buy-shares/index.ts`, `sell-shares/index.ts`, `create-listing/index.ts`, `buy-listing/index.ts`, `cancel-listing/index.ts`, `cancel-order/index.ts`, `settle-market/index.ts`.
+
+Untouched: `paystack-checkout` (marketplace), `agent-api`, `auto-forecast`, `admin-polls`, `report-download`, all email functions, all `_shared/`.
+
+After approval and successful deploy + smoke tests, Batch 2 (frontend: DemoBanner, DemoOnboardingModal, AboutDemoMode, AC currency formatting, AuthContext extension) follows.
 

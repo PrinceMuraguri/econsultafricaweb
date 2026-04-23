@@ -417,7 +417,11 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
             <p className="text-[8px] text-muted-foreground italic">Submit your personal forecast on the outcome</p>
             {/* Pro flag: inline "Try Pro" hint hidden when Pro is paused */}
             {!homepage && PRO_ENABLED && (
-              <Link to={`/forecast-arena-pro/${poll.slug}`} className="inline-flex items-center gap-1 text-[9px] text-amber-600 hover:text-amber-700 font-semibold mt-1 transition-colors">
+              <Link
+                to={`/forecast-arena-pro/${poll.slug}`}
+                state={hasVoted && votedOptionId ? { justVotedOptionId: votedOptionId, justVotedAt: Date.now(), pollId: poll.id } : undefined}
+                className="inline-flex items-center gap-1 text-[9px] text-amber-600 hover:text-amber-700 font-semibold mt-1 transition-colors"
+              >
                 <TrendingUp className="w-2.5 h-2.5" /> Try Pro to commit capital →
               </Link>
             )}
@@ -535,6 +539,7 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
               </p>
               <Link
                 to={`/forecast-arena-pro/${poll.slug}`}
+                state={hasVoted && votedOptionId ? { justVotedOptionId: votedOptionId, justVotedAt: Date.now(), pollId: poll.id } : undefined}
                 className="inline-flex items-center justify-center rounded-md bg-amber-500 text-white px-4 py-1.5 text-xs font-bold shadow hover:bg-amber-600 transition-colors"
               >
                 Try Forecast Arena Pro →

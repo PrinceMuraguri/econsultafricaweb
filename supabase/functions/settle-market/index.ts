@@ -79,22 +79,32 @@ Deno.serve(async (req) => {
     }
 
     // ── 2. Cancel all open listings for this poll ─────────────────────────────
-    const { data: openListings } = await supabase
-      .from('listings')
-      .select('id, seller_id')
-      .eq('poll_id', poll_id)
-      .eq('status', 'active');
-
     let listingsCancelled = 0;
-    for (const listing of openListings || []) {
-      const { error: cancelErr } = await supabase.rpc('cancel_listing_atomic', {
-        p_listing_id: listing.id,
-        p_seller_id:  listing.seller_id,
-      });
-      if (cancelErr) {
-        console.error(`Failed to cancel listing ${listing.id}:`, cancelErr.message);
-      } else {
-        listingsCancelled++;
+    if (proMode === 'demo') {
+      const { data: cancelledRows } = await supabase
+        .from('demo_listings')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('poll_id', poll_id)
+        .eq('status', 'active')
+        .select('id');
+      listingsCancelled = cancelledRows?.length ?? 0;
+    } else {
+      const { data: openListings } = await supabase
+        .from('listings')
+        .select('id, seller_id')
+        .eq('poll_id', poll_id)
+        .eq('status', 'active');
+
+      for (const listing of openListings || []) {
+        const { error: cancelErr } = await supabase.rpc('cancel_listing_atomic', {
+          p_listing_id: listing.id,
+          p_seller_id:  listing.seller_id,
+        });
+        if (cancelErr) {
+          console.error(`Failed to cancel listing ${listing.id}:`, cancelErr.message);
+        } else {
+          listingsCancelled++;
+        }
       }
     }
     console.log(`Cancelled ${listingsCancelled} open listing(s) before settlement`);

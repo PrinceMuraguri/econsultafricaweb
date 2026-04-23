@@ -4,16 +4,25 @@ import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import DemoBanner from "@/components/DemoBanner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StakeResult = () => {
   const [searchParams] = useSearchParams();
   const reference = searchParams.get("reference") || searchParams.get("trxref");
+  const { proMode } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [details, setDetails] = useState<{ poll_id?: string; amount?: number } | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    // Direct-from-stake arrival in demo mode (no Paystack reference) — show success card.
     if (!reference) {
+      if (proMode === "demo") {
+        setStatus("success");
+        setDetails({});
+        return;
+      }
       setStatus("error");
       setErrorMsg("No payment reference found.");
       return;
@@ -40,10 +49,11 @@ const StakeResult = () => {
     };
 
     verify();
-  }, [reference]);
+  }, [reference, proMode]);
 
   return (
     <Layout>
+      <DemoBanner />
       <section className="section-padding min-h-[60vh] flex items-center">
         <div className="container-page max-w-lg mx-auto text-center">
           {status === "loading" && (

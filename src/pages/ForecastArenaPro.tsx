@@ -12,6 +12,8 @@ import WalletTopUpPrompt from "@/components/forecast/WalletTopUpPrompt";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import DemoBanner from "@/components/DemoBanner";
+import CurrencyAmount from "@/components/CurrencyAmount";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -39,7 +41,7 @@ function useDebounce(value: string, delay: number) {
 
 const ForecastArenaPro = () => {
   const { data: polls, isLoading } = usePolls("active");
-  const { user, wallet } = useAuth();
+  const { user, wallet, proMode, demoBalance } = useAuth();
   const [selectedCountry, setSelectedCountry] = useState("Kenya");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [heroExpanded, setHeroExpanded] = useState(false);
@@ -117,6 +119,7 @@ const ForecastArenaPro = () => {
 
   return (
     <Layout>
+      <DemoBanner />
       {/* Pro Hero */}
       <section className="py-6 md:py-8 bg-foreground overflow-hidden relative">
         <div className="absolute inset-0 opacity-5">
@@ -147,12 +150,17 @@ const ForecastArenaPro = () => {
             </div>
 
             <div className="flex flex-wrap gap-3 items-center md:flex-col md:items-end">
-              {user && wallet && (
+              {user && (proMode === "demo" || wallet) && (
                 <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 rounded-lg px-3 py-2">
                   <DollarSign className="w-4 h-4 text-amber-400" />
                   <div>
                     <p className="text-[10px] text-background/50">Wallet Balance</p>
-                    <p className="text-lg font-mono font-bold text-background">${wallet.balance_usd.toFixed(2)}</p>
+                    <p className="text-lg font-mono font-bold text-background">
+                      <CurrencyAmount
+                        amount={proMode === "demo" ? Number(demoBalance ?? 0) : Number(wallet?.balance_usd ?? 0)}
+                        className="text-background"
+                      />
+                    </p>
                   </div>
                 </div>
               )}

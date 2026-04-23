@@ -2,9 +2,10 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   TrendingUp, TrendingDown, DollarSign, BarChart3,
-  ListOrdered, Layers, Activity,
+  ListOrdered, Layers, Activity, Info,
 } from "lucide-react";
 import { useIdentityResolver, PollLink, OptionLabel } from "@/pages/AdminDashboard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AdminTradingTabProps {
   adminKey: string;
@@ -39,6 +40,7 @@ const KIND_META: Record<ActivityEvent["kind"], { label: string; cls: string }> =
 };
 
 const AdminTradingTab = ({ polls }: AdminTradingTabProps) => {
+  const { proMode } = useAuth();
   // ── Source data: trades, votes (staked), listings, orders ────────────────
   const results = useQueries({
     queries: [
@@ -209,7 +211,30 @@ const AdminTradingTab = ({ polls }: AdminTradingTabProps) => {
     <div>
       <h2 className="text-xl font-bold text-foreground mb-4">Trading Activity</h2>
 
-      {/* Stats */}
+      {/* Pro mode info bar */}
+      <div className={`mb-4 rounded-lg border px-3 py-2 flex items-start gap-2 ${
+        proMode === "demo"
+          ? "bg-amber-500/5 border-amber-500/30"
+          : proMode === "live"
+            ? "bg-green-500/5 border-green-500/30"
+            : "bg-muted/30 border-border"
+      }`}>
+        <Info className={`w-4 h-4 mt-0.5 shrink-0 ${
+          proMode === "demo" ? "text-amber-600" : proMode === "live" ? "text-green-600" : "text-muted-foreground"
+        }`} />
+        <p className="text-xs text-foreground">
+          Pro is currently in <span className="font-bold uppercase">{proMode}</span> mode.{" "}
+          {proMode === "demo" && (
+            <span className="text-muted-foreground">
+              Activity below reflects live tables only — virtual Arena Coin trades are recorded in <code className="font-mono text-[10px]">demo_*</code> tables and do not appear here.
+            </span>
+          )}
+          {proMode === "live" && (
+            <span className="text-muted-foreground">All activity below represents real wallet movements.</span>
+          )}
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {[
           { icon: TrendingUp,  label: "Buy Volume",      value: `$${totalBuyVolume.toFixed(2)}`,  color: "text-green-600" },

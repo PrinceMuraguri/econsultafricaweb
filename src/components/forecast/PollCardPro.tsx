@@ -399,14 +399,19 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
         <div className="flex flex-col relative">
           <p className="text-[9px] uppercase tracking-wider text-amber-600 font-semibold mb-0.5">
             Back with capital
-            {hasVoted && votedOptionId && (() => {
+            {userPrimaryCommit ? (
+              <span className="ml-1 normal-case tracking-normal font-normal text-amber-700 dark:text-amber-400">
+                — you staked <span className="font-semibold">${userPrimaryCommit.amount.toFixed(2)}</span> on{" "}
+                <span className="font-semibold">{userPrimaryCommit.label}</span>
+              </span>
+            ) : hasVoted && votedOptionId ? (() => {
               const votedOpt = sortedOptions.find(o => o.id === votedOptionId);
               return votedOpt ? (
                 <span className="ml-1 normal-case tracking-normal font-normal text-primary">
                   — voted <span className="font-semibold">{votedOpt.label}</span>
                 </span>
               ) : null;
-            })()}
+            })() : null}
           </p>
 
           <div className="space-y-1.5 flex-1 relative">

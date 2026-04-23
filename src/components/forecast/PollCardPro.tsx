@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, DollarSign, Tag, ShoppingBag, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
   const { toast } = useToast();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [localOptions, setLocalOptions] = useState(poll.poll_options);
   const [stakeOpen, setStakeOpen] = useState(false);
@@ -156,18 +157,23 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
     }
   }, [userStake, userPositions]);
 
-  // Check if user has voted
+  // One-shot Free→Pro hand-off: only highlight if user just voted on Free and clicked "Try Pro"
+  // for THIS exact poll within the last 60 seconds. Never inherit historical Free votes.
   useEffect(() => {
-    (async () => {
-      if (user) {
-        const { data } = await supabase.from("votes").select("option_id").eq("poll_id", poll.id).eq("user_id", user.id).maybeSingle();
-        if (data) { setHasVoted(true); setVotedOptionId(data.option_id); return; }
-      }
-      const fp = await getFingerprint();
-      const { data } = await supabase.from("votes").select("option_id").eq("poll_id", poll.id).eq("voter_fingerprint", fp).maybeSingle();
-      if (data) { setHasVoted(true); setVotedOptionId(data.option_id); }
-    })();
-  }, [poll.id, user]);
+    const state = location.state as { justVotedOptionId?: string; justVotedAt?: number; pollId?: string } | null;
+    if (
+      state?.justVotedOptionId &&
+      state.pollId === poll.id &&
+      typeof state.justVotedAt === "number" &&
+      Date.now() - state.justVotedAt < 60_000
+    ) {
+      setHasVoted(true);
+      setVotedOptionId(state.justVotedOptionId);
+      // Clear router state so refresh doesn't persist this hand-off highlight
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poll.id]);
 
   // *** PRO: Use total_stake_amount for price calculations ***
   const totalStake = localOptions.reduce((s, o) => s + (o.total_stake_amount || 0), 0);

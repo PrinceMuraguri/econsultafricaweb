@@ -448,6 +448,14 @@ Deno.serve(async (req) => {
     // ── TRANSFER EVENTS (withdrawals + payouts) ──
     if (event.event === 'transfer.success' || event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
       const { reference, transfer_code, reason, status: transferStatus } = event.data;
+
+      // All transfer.* events from Pro flows use 'withdraw_' or 'payout_' references.
+      // In demo mode, never touch real-money tables for these.
+      if (proMode === 'demo' && typeof reference === 'string' &&
+          (reference.startsWith('withdraw_') || reference.startsWith('payout_'))) {
+        return dropProRefInDemo('transfer_reference_in_demo');
+      }
+
       const recipient = event.data.recipient;
 
       console.log(`Transfer event: ${event.event}, ref: ${reference}, status: ${transferStatus}`);

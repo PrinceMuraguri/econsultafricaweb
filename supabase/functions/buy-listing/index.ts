@@ -71,9 +71,9 @@ Deno.serve(async (req) => {
     // Notify the seller that their listing was bought
     if (data?.success) {
       try {
-        // Fetch listing details to get seller_id, poll_id, etc.
+        const listingTable = proMode === "demo" ? "demo_listings" : "listings";
         const { data: listing } = await supabase
-          .from("listings")
+          .from(listingTable)
           .select("seller_id, poll_id, shares, total_ask")
           .eq("id", listing_id)
           .single();

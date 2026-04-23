@@ -25,7 +25,7 @@ const DemoBanner = () => {
         <AlertTriangle className="w-3.5 h-3.5 text-[#F4714D] shrink-0" />
         <p className="text-[11px] md:text-xs font-medium text-foreground">
           <span className="font-bold text-[#F4714D] uppercase tracking-wider mr-1.5">
-            Demo mode
+            Demo mode (not real capital)
           </span>
           Practice with virtual Arena Coins. No real money.
           <Link

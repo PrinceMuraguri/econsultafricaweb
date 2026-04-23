@@ -40,6 +40,8 @@ import KenyaGenZ2026 from "./pages/KenyaGenZ2026.tsx";
 import AIAgentProfile from "./pages/AIAgentProfile.tsx";
 import APIDocumentation from "./pages/APIDocumentation.tsx";
 import ProPaused from "./pages/ProPaused.tsx";
+import AboutDemoMode from "./pages/AboutDemoMode.tsx";
+import DemoOnboardingModal from "@/components/forecast/DemoOnboardingModal";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates Pro routes
 
 const queryClient = new QueryClient();
@@ -54,6 +56,8 @@ const App = () => (
           <CartDrawer />
           <BrowserRouter>
             <ScrollToTop />
+            {/* Single, app-wide mount — fires on any Pro surface when proMode === 'demo' */}
+            <DemoOnboardingModal />
             <Routes>
               <Route path="/" element={<ForecastArena />} />
               <Route path="/our-philosophy" element={<OurPhilosophy />} />
@@ -87,6 +91,7 @@ const App = () => (
               <Route path="/kenya-genz-2026" element={<KenyaGenZ2026 />} />
               <Route path="/ai-agent/:slug" element={<AIAgentProfile />} />
               <Route path="/api-docs" element={<APIDocumentation />} />
+              <Route path="/about-demo-mode" element={<AboutDemoMode />} />
               {/* Redirects */}
               <Route path="/forecast-arena" element={<Navigate to="/" replace />} />
               <Route path="/forecast-arena/stake-result" element={<Navigate to="/stake-result" replace />} />

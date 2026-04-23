@@ -191,7 +191,11 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
     event.preventDefault();
     event.stopPropagation();
     if (isHomepageMode) {
-      navigate(`/forecast-arena-pro/${poll.slug}`);
+      // Carry the user's selection to the detail page so the option stays
+      // highlighted with a "commit capital" CTA — mirroring Free's behavior.
+      navigate(`/forecast-arena-pro/${poll.slug}`, {
+        state: { justVotedOptionId: optionId, justVotedAt: Date.now(), pollId: poll.id },
+      });
       return;
     }
     // On detail page, clicking opens stake modal

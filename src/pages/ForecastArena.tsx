@@ -230,7 +230,7 @@ const ForecastArena = () => {
               </p>
             </div>
             <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
-              Try Pro (Demo Mode) →
+              Try Pro →
             </Link>
           </div>
         </div>

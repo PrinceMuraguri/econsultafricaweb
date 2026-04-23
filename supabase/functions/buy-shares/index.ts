@@ -26,6 +26,43 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: corsHeaders });
     }
 
+    // Pro mode dispatch: fail-closed to demo
+    const { data: __cfg, error: __cfgErr } = await supabase
+      .from("platform_config")
+      .select("pro_mode")
+      .eq("id", 1)
+      .maybeSingle();
+    const proMode: "demo" | "live" =
+      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+
+    if (proMode === "demo") {
+      // Compute current AMM price for demo execution
+      const { data: optionsDemo } = await supabase
+        .from("poll_options")
+        .select("id, total_stake_amount")
+        .eq("poll_id", poll_id);
+      const totalStakeDemo = (optionsDemo || []).reduce((s, o) => s + Number(o.total_stake_amount || 0), 0);
+      const thisOptionDemo = (optionsDemo || []).find(o => o.id === option_id);
+      const currentPriceDemo = totalStakeDemo > 0 && thisOptionDemo
+        ? Math.max(0.05, Math.min(0.95, Number(thisOptionDemo.total_stake_amount || 0) / totalStakeDemo))
+        : 0.50;
+
+      const { data: rpcData, error: rpcErr } = await supabase.rpc("demo_buy_shares_atomic", {
+        p_user_id: user.id,
+        p_poll_id: poll_id,
+        p_option_id: option_id,
+        p_shares: shares,
+        p_price: currentPriceDemo,
+      });
+      if (rpcErr) {
+        return new Response(JSON.stringify({ error: rpcErr.message, demo: true }), { status: 500, headers: corsHeaders });
+      }
+      if (rpcData?.error) {
+        return new Response(JSON.stringify({ error: rpcData.error, demo: true }), { status: 400, headers: corsHeaders });
+      }
+      return new Response(JSON.stringify({ demo: true, ...rpcData }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Check poll is active
     const { data: poll } = await supabase.from("polls").select("status, close_at").eq("id", poll_id).single();
     if (!poll || poll.status !== "active" || new Date(poll.close_at) < new Date()) {

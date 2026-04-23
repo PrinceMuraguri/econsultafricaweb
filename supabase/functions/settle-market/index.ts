@@ -203,7 +203,18 @@ Deno.serve(async (req) => {
     // ── 5. Payouts (only if there are winning positions) ─────────────────────
     const payoutRecords: any[] = [];
 
-    if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
+    if (proMode === 'demo') {
+      // Demo mode: credit demo wallets via RPC, skip live payouts/wallets writes
+      const { data: demoSettleData, error: demoSettleErr } = await supabase.rpc('demo_settle_market', {
+        p_poll_id: poll_id,
+        p_winning_option_id: winning_option_id,
+      });
+      if (demoSettleErr) {
+        console.error('demo_settle_market error:', demoSettleErr.message);
+      } else {
+        console.log('demo_settle_market result:', JSON.stringify(demoSettleData));
+      }
+    } else if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
       const grossPerShare = Math.min(1.0, totalPool / totalWinningShares);
       console.log(`Gross/share: $${grossPerShare.toFixed(4)}`);
 
@@ -258,8 +269,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 6. Persist payout records ──────────────────────────────────────────────
-    if (payoutRecords.length > 0) {
+    // ── 6. Persist payout records (live only) ─────────────────────────────────
+    if (proMode === 'live' && payoutRecords.length > 0) {
       const { error: payoutError } = await supabase.from('payouts').insert(payoutRecords);
       if (payoutError) {
         console.error('Payout insert error:', payoutError.message);

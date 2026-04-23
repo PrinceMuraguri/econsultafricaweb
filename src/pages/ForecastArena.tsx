@@ -225,9 +225,8 @@ const ForecastArena = () => {
             <div className="flex items-center gap-2">
               <TrendingUpIcon className="w-4 h-4 text-amber-500" />
               <p className="text-xs text-foreground">
-                <span className="font-bold uppercase tracking-wider text-amber-600 mr-1">TRY FORECAST ARENA PRO (DEMO MODE):</span>
-                You're on the free version of Forecast Arena.{" "}
-                <span className="font-bold">Try Pro</span> to get $100 virtual Arena Coins to back our predictions with capital. Ear rewards when right.
+                <span className="font-semibold tracking-wide text-amber-600 mr-1">Try FORECAST ARENA PRO (Demo Mode):</span>
+                You get <span className="font-bold">$100 virtual Arena Coins</span> to back our predictions with capital. Earn rewards when right.
               </p>
             </div>
             <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">

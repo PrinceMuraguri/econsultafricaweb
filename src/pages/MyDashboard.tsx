@@ -44,7 +44,8 @@ type ActivityItem = {
 };
 
 const MyDashboard = () => {
-  const { user, profile, wallet, loading, refreshWallet, refreshProfile } = useAuth();
+  const { user, profile, wallet, loading, refreshWallet, refreshProfile, proMode, demoBalance, refreshDemoWallet } = useAuth();
+  const isDemo = proMode === "demo";
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -73,18 +74,26 @@ const MyDashboard = () => {
     }
   }, [user]);
 
-  // Realtime subscriptions
+  // Realtime subscriptions (live + demo tables — both safe to subscribe to; only the active mode renders)
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
       .channel(`dashboard-${user.id}`)
+      // Live wallet
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, () => refreshWallet())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-wallet-transactions', user.id] });
         queryClient.invalidateQueries({ queryKey: ['my-wallet-payouts', user.id] });
         refreshWallet();
       })
+      // Demo wallet
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_wallets', filter: `user_id=eq.${user.id}` }, () => refreshDemoWallet())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_wallet_transactions', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-wallet-transactions', user.id] });
+        refreshDemoWallet();
+      })
+      // Votes (shared by free + pro)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
       })
@@ -92,17 +101,28 @@ const MyDashboard = () => {
         queryClient.invalidateQueries({ queryKey: ['my-payouts', user.id] });
         queryClient.invalidateQueries({ queryKey: ['my-wallet-payouts', user.id] });
       })
+      // Live trading
       .on('postgres_changes', { event: '*', schema: 'public', table: 'positions', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-share-positions', user.id] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `user_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-trades', user.id] });
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ['my-notifications', user.id] });
-      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'listings', filter: `seller_id=eq.${user.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-active-listings', user.id] });
+      })
+      // Demo trading
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_positions', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-share-positions', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_trades', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-trades', user.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_listings', filter: `seller_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-active-listings', user.id] });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['my-notifications', user.id] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, () => {
         queryClient.invalidateQueries({ queryKey: ['my-positions', user.id] });
@@ -210,12 +230,13 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch wallet transactions
+  // Fetch wallet transactions (live or demo)
   const { data: walletTxns } = useQuery({
-    queryKey: ["my-wallet-transactions", user?.id],
+    queryKey: ["my-wallet-transactions", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase.from("wallet_transactions").select("*")
+      const table = isDemo ? "demo_wallet_transactions" : "wallet_transactions";
+      const { data, error } = await (supabase as any).from(table).select("*")
         .eq("user_id", user.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -224,24 +245,27 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch share positions
+  // Fetch share positions (live or demo)
   const { data: sharePositions = [] } = useQuery({
-    queryKey: ["my-share-positions", user?.id],
+    queryKey: ["my-share-positions", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase.from("positions").select("*").eq("user_id", user.id);
+      const table = isDemo ? "demo_positions" : "positions";
+      const { data, error } = await (supabase as any).from(table).select("*").eq("user_id", user.id);
       if (error) throw error;
       if (!data || data.length === 0) return [];
-      const pollIds = [...new Set(data.map(p => p.poll_id))];
-      const optionIds = [...new Set(data.map(p => p.option_id))];
+      const pollIds = [...new Set(data.map((p: any) => p.poll_id))] as string[];
+      const optionIds = [...new Set(data.map((p: any) => p.option_id))] as string[];
       const [pollsRes, optionsRes] = await Promise.all([
         supabase.from("polls").select("id, title, slug, status, close_at").in("id", pollIds),
         supabase.from("poll_options").select("id, label").in("id", optionIds),
       ]);
       const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
       const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
-      return data.map(pos => ({
+      return data.map((pos: any) => ({
         ...pos,
+        // Demo positions store cost as `cost_basis`; live uses `total_cost`. Normalize for downstream UI.
+        total_cost: isDemo ? Number(pos.cost_basis ?? 0) : Number(pos.total_cost ?? 0),
         poll_title: pollMap.get(pos.poll_id)?.title || "Unknown",
         poll_slug: pollMap.get(pos.poll_id)?.slug || "",
         poll_status: pollMap.get(pos.poll_id)?.status || "unknown",
@@ -253,12 +277,13 @@ const MyDashboard = () => {
     refetchInterval: 15000,
   });
 
-  // Fetch active listings
+  // Fetch active listings (live or demo)
   const { data: myActiveListings = [] } = useQuery({
-    queryKey: ["my-active-listings", user?.id],
+    queryKey: ["my-active-listings", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await (supabase as any).from("listings").select("*")
+      const table = isDemo ? "demo_listings" : "listings";
+      const { data, error } = await (supabase as any).from(table).select("*")
         .eq("seller_id", user.id).eq("status", "active").order("created_at", { ascending: false });
       if (error) return [];
       if (!data || data.length === 0) return [];
@@ -276,24 +301,25 @@ const MyDashboard = () => {
     refetchInterval: 30000,
   });
 
-  // Fetch trade history
+  // Fetch trade history (live or demo)
   const { data: tradeHistory = [] } = useQuery({
-    queryKey: ["my-trades", user?.id],
+    queryKey: ["my-trades", user?.id, isDemo],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase.from("trades").select("*")
+      const table = isDemo ? "demo_trades" : "trades";
+      const { data, error } = await (supabase as any).from(table).select("*")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       if (!data || data.length === 0) return [];
-      const pollIds = [...new Set(data.map(t => t.poll_id))];
-      const optionIds = [...new Set(data.map(t => t.option_id))];
+      const pollIds = [...new Set(data.map((t: any) => t.poll_id))] as string[];
+      const optionIds = [...new Set(data.map((t: any) => t.option_id))] as string[];
       const [pollsRes, optionsRes] = await Promise.all([
         supabase.from("polls").select("id, title, slug").in("id", pollIds),
         supabase.from("poll_options").select("id, label").in("id", optionIds),
       ]);
       const pollMap = new Map((pollsRes.data || []).map((p: any) => [p.id, p]));
       const optionMap = new Map((optionsRes.data || []).map((o: any) => [o.id, o]));
-      return data.map(t => ({ ...t, poll_title: pollMap.get(t.poll_id)?.title || "Unknown", poll_slug: pollMap.get(t.poll_id)?.slug || "", option_label: optionMap.get(t.option_id)?.label || "Unknown" }));
+      return data.map((t: any) => ({ ...t, poll_title: pollMap.get(t.poll_id)?.title || "Unknown", poll_slug: pollMap.get(t.poll_id)?.slug || "", option_label: optionMap.get(t.option_id)?.label || "Unknown" }));
     },
     enabled: !!user,
     refetchInterval: 15000,
@@ -423,18 +449,33 @@ const MyDashboard = () => {
     });
 
     walletTxns?.forEach((tx: any) => {
-      if (tx.type === 'deposit') {
-        items.push({ id: `wtx-${tx.id}`, kind: 'deposit', label: 'Wallet funded', description: tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '+', timestamp: tx.created_at });
-      } else if (tx.type === 'withdrawal') {
-        items.push({ id: `wtx-${tx.id}`, kind: 'withdrawal', label: 'Withdrawal initiated', description: tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '-', timestamp: tx.created_at });
-      } else if (tx.type === 'payout' || tx.type === 'payout_mpesa') {
-        items.push({ id: `wtx-${tx.id}`, kind: 'payout', label: 'Payout received', description: tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '+', timestamp: tx.created_at });
-      } else if (tx.type === 'share_purchase') {
+      // Demo wallet types are prefixed `demo_*`. Normalize sign by stored amount.
+      const t = tx.type as string;
+      const isPositive = Number(tx.amount) >= 0;
+      const sign: '+' | '-' = isPositive ? '+' : '-';
+      const absAmt = Math.abs(Number(tx.amount));
+
+      if (t === 'deposit') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'deposit', label: 'Wallet funded', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else if (t === 'withdrawal') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'withdrawal', label: 'Withdrawal initiated', description: tx.description || undefined, amount: absAmt, amountSign: '-', timestamp: tx.created_at });
+      } else if (t === 'payout' || t === 'payout_mpesa' || t === 'demo_settle_win' || t === 'demo_payout') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'payout', label: 'Payout received', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else if (t === 'share_purchase' || t === 'demo_buy') {
         const trade = tradeByRef.get(tx.reference);
-        items.push({ id: `wtx-${tx.id}`, kind: 'share_purchase', label: trade ? `Bought shares — ${trade.option_label}` : 'Bought shares (P2P)', description: trade?.poll_title || tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '-', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
-      } else if (tx.type === 'share_sale') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_purchase', label: trade ? `Bought shares — ${trade.option_label}` : 'Bought shares', description: trade?.poll_title || tx.description || undefined, amount: absAmt, amountSign: '-', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
+      } else if (t === 'share_sale' || t === 'demo_sell') {
         const trade = tradeByRef.get(tx.reference);
-        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: trade ? `Sold shares — ${trade.option_label}` : 'Sold shares (P2P)', description: trade?.poll_title || tx.description || undefined, amount: Math.abs(tx.amount), amountSign: '+', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: trade ? `Sold shares — ${trade.option_label}` : 'Sold shares', description: trade?.poll_title || tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at, link: trade?.poll_slug ? `/forecast-arena-pro/${trade.poll_slug}` : undefined });
+      } else if (t === 'demo_stake' || t === 'stake') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'stake', label: 'Committed capital', description: tx.description || undefined, amount: absAmt, amountSign: '-', timestamp: tx.created_at });
+      } else if (t === 'demo_listing_sold' || t === 'listing_sold') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: 'Listing sold', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else if (t === 'demo_listing_refund') {
+        items.push({ id: `wtx-${tx.id}`, kind: 'share_sale', label: 'Listing canceled (refund)', description: tx.description || undefined, amount: absAmt, amountSign: '+', timestamp: tx.created_at });
+      } else {
+        // Generic fallback so any new demo type still appears in the feed
+        items.push({ id: `wtx-${tx.id}`, kind: sign === '+' ? 'payout' : 'stake', label: t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), description: tx.description || undefined, amount: absAmt, amountSign: sign, timestamp: tx.created_at });
       }
     });
 
@@ -580,10 +621,14 @@ const MyDashboard = () => {
                   <p className="font-semibold text-foreground">{profile.full_name}</p>
                   <p className="text-xs text-muted-foreground">@{profile.username} · {profile.country} · {profile.occupation || "—"}</p>
                 </div>
-                {wallet && (
+                {(isDemo || wallet) && (
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Wallet</p>
-                    <p className="font-mono font-bold text-foreground"><DualCurrency amount={wallet.balance_usd} /></p>
+                    <p className="text-xs text-muted-foreground">{isDemo ? "Arena Coins" : "Wallet"}</p>
+                    {isDemo ? (
+                      <p className="font-mono font-bold text-amber-600">{Number(demoBalance ?? 0).toFixed(2)} AC</p>
+                    ) : (
+                      <p className="font-mono font-bold text-foreground"><DualCurrency amount={wallet!.balance_usd} /></p>
+                    )}
                   </div>
                 )}
               </div>

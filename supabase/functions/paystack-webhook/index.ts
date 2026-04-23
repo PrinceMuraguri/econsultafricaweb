@@ -202,6 +202,11 @@ Deno.serve(async (req) => {
       }
 
       // ── FORECAST STAKE ──
+      // Forecast stakes use 'stake_*' references and are Pro-only.
+      if (typeof reference === 'string' && reference.startsWith('stake_') && proMode === 'demo') {
+        return dropProRefInDemo('stake_reference_in_demo');
+      }
+
       const { data: existingTx } = await supabase
         .from('transactions')
         .select('id, status')

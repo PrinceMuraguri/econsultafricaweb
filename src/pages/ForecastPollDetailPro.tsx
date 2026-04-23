@@ -9,6 +9,7 @@ import TradingPanel from "@/components/forecast/TradingPanel";
 import { usePoll } from "@/hooks/use-polls";
 import AIForecastCouncil from "@/components/forecast/AIForecastCouncil";
 import { ArrowLeft, Scale, BarChart3, DollarSign } from "lucide-react";
+import DemoBanner from "@/components/DemoBanner";
 
 const ForecastPollDetailPro = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -41,6 +42,7 @@ const ForecastPollDetailPro = () => {
 
   return (
     <Layout>
+      <DemoBanner />
       {/* Pro banner */}
       <div className="bg-amber-500/10 border-b border-amber-500/20">
         <div className="container-page max-w-3xl py-2 flex items-center justify-between">

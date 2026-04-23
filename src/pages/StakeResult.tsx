@@ -4,16 +4,25 @@ import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import DemoBanner from "@/components/DemoBanner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StakeResult = () => {
   const [searchParams] = useSearchParams();
   const reference = searchParams.get("reference") || searchParams.get("trxref");
+  const { proMode } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [details, setDetails] = useState<{ poll_id?: string; amount?: number } | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    // Direct-from-stake arrival in demo mode (no Paystack reference) — show success card.
     if (!reference) {
+      if (proMode === "demo") {
+        setStatus("success");
+        setDetails({});
+        return;
+      }
       setStatus("error");
       setErrorMsg("No payment reference found.");
       return;
@@ -40,10 +49,11 @@ const StakeResult = () => {
     };
 
     verify();
-  }, [reference]);
+  }, [reference, proMode]);
 
   return (
     <Layout>
+      <DemoBanner />
       <section className="section-padding min-h-[60vh] flex items-center">
         <div className="container-page max-w-lg mx-auto text-center">
           {status === "loading" && (
@@ -59,10 +69,13 @@ const StakeResult = () => {
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">Forecast Confirmed! 🎯</h2>
+              <h2 className="text-2xl font-bold text-foreground">
+                {proMode === "demo" ? "Demo forecast recorded! 🎯" : "Forecast Confirmed! 🎯"}
+              </h2>
               <p className="text-muted-foreground">
-                Your ${details?.amount} forecast allocation has been recorded. 
-                You'll receive an accuracy-based distribution if your forecast is correct.
+                {proMode === "demo"
+                  ? "Your demo allocation has been recorded. Track it on the Pro dashboard. Demo mode uses virtual Arena Coins — no real money is ever debited or paid."
+                  : `Your $${details?.amount} forecast allocation has been recorded. You'll receive an accuracy-based distribution if your forecast is correct.`}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
                 <Link

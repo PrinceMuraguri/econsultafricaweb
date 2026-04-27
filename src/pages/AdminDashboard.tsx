@@ -1051,6 +1051,7 @@ const AdminDashboard = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
                     <tr>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">User ID</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Full Name</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Username</th>
                       <th className="text-left px-4 py-2 text-xs font-medium text-muted-foreground">Phone</th>
@@ -1062,6 +1063,15 @@ const AdminDashboard = () => {
                   <tbody>
                     {registeredUsers?.map((u: any) => (
                       <tr key={u.id} className="border-t border-border/50">
+                        <td className="px-4 py-2 font-mono text-xs text-muted-foreground" title={u.user_id}>
+                          <button
+                            type="button"
+                            onClick={() => { navigator.clipboard?.writeText(u.user_id || ""); toast({ title: "User ID copied" }); }}
+                            className="hover:text-foreground transition-colors"
+                          >
+                            {u.user_id ? `${String(u.user_id).slice(0, 8)}…` : "—"}
+                          </button>
+                        </td>
                         <td className="px-4 py-2 font-medium text-foreground">{u.full_name}</td>
                         <td className="px-4 py-2 text-foreground">{u.username}</td>
                         <td className="px-4 py-2 font-mono text-foreground">{u.phone || "—"}</td>

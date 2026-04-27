@@ -1066,7 +1066,7 @@ const AdminDashboard = () => {
                         <td className="px-4 py-2 font-mono text-xs text-muted-foreground" title={u.user_id}>
                           <button
                             type="button"
-                            onClick={() => { navigator.clipboard?.writeText(u.user_id || ""); toast.success("User ID copied"); }}
+                            onClick={() => { navigator.clipboard?.writeText(u.user_id || ""); toast({ title: "User ID copied" }); }}
                             className="hover:text-foreground transition-colors"
                           >
                             {u.user_id ? `${String(u.user_id).slice(0, 8)}…` : "—"}

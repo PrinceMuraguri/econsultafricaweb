@@ -41,6 +41,7 @@ import AIAgentProfile from "./pages/AIAgentProfile.tsx";
 import APIDocumentation from "./pages/APIDocumentation.tsx";
 import ProPaused from "./pages/ProPaused.tsx";
 import AboutDemoMode from "./pages/AboutDemoMode.tsx";
+import FiatWhitepaper from "./pages/FiatWhitepaper.tsx";
 import DemoOnboardingModal from "@/components/forecast/DemoOnboardingModal";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates Pro routes
 
@@ -92,6 +93,9 @@ const App = () => (
               <Route path="/ai-agent/:slug" element={<AIAgentProfile />} />
               <Route path="/api-docs" element={<APIDocumentation />} />
               <Route path="/about-demo-mode" element={<AboutDemoMode />} />
+              <Route path="/FIAT_whitepaper" element={<FiatWhitepaper />} />
+              <Route path="/fiat_whitepaper" element={<FiatWhitepaper />} />
+              <Route path="/fiat-whitepaper" element={<FiatWhitepaper />} />
               {/* Redirects */}
               <Route path="/forecast-arena" element={<Navigate to="/" replace />} />
               <Route path="/forecast-arena/stake-result" element={<Navigate to="/stake-result" replace />} />

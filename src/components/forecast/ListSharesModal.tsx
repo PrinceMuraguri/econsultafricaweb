@@ -101,7 +101,7 @@ export default function ListSharesModal({
                   Available shares: <span className="font-mono font-semibold text-foreground">{availableShares.toFixed(4)}</span>
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Crowd consensus price: <span className="font-mono font-semibold text-foreground">${suggestedPrice.toFixed(2)}</span>
+                  Crowd consensus price: <CurrencyAmount amount={suggestedPrice} mode={proMode} className="text-foreground" />
                 </p>
               </div>
 

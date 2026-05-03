@@ -1,78 +1,53 @@
+## Root cause
 
+The homepage (`/`) goes blank a few seconds after loading because the page **crashes after data loads**, not because of demo/Pro mode.
 
-## Goal
+In the network log, one of the active polls is:
 
-Stop Forecast Arena Pro from auto-highlighting historical Free votes as if they were Pro selections. Only carry over a Free vote when the user comes to Pro **immediately after** voting via a "Try Pro" CTA for that exact poll.
+```
+title: "Will tomorrow be sunny?"
+category: ""   ← empty string
+```
 
-## Current behavior (the bug)
+In `src/pages/ForecastArena.tsx` (line 90–93) the category filter is built from distinct poll categories:
 
-In `src/components/forecast/PollCardPro.tsx` (lines 160–170), on every Pro card mount we query the `votes` table for any vote (by `user.id` or `voter_fingerprint`) and set:
-- `hasVoted = true`
-- `votedOptionId = <the free vote's option>`
+```ts
+const categories = useMemo(() => {
+  if (!polls) return ["All"];
+  return ["All", ...[...new Set(polls.map(p => p.category))].sort()];
+}, [polls]);
+```
 
-Those values drive the option button's `isSelected` styling (lines 377–391, the colored border + ring + tinted bg) and the small `— voted Yes/No` label (lines 360–367). Because the query is unconditional, **any historical Free vote** — even from days ago — appears as a pre-selection on Pro, making the user feel they've already chosen.
+This produces `["All", "", "Capital Markets...", ...]`. Each entry is rendered as a Radix `<SelectItem value={cat}>`. Radix throws a hard error when `value=""`:
 
-The user's intent: Pro is a separate, capital-based mechanic. A Free sentiment vote is not a Pro position and should not visually pre-fill Pro. Only a **just-now** Free vote, followed by an explicit "Try Pro" hand-off, should briefly reflect on Pro.
+> `A <Select.Item /> must have a value prop that is not an empty string.`
 
-## Plan
+This matches the runtime error in the console and the React component stack ending at `ForecastArena → Layout → Select`. Because there is no error boundary, the whole tree unmounts → blank white screen. This started "a few hours ago" because that test poll was created today (2026-05-03 03:58 UTC).
 
-### 1. Decouple Pro highlight from Free votes by default
+It is unrelated to Pro/demo mode switching.
 
-In `PollCardPro.tsx`:
-- Remove the unconditional `votes` lookup that sets `hasVoted` / `votedOptionId` from Free vote history.
-- The Pro card's `isSelected` highlight should be driven **only** by Pro signals:
-  - `userPositions` (user has shares in the option), or
-  - `userStake` (user has a stake on Pro), or
-  - The "just-voted hand-off" signal (see step 2).
-- The "— voted Yes" sub-label next to "Back with capital" is also removed in the default case (since it implied Free vote = Pro selection). It will only show in the hand-off case below.
+## Fix
 
-### 2. Add a one-shot "just-voted" hand-off from Free → Pro
+1. **`src/pages/ForecastArena.tsx`** — when building `categories`, filter out empty/null/whitespace categories so no `SelectItem` ever gets `value=""`:
+   ```ts
+   const categories = useMemo(() => {
+     if (!polls) return ["All"];
+     const unique = [...new Set(
+       polls.map(p => (p.category || "").trim()).filter(Boolean)
+     )].sort();
+     return ["All", ...unique];
+   }, [polls]);
+   ```
+   Also harden `filteredPolls` so a poll with no category isn't dropped unexpectedly when "All" is selected (it already isn't, since we only filter when `selectedCategory !== "All"`, but confirm `(p.category || "")` comparison stays safe).
 
-The only legitimate carry-over is when a user votes on Free and *immediately* clicks "Try Pro" for the **same poll**. We pass that intent via React Router navigation state, never via a persistent DB lookup.
+2. **Quick data hygiene** (optional but recommended): in the admin Poll Manager, give the test poll "Will tomorrow be sunny?" a real category (or delete it) so the dropdown isn't missing the question. The code fix above is what stops the crash; this is just cleanup.
 
-**On the Free side** (`src/components/forecast/PollCard.tsx`):
-- Replace the static `<Link to="/forecast-arena-pro/...">Try Pro to commit capital</Link>` (line 419-423) with a `useNavigate()` call that:
-  - Only runs when `hasVoted === true` AND `userVoteId` is known for this poll
-  - Calls `navigate(`/forecast-arena-pro/${poll.slug}`, { state: { justVotedOptionId: <id>, justVotedAt: Date.now(), pollId: poll.id } })`
-- If the user hasn't voted yet, the link still works as a plain navigation — Pro will simply show no selection.
+3. **Defensive guard** — add a tiny check inside any other place that maps DB strings into `<SelectItem value={…}>` to skip empty values. I'll grep `src/` for other `SelectItem` lists fed by DB data (e.g. country/category dropdowns elsewhere) and apply the same `.filter(Boolean)` pattern where needed. No behavior change for non-empty values.
 
-**On the Pro side** (`PollCardPro.tsx` and `src/pages/ForecastPollDetailPro.tsx`):
-- Read `useLocation().state` once on mount.
-- If `state?.justVotedOptionId` exists AND `state.pollId === poll.id` AND `state.justVotedAt` is within the last ~60 seconds, set `votedOptionId` and `hasVoted` from that state (so the option highlights and the "— voted X" sub-label appears).
-- Then immediately clear it via `navigate(location.pathname, { replace: true, state: {} })` so a page refresh doesn't keep showing the highlight forever.
-- Result: the highlight is a one-time, contextual hand-off, not a persistent inheritance.
+No DB migration, no edge-function change, no Pro/demo logic touched.
 
-### 3. Keep all Pro-native selection logic intact
+## Why this is the right fix
 
-The existing visual selection rules stay for genuinely Pro-derived state:
-- Owning shares in an option (`userPositions`) → highlighted.
-- Having a stake recorded with `is_staked = true` on the Pro flow → highlighted.
-- Active P2P listing for the option → unchanged.
-
-Nothing in the StakeModal flow, listings, P2P, or AMM math changes.
-
-### 4. No DB / migration changes
-
-Pure frontend behavior change. No schema, RLS, or edge function edits.
-
-## Files to edit
-
-1. `src/components/forecast/PollCardPro.tsx`
-   - Remove the `votes` table lookup that seeds `hasVoted` / `votedOptionId`.
-   - Add a `useLocation()` reader for the one-shot `justVotedOptionId` hand-off (with timestamp + pollId guard, then `replace`).
-   - Tighten `isSelected` to depend only on Pro positions + the hand-off signal.
-
-2. `src/components/forecast/PollCard.tsx`
-   - Convert the inline "Try Pro to commit capital →" link into a `useNavigate()` button that passes `{ justVotedOptionId, justVotedAt, pollId }` in router state when the user has just voted on this poll.
-
-3. `src/pages/ForecastPollDetailPro.tsx`
-   - No structural changes; the `PollCardPro` it renders will pick up the router state directly. (Listed only because it's the entry point for the Pro detail view that consumes the hand-off.)
-
-## Acceptance criteria
-
-- A user with an old Free vote on poll X who navigates to `/forecast-arena-pro/X` sees **no pre-selected option** (unless they hold a Pro position).
-- A user who votes Yes on Free poll X and immediately clicks "Try Pro" on that same poll lands on Pro with **Yes highlighted** and the "— voted Yes" label, exactly once.
-- Refreshing the Pro page after the hand-off clears the highlight (since router state is wiped).
-- Navigating directly to a Pro poll URL never inherits a Free vote.
-- Users who own Pro shares still see their option highlighted, as today.
-
+- The exact Radix error in your console (`<Select.Item /> must have a value prop that is not an empty string`) maps 1:1 to the empty `category` returned by the `polls` query.
+- The crash happens **after** the polls fetch resolves (a few seconds in), which matches your "loads, then goes blank" symptom.
+- Filtering empties at the source is the standard fix and keeps the dropdown clean.

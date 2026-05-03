@@ -89,7 +89,11 @@ const ForecastArena = () => {
 
   const categories = useMemo(() => {
     if (!polls) return ["All"];
-    return ["All", ...[...new Set(polls.map(p => p.category))].sort()];
+    // Filter empty/whitespace categories — Radix <SelectItem> crashes on value="".
+    const unique = [...new Set(
+      polls.map(p => (p.category || "").trim()).filter(Boolean)
+    )].sort();
+    return ["All", ...unique];
   }, [polls]);
 
   const filteredPolls = useMemo(() => {

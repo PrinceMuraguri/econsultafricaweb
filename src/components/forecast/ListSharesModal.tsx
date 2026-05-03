@@ -129,7 +129,7 @@ export default function ListSharesModal({
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-foreground">Your asking price (per share)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{currencyLabel(proMode)}</span>
                   <Input
                     type="number"
                     value={pricePerShare}

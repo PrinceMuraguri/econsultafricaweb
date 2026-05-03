@@ -16,6 +16,7 @@ import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
+import CurrencyAmount from "@/components/CurrencyAmount";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const CONTEXT_PREVIEW_LENGTH = 120;
@@ -404,7 +405,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
             Back with capital
             {userPrimaryCommit ? (
               <span className="ml-1 normal-case tracking-normal font-normal text-amber-700 dark:text-amber-400">
-                — you staked <span className="font-semibold">${userPrimaryCommit.amount.toFixed(2)}</span> on{" "}
+                — you staked <span className="font-semibold"><CurrencyAmount amount={userPrimaryCommit.amount} /></span> on{" "}
                 <span className="font-semibold">{userPrimaryCommit.label}</span>
               </span>
             ) : hasVoted && votedOptionId ? (() => {
@@ -446,9 +447,9 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                       {option.label}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-amber-600">${price.toFixed(2)}</span>
+                      <CurrencyAmount amount={price} />
                       {optStake > 0 && (
-                        <span className="text-[9px] text-muted-foreground font-mono">${optStake.toFixed(0)}</span>
+                        <CurrencyAmount amount={optStake} decimals={0} className="text-[9px]" />
                       )}
                     </div>
                   </div>
@@ -471,7 +472,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-1.5">
             <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Capital Distribution</p>
-            <span className="text-[9px] text-muted-foreground font-mono">${totalStake.toFixed(0)} committed</span>
+            <span className="text-[9px] text-muted-foreground"><CurrencyAmount amount={totalStake} decimals={0} className="text-[9px]" /> committed</span>
           </div>
 
           <div className="space-y-2 flex-1">
@@ -485,8 +486,8 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                 <div key={option.id} className="space-y-0.5">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-foreground font-medium">{option.label}</span>
-                    <span className="font-mono text-muted-foreground">
-                      ${(option.total_stake_amount || 0).toFixed(0)} <span className="text-[9px]">({pct}%)</span>
+                    <span className="text-muted-foreground">
+                      <CurrencyAmount amount={option.total_stake_amount || 0} decimals={0} /> <span className="text-[9px]">({pct}%)</span>
                     </span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
@@ -499,7 +500,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
 
           <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border">
             <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Users className="w-3 h-3" />{totalVotes} forecasts · ${totalStake.toFixed(0)} committed
+              <Users className="w-3 h-3" />{totalVotes} forecasts · <CurrencyAmount amount={totalStake} decimals={0} /> committed
             </span>
             {!compact && (
               <Link to={`/forecast-arena-pro/${poll.slug}`} className="text-[10px] font-medium text-amber-600 hover:text-amber-500 transition-colors">
@@ -617,8 +618,8 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                   </p>
                   <div className="text-[10px] text-muted-foreground space-y-0.5">
                     <p>Your forecast: <span className="font-semibold text-foreground">{votedOption.label}</span></p>
-                    <p>Market price: <span className="font-mono font-semibold text-amber-600">${price.toFixed(2)}</span></p>
-                    <p>If correct: <span className="font-mono font-semibold text-green-600">$1.00 per share</span></p>
+                    <p>Market price: <CurrencyAmount amount={price} /></p>
+                    <p>If correct: <span className="text-green-600"><CurrencyAmount amount={1} className="text-green-600" /> per share</span></p>
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => { localStorage.setItem(`nudge_dismissed_pro_${poll.id}`, "1"); handleAllocate(votedOption); }}
@@ -667,7 +668,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                   <div className="grid grid-cols-3 gap-2 text-[10px]">
                     <div>
                       <p className="text-muted-foreground">Committed</p>
-                      <p className="font-mono font-bold text-foreground">${Number(stakeAmount || 0).toFixed(2)}</p>
+                      <p><CurrencyAmount amount={Number(stakeAmount || 0)} /></p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">On</p>
@@ -675,7 +676,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                     </div>
                     <div>
                       <p className="text-muted-foreground">If correct</p>
-                      <p className="font-mono font-bold text-green-600">${potentialGain.toFixed(2)}</p>
+                      <p className="text-green-600"><CurrencyAmount amount={potentialGain} className="text-green-600" /></p>
                     </div>
                   </div>
                   {userListings.length > 0 && (
@@ -687,12 +688,12 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
                         <div key={listing.id} className="bg-amber-500/5 border border-amber-500/20 rounded-md px-2.5 py-2 space-y-0.5">
                           <div className="flex items-center justify-between text-[10px]">
                             <span className="font-semibold text-foreground">
-                              {Number(listing.shares).toFixed(4)} shares @ ${Number(listing.price_per_share).toFixed(2)}/share
+                              {Number(listing.shares).toFixed(4)} shares @ <CurrencyAmount amount={Number(listing.price_per_share)} />/share
                             </span>
-                            <span className="font-mono font-bold text-foreground">${Number(listing.total_ask).toFixed(2)}</span>
+                            <CurrencyAmount amount={Number(listing.total_ask)} />
                           </div>
                           <p className="text-[9px] text-amber-700">
-                            Visible to all users · You receive ${(Number(listing.total_ask) * 0.965).toFixed(2)} when sold (after 3.5% fee)
+                            Visible to all users · You receive <CurrencyAmount amount={Number(listing.total_ask) * 0.965} /> when sold (after 3.5% fee)
                           </p>
                         </div>
                       ))}

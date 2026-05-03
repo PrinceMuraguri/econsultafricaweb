@@ -143,7 +143,10 @@ const ForecastArenaPro = () => {
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Put Your Money Where Your <span className="text-amber-400">Insight Is.</span>
               </p>
-              <p className="text-background/50 text-xs mt-1">Market odds adjust based on participant activity. Each position settles at $1.00 if correct, $0 if incorrect.</p>
+              <p className="text-background/50 text-xs mt-1">
+                Market odds adjust based on participant activity. Each position settles at{" "}
+                <CurrencyAmount amount={1} /> if correct, <CurrencyAmount amount={0} decimals={2} /> if incorrect.
+              </p>
               <Link to="/" className="inline-flex items-center gap-1 text-xs text-background/40 hover:text-background/70 mt-2 transition-colors">
                 ← Back to Free Forecast Arena
               </Link>

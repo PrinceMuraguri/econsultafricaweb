@@ -10,6 +10,8 @@ import type { Poll, PollOption } from "@/hooks/use-polls";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 
 interface TradingPanelProps {

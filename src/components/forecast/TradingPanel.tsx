@@ -425,7 +425,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                               disabled={loading || isClosed}
                               className="w-full text-xs"
                             >
-                              Release {sellShares} shares — receive ${partialSellNet.toFixed(2)}
+                              Release {sellShares} shares — receive {formatCurrency(partialSellNet, proMode)}
                             </Button>
                           </motion.div>
                         )}

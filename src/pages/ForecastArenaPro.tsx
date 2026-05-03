@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import PollCardPro from "@/components/forecast/PollCardPro";
 import { usePolls } from "@/hooks/use-polls";
-import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flame, DollarSign, TrendingUp } from "lucide-react";
+import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flame, Wallet, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,7 +139,7 @@ const ForecastArenaPro = () => {
                 </h1>
               </div>
               <p className="text-sm md:text-base text-amber-400 font-semibold tracking-wide mt-1">Back Your Forecasts with Capital (Demo Mode)</p>
-              <p className="text-xs text-background/50 tracking-wide mt-0.5">You get $100 virtual Arena Coins.<br />Commit Arena Coins behind the outcomes you believe in. Get rewarded when your forecast is right.</p>
+              <p className="text-xs text-background/50 tracking-wide mt-0.5">You get 100 Arena Coins to start.<br />Commit Arena Coins behind the outcomes you believe in. Get rewarded when your forecast is right.</p>
               <p className="text-lg md:text-xl font-bold text-background/90 mt-2">
                 Put Your Money Where Your <span className="text-amber-400">Insight Is.</span>
               </p>
@@ -155,7 +155,7 @@ const ForecastArenaPro = () => {
             <div className="flex flex-wrap gap-3 items-center md:flex-col md:items-end">
               {user && (proMode === "demo" || wallet) && (
                 <div className="flex items-center gap-2 bg-amber-500/20 border border-amber-500/30 rounded-lg px-3 py-2">
-                  <DollarSign className="w-4 h-4 text-amber-400" />
+                  <Wallet className="w-4 h-4 text-amber-400" />
                   <div>
                     <p className="text-[10px] text-background/50">Wallet Balance</p>
                     <p className="text-lg font-mono font-bold text-background">

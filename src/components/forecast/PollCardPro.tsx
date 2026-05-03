@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, DollarSign, Tag, ShoppingBag, CheckCircle, Copy } from "lucide-react";
+import { Clock, Users, Lock, Check, Loader2, Rocket, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Download, DollarSign, Coins, Tag, ShoppingBag, CheckCircle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -461,7 +461,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
           {!isClosed && (
             <div className="mt-1.5 pt-1.5 border-t border-border">
               <p className="text-[9px] text-muted-foreground text-center flex items-center justify-center gap-1">
-                <DollarSign className="w-3 h-3 text-amber-500" />
+                <Coins className="w-3 h-3 text-amber-500" />
                 {isLoggedIn ? "Click an option to commit capital" : "Sign in to commit capital"}
               </p>
             </div>
@@ -662,7 +662,7 @@ const PollCardPro = ({ poll, compact = false, isTrending = false, homepage = fal
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 pt-2 border-t border-border">
                 <div className="bg-amber-500/5 border border-amber-500/15 rounded-lg p-2.5 space-y-1.5">
                   <div className="flex items-center gap-1.5">
-                    <DollarSign className="w-3.5 h-3.5 text-amber-600" />
+                    <Coins className="w-3.5 h-3.5 text-amber-600" />
                     <span className="text-[10px] font-bold text-foreground">Your Position</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-[10px]">

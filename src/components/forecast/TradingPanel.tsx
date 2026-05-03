@@ -262,27 +262,27 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
             {/* Cost summary */}
             <div className="bg-muted/30 rounded-lg p-3 space-y-1.5 border border-border">
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">{shares} shares × ${currentPrice.toFixed(2)}</span>
-                <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
+                <span className="text-muted-foreground">{shares} shares × <CurrencyAmount amount={currentPrice} mode={proMode} showSuffixBadge={false} /></span>
+                <CurrencyAmount amount={totalCost} mode={proMode} />
               </div>
               <div className="flex justify-between text-[10px]">
                 <span className="text-muted-foreground">Platform fee (3.5%)</span>
-                <span className="font-mono text-muted-foreground">${feeAmount.toFixed(2)}</span>
+                <CurrencyAmount amount={feeAmount} mode={proMode} className="text-muted-foreground" />
               </div>
               <div className="border-t border-border pt-1.5 flex justify-between text-xs">
                 <span className="text-muted-foreground font-medium">Total commitment</span>
-                <span className="font-mono font-bold">${totalDebit.toFixed(2)}</span>
+                <CurrencyAmount amount={totalDebit} mode={proMode} />
               </div>
               <div className="flex justify-between text-xs mt-1">
                 <span className="text-muted-foreground flex items-center gap-1">
                   <TrendingUp className="w-3 h-3 text-green-600" /> If your forecast is correct
                 </span>
-                <span className="font-mono font-bold text-green-600">${potentialPayout.toFixed(2)}</span>
+                <CurrencyAmount amount={potentialPayout} mode={proMode} className="text-green-600" />
               </div>
               <div className="flex justify-between text-[10px]">
                 <span className="text-muted-foreground">Your return</span>
                 <span className={`font-mono font-bold ${potentialReturn > 0 ? "text-green-600" : "text-red-500"}`}>
-                  {potentialReturn > 0 ? "+" : ""}${potentialReturn.toFixed(2)}
+                  {potentialReturn > 0 ? "+" : ""}{formatCurrency(potentialReturn, proMode)}
                 </span>
               </div>
             </div>

@@ -291,7 +291,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
             {user && (
               <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Funds from your wallet</span>
-                <span className="font-mono font-semibold">Balance: ${(wallet?.balance_usd || 0).toFixed(2)}</span>
+                <span>Balance: <CurrencyAmount amount={Number(wallet?.balance_usd || 0)} mode={proMode} /></span>
               </div>
             )}
 

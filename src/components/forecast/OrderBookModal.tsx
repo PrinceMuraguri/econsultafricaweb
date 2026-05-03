@@ -386,7 +386,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             {side === "buy"
-              ? orderType === "limit" ? `Place Buy Order — $${totalDebit.toFixed(2)}` : `Buy ${shares} shares — $${totalDebit.toFixed(2)}`
+              ? orderType === "limit" ? `Place Buy Order — ${formatCurrency(totalDebit, proMode)}` : `Buy ${shares} shares — ${formatCurrency(totalDebit, proMode)}`
               : orderType === "limit" ? `Place Sell Order — ${shares} shares` : `Sell ${shares} shares`
             }
           </Button>

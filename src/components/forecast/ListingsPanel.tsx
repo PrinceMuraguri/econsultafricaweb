@@ -221,7 +221,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
                 isConfirming ? (
                   <div className="space-y-1.5">
                     <p className="text-[10px] text-foreground font-medium text-center">
-                      Confirm: pay <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from wallet?
+                      Confirm: pay <CurrencyAmount amount={Number(listing.total_ask)} mode={proMode} /> from wallet?
                     </p>
                     <div className="flex gap-2">
                       <Button

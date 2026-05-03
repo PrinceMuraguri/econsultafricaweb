@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import type { Poll } from "@/hooks/use-polls";
 import DualCurrency from "@/components/DualCurrency";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 interface OrderBookModalProps {
   open: boolean;

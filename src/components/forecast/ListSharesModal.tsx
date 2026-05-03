@@ -204,7 +204,7 @@ export default function ListSharesModal({
                 {loading ? (
                   <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Listing…</>
                 ) : (
-                  `List ${sharesNum.toFixed(4)} shares at $${priceNum.toFixed(2)}/share`
+                  `List ${sharesNum.toFixed(4)} shares at ${formatCurrency(priceNum, proMode)}/share`
                 )}
               </Button>
               <Button variant="outline" className="w-full text-xs" onClick={handleClose} disabled={loading}>

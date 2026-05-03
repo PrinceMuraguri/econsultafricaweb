@@ -150,7 +150,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
 
       {user && (
         <div className="text-[10px] text-muted-foreground">
-          Your wallet: <span className="font-mono font-semibold text-foreground">${walletBalance.toFixed(2)}</span>
+          Your wallet: <CurrencyAmount amount={walletBalance} mode={proMode} className="text-foreground" />
           {walletBalance === 0 && (
             <span className="ml-1 text-amber-600">— fund your wallet to buy</span>
           )}

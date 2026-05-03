@@ -178,16 +178,16 @@ export default function ListSharesModal({
               {isValid && (
                 <div className="bg-muted/30 border border-border rounded-lg p-2.5 space-y-1">
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground">{sharesNum.toFixed(4)} shares × ${priceNum.toFixed(2)}</span>
-                    <span className="font-mono text-foreground">${totalAsk.toFixed(2)}</span>
+                    <span className="text-muted-foreground">{sharesNum.toFixed(4)} shares × <CurrencyAmount amount={priceNum} mode={proMode} showSuffixBadge={false} /></span>
+                    <CurrencyAmount amount={totalAsk} mode={proMode} className="text-foreground" />
                   </div>
                   <div className="flex justify-between text-[10px]">
                     <span className="text-muted-foreground">Platform fee (3.5%)</span>
-                    <span className="font-mono text-red-500">−${(totalAsk * 0.035).toFixed(2)}</span>
+                    <span>−<CurrencyAmount amount={totalAsk * 0.035} mode={proMode} className="text-red-500" /></span>
                   </div>
                   <div className="flex justify-between text-xs font-bold border-t border-border pt-1">
                     <span>You receive if sold</span>
-                    <span className="font-mono text-green-600">${(totalAsk * 0.965).toFixed(2)}</span>
+                    <CurrencyAmount amount={totalAsk * 0.965} mode={proMode} className="text-green-600" />
                   </div>
                 </div>
               )}

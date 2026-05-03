@@ -360,15 +360,15 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1 border border-border text-[10px] text-muted-foreground">
                     <div className="flex justify-between">
                       <span>Current share value</span>
-                      <span className="font-mono font-semibold text-foreground">${mktPrice.toFixed(2)} each</span>
+                      <span><CurrencyAmount amount={mktPrice} mode={proMode} className="text-foreground" /> each</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Market value</span>
-                      <span className="font-mono font-semibold text-foreground">${(Number(pos.shares) * mktPrice).toFixed(2)}</span>
+                      <CurrencyAmount amount={Number(pos.shares) * mktPrice} mode={proMode} className="text-foreground" />
                     </div>
                     <div className="flex justify-between">
                       <span>You originally committed</span>
-                      <span className="font-mono font-semibold text-foreground">${Number(pos.total_cost).toFixed(2)}</span>
+                      <CurrencyAmount amount={Number(pos.total_cost)} mode={proMode} className="text-foreground" />
                     </div>
                   </div>
 

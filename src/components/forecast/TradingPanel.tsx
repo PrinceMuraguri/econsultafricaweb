@@ -21,7 +21,7 @@ interface TradingPanelProps {
 }
 
 const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
-  const { user, wallet, refreshWallet, profile } = useAuth();
+  const { user, wallet, refreshWallet, profile, proMode } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"commit" | "adjust">("commit");

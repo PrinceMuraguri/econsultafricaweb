@@ -15,6 +15,8 @@ import AdminTradingTab from "@/components/admin/AdminTradingTab";
 import RevenueFinanceTab from "@/components/admin/RevenueFinanceTab";
 import AdminAICouncilTab from "@/components/admin/AdminAICouncilTab";
 import { useAuth } from "@/contexts/AuthContext";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 const ADMIN_EMAILS = ['princemuraguri@gmail.com'];

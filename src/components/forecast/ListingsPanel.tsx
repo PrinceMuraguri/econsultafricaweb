@@ -27,7 +27,7 @@ interface ListingsPanelProps {
 }
 
 export default function ListingsPanel({ poll }: ListingsPanelProps) {
-  const { user } = useAuth();
+  const { user, proMode } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [buyingId, setBuyingId] = useState<string | null>(null);

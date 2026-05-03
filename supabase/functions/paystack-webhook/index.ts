@@ -4,6 +4,7 @@ const corsHeaders = {
 };
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getProMode } from '../_shared/pro-mode.ts';
 import { crypto } from 'https://deno.land/std@0.224.0/crypto/mod.ts';
 
 const FALLBACK_RATES: Record<string, number> = { KES: 129, NGN: 1600, UGX: 3700, TZS: 2700, ZAR: 18, GHS: 15, RWF: 1350 };

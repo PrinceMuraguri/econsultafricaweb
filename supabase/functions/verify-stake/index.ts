@@ -4,6 +4,7 @@ const corsHeaders = {
 };
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getProMode } from '../_shared/pro-mode.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

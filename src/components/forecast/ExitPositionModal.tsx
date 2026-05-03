@@ -135,7 +135,7 @@ export default function ExitPositionModal({
                 {loading ? (
                   <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Processing…</>
                 ) : (
-                  `Confirm exit — receive $${net.toFixed(2)}`
+                  `Confirm exit — receive ${formatCurrency(net, proMode)}`
                 )}
               </Button>
               <Button variant="outline" className="w-full text-xs" onClick={handleClose} disabled={loading}>

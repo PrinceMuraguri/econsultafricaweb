@@ -279,6 +279,34 @@ const AdminDashboard = () => {
     refetchInterval: 30000,
   });
 
+  // TODO: replace with admin_poll_participation() RPC when poll count > 100.
+  // Current four .select("poll_id") fan-out is acceptable for our scale; a
+  // SECURITY DEFINER RPC will pre-aggregate counts on the server.
+  const { data: pollCounts } = useQuery({
+    queryKey: ["admin-poll-counts"],
+    queryFn: async () => {
+      const [free, live, demo, ai] = await Promise.all([
+        supabase.from("votes").select("poll_id").eq("is_staked", false),
+        supabase.from("positions").select("poll_id"),
+        (supabase as any).from("demo_positions").select("poll_id"),
+        supabase.from("ai_agent_votes").select("poll_id"),
+      ]);
+      const tally = (rows: any[] | null | undefined) => {
+        const m: Record<string, number> = {};
+        (rows || []).forEach((r: any) => { m[r.poll_id] = (m[r.poll_id] || 0) + 1; });
+        return m;
+      };
+      return {
+        free: tally(free.data as any[]),
+        live: tally(live.data as any[]),
+        demo: tally(demo.data as any[]),
+        ai: tally(ai.data as any[]),
+      };
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 30000,
+  });
+
   // Fetch all staked entries
   const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: ["admin-entries", selectedPollId],

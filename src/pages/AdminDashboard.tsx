@@ -215,6 +215,13 @@ const AdminDashboard = () => {
         queryClient.invalidateQueries({ queryKey: ["admin-all-votes"] });
         queryClient.invalidateQueries({ queryKey: ["admin-entries"] });
         queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_positions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_agent_votes' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });

@@ -327,36 +327,36 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
               <>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">{shares} × ${effectivePrice.toFixed(2)}</span>
-                  <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
+                  <CurrencyAmount amount={totalCost} mode={proMode} />
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Fee (3.5%)</span>
-                  <span className="font-mono text-muted-foreground">${feeAmount.toFixed(2)}</span>
+                  <CurrencyAmount amount={feeAmount} mode={proMode} className="text-muted-foreground" />
                 </div>
                 <div className="border-t border-border pt-1.5 flex justify-between text-xs font-medium">
                   <span>Total cost</span>
-                  <span className="font-mono font-bold">${totalDebit.toFixed(2)}</span>
+                  <CurrencyAmount amount={totalDebit} mode={proMode} />
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-green-600" /> If correct
                   </span>
-                  <span className="font-mono font-bold text-green-600">${shares.toFixed(2)}</span>
+                  <CurrencyAmount amount={shares} mode={proMode} className="text-green-600" />
                 </div>
               </>
             ) : (
               <>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Sell {shares} × ${effectivePrice.toFixed(2)}</span>
-                  <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
+                  <CurrencyAmount amount={totalCost} mode={proMode} />
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Fee (3.5%)</span>
-                  <span className="font-mono text-muted-foreground">-${feeAmount.toFixed(2)}</span>
+                  <span>−<CurrencyAmount amount={feeAmount} mode={proMode} className="text-muted-foreground" /></span>
                 </div>
                 <div className="border-t border-border pt-1.5 flex justify-between text-xs font-medium">
                   <span>Net proceeds</span>
-                  <span className="font-mono font-bold text-green-600">${sellProceeds.toFixed(2)}</span>
+                  <CurrencyAmount amount={sellProceeds} mode={proMode} className="text-green-600" />
                 </div>
               </>
             )}

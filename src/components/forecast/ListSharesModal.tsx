@@ -151,7 +151,7 @@ export default function ListSharesModal({
                           : "border-border text-muted-foreground hover:border-primary"
                       }`}
                     >
-                      {p === suggestedPrice ? "Consensus" : `$${p.toFixed(2)}`}
+                      {p === suggestedPrice ? "Consensus" : formatCurrency(p, proMode)}
                     </button>
                   ))}
                 </div>

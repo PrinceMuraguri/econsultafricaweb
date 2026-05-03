@@ -14,6 +14,7 @@ import SalesFunnelTab from "@/components/admin/SalesFunnelTab";
 import AdminTradingTab from "@/components/admin/AdminTradingTab";
 import RevenueFinanceTab from "@/components/admin/RevenueFinanceTab";
 import AdminAICouncilTab from "@/components/admin/AdminAICouncilTab";
+import PlatformModeTab from "@/components/admin/PlatformModeTab";
 import { useAuth } from "@/contexts/AuthContext";
 import CurrencyAmount from "@/components/CurrencyAmount";
 import { formatCurrency } from "@/lib/currency";
@@ -125,7 +126,7 @@ const AdminDashboard = () => {
   const [validating, setValidating] = useState(true);
   const [keyInput, setKeyInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading" | "revenue" | "ai-council">("polls");
+  const [activeTab, setActiveTab] = useState<"entries" | "polls" | "payouts" | "audit" | "downloads" | "users" | "all-transactions" | "manage-polls" | "inquiries" | "archive" | "sales-funnel" | "trading" | "revenue" | "ai-council" | "platform-mode">("polls");
   const [archiving, setArchiving] = useState<string | null>(null);
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
   const [selectedWinnerOptionId, setSelectedWinnerOptionId] = useState<string>("");
@@ -650,6 +651,7 @@ const AdminDashboard = () => {
               { key: "downloads", label: "Sample Downloads" },
               { key: "audit", label: "Audit Log" },
               { key: "revenue", label: "💰 Revenue & Finance" },
+              { key: "platform-mode", label: "⚙️ Platform Mode" },
               { key: "archive", label: "🗄️ Archive Data" },
             ] as const).map((tab) => (
               <button
@@ -1319,6 +1321,9 @@ const AdminDashboard = () => {
 
           {/* Tab: AI Council */}
           {activeTab === "ai-council" && <AdminAICouncilTab adminKey={adminKey} />}
+
+          {/* Tab: Platform Mode */}
+          {activeTab === "platform-mode" && <PlatformModeTab />}
 
 
           {/* Tab: Archive Data */}

@@ -38,6 +38,7 @@ export default function ExitPositionModal({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { proMode } = useAuth();
 
   // Early exit returns original stake minus fee — never more than committed
   // Price appreciation is only realised at resolution, funded by losing stakers

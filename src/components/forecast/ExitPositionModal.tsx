@@ -156,7 +156,7 @@ export default function ExitPositionModal({
             </DialogHeader>
             <div className="space-y-3 pt-1">
               <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold font-mono text-green-600">${net.toFixed(2)}</p>
+                <p className="text-2xl font-bold"><CurrencyAmount amount={net} mode={proMode} className="text-green-600" /></p>
                 <p className="text-[10px] text-muted-foreground mt-1">credited to your wallet</p>
               </div>
               <Button className="w-full text-xs" onClick={handleClose}>Done</Button>

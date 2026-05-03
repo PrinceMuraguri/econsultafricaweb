@@ -16,6 +16,7 @@ import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
+import CurrencyAmount from "@/components/CurrencyAmount";
 import type { Poll, PollOption } from "@/hooks/use-polls";
 
 const CONTEXT_PREVIEW_LENGTH = 120;

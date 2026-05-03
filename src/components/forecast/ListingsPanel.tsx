@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBag, Tag, X, CheckCircle } from "lucide-react";
 import type { Poll } from "@/hooks/use-polls";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 interface ListingRow {
   id: string;

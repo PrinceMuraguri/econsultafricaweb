@@ -107,7 +107,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
 
       toast({
         title: "🎯 Capital committed!",
-        description: `${shares} shares at $${currentPrice.toFixed(2)} per share. If your forecast is correct, you receive $${shares.toFixed(2)}.`,
+        description: `${shares} shares at ${formatCurrency(currentPrice, proMode)} per share. If your forecast is correct, you receive ${formatCurrency(shares, proMode)}.`,
       });
 
       refreshWallet();

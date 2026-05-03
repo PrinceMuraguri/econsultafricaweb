@@ -195,11 +195,11 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Price/share</p>
-                  <p className="font-mono font-bold text-foreground">${Number(listing.price_per_share).toFixed(2)}</p>
+                  <CurrencyAmount amount={Number(listing.price_per_share)} mode={proMode} className="text-foreground" />
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total ask</p>
-                  <p className="font-mono font-bold text-foreground">${Number(listing.total_ask).toFixed(2)}</p>
+                  <CurrencyAmount amount={Number(listing.total_ask)} mode={proMode} className="text-foreground" />
                 </div>
               </div>
 

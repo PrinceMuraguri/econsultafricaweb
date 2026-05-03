@@ -38,6 +38,7 @@ export default function ListSharesModal({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { proMode } = useAuth();
 
   const sharesNum = parseFloat(shares) || 0;
   const priceNum = parseFloat(pricePerShare) || 0;

@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Tag, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency, currencyLabel } from "@/lib/currency";
 
 interface ListSharesModalProps {
   open: boolean;

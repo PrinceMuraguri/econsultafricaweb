@@ -939,6 +939,33 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_config_audit: {
+        Row: {
+          actor_email: string | null
+          actor_user_id: string | null
+          changed_at: string
+          id: string
+          new_mode: string
+          previous_mode: string
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          changed_at?: string
+          id?: string
+          new_mode: string
+          previous_mode: string
+        }
+        Update: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          changed_at?: string
+          id?: string
+          new_mode?: string
+          previous_mode?: string
+        }
+        Relationships: []
+      }
       platform_fees: {
         Row: {
           amount: number

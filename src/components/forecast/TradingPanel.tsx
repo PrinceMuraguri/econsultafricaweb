@@ -382,7 +382,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                     className="w-full text-xs font-semibold"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Exit entire position — receive ${exitNet.toFixed(2)}
+                    Exit entire position — receive {formatCurrency(exitNet, proMode)}
                   </Button>
 
                   {/* Release some shares */}

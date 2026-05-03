@@ -122,8 +122,8 @@ export default function ExitPositionModal({
               <div className="bg-amber-500/5 border border-amber-500/20 rounded-md p-2.5">
                 <p className="text-[10px] text-amber-700 leading-relaxed">
                   If your forecast is correct at resolution, you would receive{" "}
-                  <span className="font-bold">${potentialPayoutIfCorrect.toFixed(2)}</span> instead of{" "}
-                  <span className="font-bold">${net.toFixed(2)}</span>. Exiting early is final.
+                  <span className="font-bold">{formatCurrency(potentialPayoutIfCorrect, proMode)}</span> instead of{" "}
+                  <span className="font-bold">{formatCurrency(net, proMode)}</span>. Exiting early is final.
                 </p>
               </div>
 

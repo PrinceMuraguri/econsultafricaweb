@@ -247,6 +247,7 @@ const AdminDashboard = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'positions' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-positions"] });
         queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-trades"] });

@@ -119,7 +119,7 @@ export function OptionLabel({ optionId, pollId, polls }: { optionId?: string | n
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, proMode } = useAuth();
   const [adminKey, setAdminKey] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [validating, setValidating] = useState(true);

@@ -366,7 +366,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
           {user && (
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Wallet</span>
-              <span className="font-mono font-semibold">${(wallet?.balance_usd || 0).toFixed(2)}</span>
+              <CurrencyAmount amount={Number(wallet?.balance_usd || 0)} mode={proMode} />
             </div>
           )}
 

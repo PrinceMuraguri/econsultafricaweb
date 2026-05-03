@@ -499,7 +499,7 @@ const AdminDashboard = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "✅ Market Settled", description: `${data.summary.winners} winners, $${data.summary.total_payouts.toFixed(2)} in payouts created.` });
+      toast({ title: "✅ Market Settled", description: `${data.summary?.winners ?? 0} winners, ${formatCurrency(data.summary?.total_payouts ?? 0, proMode)} in payouts created.` });
       queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
@@ -520,7 +520,7 @@ const AdminDashboard = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "💰 Wallets Credited", description: `${data.summary.completed || data.summary.processing} winners paid, ${data.summary.failed} failed.` });
+      toast({ title: "💰 Wallets Credited", description: `${(data.summary?.completed ?? data.summary?.processing) ?? 0} winners paid, ${data.summary?.failed ?? 0} failed.` });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
     },
@@ -709,8 +709,14 @@ const AdminDashboard = () => {
                             <h3 className="font-semibold text-foreground">{poll.title}</h3>
                             <p className="text-xs text-muted-foreground">
                               Status: <span className={`font-semibold ${poll.status === 'active' ? 'text-green-600' : poll.status === 'settled' ? 'text-primary' : 'text-muted-foreground'}`}>{poll.status}</span>
-                              {" · "}{totalVotes} votes · ${totalStake.toFixed(2)} staked
                             </p>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mt-1">
+                              <span>Free: <span className="font-mono font-semibold text-foreground">{pollCounts?.free[poll.id] ?? 0}</span></span>
+                              <span>Pro Live: <span className="font-mono font-semibold text-foreground">{pollCounts?.live[poll.id] ?? 0}</span></span>
+                              <span>Pro Demo: <span className="font-mono font-semibold text-foreground">{pollCounts?.demo[poll.id] ?? 0}</span></span>
+                              <span>AI Council: <span className="font-mono font-semibold text-foreground">{pollCounts?.ai[poll.id] ?? 0}</span></span>
+                              <span>· <CurrencyAmount amount={totalStake ?? 0} mode={proMode} /> staked</span>
+                            </div>
                           </div>
                           <span className={`text-xs px-2 py-1 rounded-full ${isSettled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                             {isSettled ? "Settled" : "Open"}

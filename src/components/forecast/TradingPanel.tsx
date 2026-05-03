@@ -148,7 +148,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
 
       toast({
         title: "✅ Position adjusted",
-        description: `Released ${exitShares} shares — $${data.net_proceeds?.toFixed(2)} credited to your wallet.`,
+        description: `Released ${exitShares} shares — ${formatCurrency(Number(data.net_proceeds || 0), proMode)} credited to your wallet.`,
       });
 
       refreshWallet();

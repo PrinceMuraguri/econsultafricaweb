@@ -106,15 +106,15 @@ export default function ExitPositionModal({
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Your committed capital</span>
-                  <span className="font-mono text-foreground">${gross.toFixed(2)}</span>
+                  <CurrencyAmount amount={gross} mode={proMode} className="text-foreground" />
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Early exit fee (3.5%)</span>
-                  <span className="font-mono text-red-500">−${fee.toFixed(2)}</span>
+                  <span>−<CurrencyAmount amount={fee} mode={proMode} className="text-red-500" /></span>
                 </div>
                 <div className="flex justify-between text-xs font-bold border-t border-border pt-1 mt-1">
                   <span className="text-foreground">You receive</span>
-                  <span className="font-mono text-green-600">${net.toFixed(2)}</span>
+                  <CurrencyAmount amount={net} mode={proMode} className="text-green-600" />
                 </div>
               </div>
 

@@ -15,6 +15,8 @@ import AdminTradingTab from "@/components/admin/AdminTradingTab";
 import RevenueFinanceTab from "@/components/admin/RevenueFinanceTab";
 import AdminAICouncilTab from "@/components/admin/AdminAICouncilTab";
 import { useAuth } from "@/contexts/AuthContext";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 const ADMIN_KEY_STORAGE = "econsult_admin_key";
 const ADMIN_EMAILS = ['princemuraguri@gmail.com'];
@@ -117,7 +119,7 @@ export function OptionLabel({ optionId, pollId, polls }: { optionId?: string | n
 const AdminDashboard = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, proMode } = useAuth();
   const [adminKey, setAdminKey] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [validating, setValidating] = useState(true);
@@ -213,6 +215,13 @@ const AdminDashboard = () => {
         queryClient.invalidateQueries({ queryKey: ["admin-all-votes"] });
         queryClient.invalidateQueries({ queryKey: ["admin-entries"] });
         queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_positions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_agent_votes' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });
@@ -238,6 +247,7 @@ const AdminDashboard = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'positions' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-positions"] });
         queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-poll-counts"] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'trades' }, () => {
         queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
@@ -272,6 +282,34 @@ const AdminDashboard = () => {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 30000,
+  });
+
+  // TODO: replace with admin_poll_participation() RPC when poll count > 100.
+  // Current four .select("poll_id") fan-out is acceptable for our scale; a
+  // SECURITY DEFINER RPC will pre-aggregate counts on the server.
+  const { data: pollCounts } = useQuery({
+    queryKey: ["admin-poll-counts"],
+    queryFn: async () => {
+      const [free, live, demo, ai] = await Promise.all([
+        supabase.from("votes").select("poll_id").eq("is_staked", false),
+        supabase.from("positions").select("poll_id"),
+        (supabase as any).from("demo_positions").select("poll_id"),
+        supabase.from("ai_agent_votes").select("poll_id"),
+      ]);
+      const tally = (rows: any[] | null | undefined) => {
+        const m: Record<string, number> = {};
+        (rows || []).forEach((r: any) => { m[r.poll_id] = (m[r.poll_id] || 0) + 1; });
+        return m;
+      };
+      return {
+        free: tally(free.data as any[]),
+        live: tally(live.data as any[]),
+        demo: tally(demo.data as any[]),
+        ai: tally(ai.data as any[]),
+      };
     },
     enabled: isAuthenticated,
     refetchInterval: 30000,
@@ -461,7 +499,7 @@ const AdminDashboard = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "✅ Market Settled", description: `${data.summary.winners} winners, $${data.summary.total_payouts.toFixed(2)} in payouts created.` });
+      toast({ title: "✅ Market Settled", description: `${data.summary?.winners ?? 0} winners, ${formatCurrency(data.summary?.total_payouts ?? 0, proMode)} in payouts created.` });
       queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
@@ -482,7 +520,7 @@ const AdminDashboard = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "💰 Wallets Credited", description: `${data.summary.completed || data.summary.processing} winners paid, ${data.summary.failed} failed.` });
+      toast({ title: "💰 Wallets Credited", description: `${(data.summary?.completed ?? data.summary?.processing) ?? 0} winners paid, ${data.summary?.failed ?? 0} failed.` });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
     },
@@ -671,8 +709,14 @@ const AdminDashboard = () => {
                             <h3 className="font-semibold text-foreground">{poll.title}</h3>
                             <p className="text-xs text-muted-foreground">
                               Status: <span className={`font-semibold ${poll.status === 'active' ? 'text-green-600' : poll.status === 'settled' ? 'text-primary' : 'text-muted-foreground'}`}>{poll.status}</span>
-                              {" · "}{totalVotes} votes · ${totalStake.toFixed(2)} staked
                             </p>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mt-1">
+                              <span>Free: <span className="font-mono font-semibold text-foreground">{pollCounts?.free[poll.id] ?? 0}</span></span>
+                              <span>Pro Live: <span className="font-mono font-semibold text-foreground">{pollCounts?.live[poll.id] ?? 0}</span></span>
+                              <span>Pro Demo: <span className="font-mono font-semibold text-foreground">{pollCounts?.demo[poll.id] ?? 0}</span></span>
+                              <span>AI Council: <span className="font-mono font-semibold text-foreground">{pollCounts?.ai[poll.id] ?? 0}</span></span>
+                              <span>· <CurrencyAmount amount={totalStake ?? 0} mode={proMode} /> staked</span>
+                            </div>
                           </div>
                           <span className={`text-xs px-2 py-1 rounded-full ${isSettled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                             {isSettled ? "Settled" : "Open"}

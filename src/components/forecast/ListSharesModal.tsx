@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Tag, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency, currencyLabel } from "@/lib/currency";
 
 interface ListSharesModalProps {
   open: boolean;
@@ -35,6 +38,7 @@ export default function ListSharesModal({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { proMode } = useAuth();
 
   const sharesNum = parseFloat(shares) || 0;
   const priceNum = parseFloat(pricePerShare) || 0;
@@ -97,7 +101,7 @@ export default function ListSharesModal({
                   Available shares: <span className="font-mono font-semibold text-foreground">{availableShares.toFixed(4)}</span>
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Crowd consensus price: <span className="font-mono font-semibold text-foreground">${suggestedPrice.toFixed(2)}</span>
+                  Crowd consensus price: <CurrencyAmount amount={suggestedPrice} mode={proMode} className="text-foreground" />
                 </p>
               </div>
 
@@ -125,7 +129,7 @@ export default function ListSharesModal({
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-foreground">Your asking price (per share)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{currencyLabel(proMode)}</span>
                   <Input
                     type="number"
                     value={pricePerShare}
@@ -147,7 +151,7 @@ export default function ListSharesModal({
                           : "border-border text-muted-foreground hover:border-primary"
                       }`}
                     >
-                      {p === suggestedPrice ? "Consensus" : `$${p.toFixed(2)}`}
+                      {p === suggestedPrice ? "Consensus" : formatCurrency(p, proMode)}
                     </button>
                   ))}
                 </div>
@@ -174,16 +178,16 @@ export default function ListSharesModal({
               {isValid && (
                 <div className="bg-muted/30 border border-border rounded-lg p-2.5 space-y-1">
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground">{sharesNum.toFixed(4)} shares × ${priceNum.toFixed(2)}</span>
-                    <span className="font-mono text-foreground">${totalAsk.toFixed(2)}</span>
+                    <span className="text-muted-foreground">{sharesNum.toFixed(4)} shares × <CurrencyAmount amount={priceNum} mode={proMode} showSuffixBadge={false} /></span>
+                    <CurrencyAmount amount={totalAsk} mode={proMode} className="text-foreground" />
                   </div>
                   <div className="flex justify-between text-[10px]">
                     <span className="text-muted-foreground">Platform fee (3.5%)</span>
-                    <span className="font-mono text-red-500">−${(totalAsk * 0.035).toFixed(2)}</span>
+                    <span>−<CurrencyAmount amount={totalAsk * 0.035} mode={proMode} className="text-red-500" /></span>
                   </div>
                   <div className="flex justify-between text-xs font-bold border-t border-border pt-1">
                     <span>You receive if sold</span>
-                    <span className="font-mono text-green-600">${(totalAsk * 0.965).toFixed(2)}</span>
+                    <CurrencyAmount amount={totalAsk * 0.965} mode={proMode} className="text-green-600" />
                   </div>
                 </div>
               )}
@@ -200,7 +204,7 @@ export default function ListSharesModal({
                 {loading ? (
                   <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Listing…</>
                 ) : (
-                  `List ${sharesNum.toFixed(4)} shares at $${priceNum.toFixed(2)}/share`
+                  `List ${sharesNum.toFixed(4)} shares at ${formatCurrency(priceNum, proMode)}/share`
                 )}
               </Button>
               <Button variant="outline" className="w-full text-xs" onClick={handleClose} disabled={loading}>
@@ -222,8 +226,8 @@ export default function ListSharesModal({
             <div className="space-y-3 pt-1">
               <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-3 text-center space-y-1">
                 <p className="text-sm font-bold text-foreground">{sharesNum.toFixed(4)} shares listed</p>
-                <p className="text-[10px] text-muted-foreground">at ${priceNum.toFixed(2)}/share = ${totalAsk.toFixed(2)} total ask</p>
-                <p className="text-[10px] text-muted-foreground">You receive <span className="font-semibold text-green-600">${(totalAsk * 0.965).toFixed(2)}</span> when sold</p>
+                <p className="text-[10px] text-muted-foreground">at {formatCurrency(priceNum, proMode)}/share = {formatCurrency(totalAsk, proMode)} total ask</p>
+                <p className="text-[10px] text-muted-foreground">You receive <span className="font-semibold text-green-600">{formatCurrency(totalAsk * 0.965, proMode)}</span> when sold</p>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
                 You can cancel this listing anytime from the poll page.

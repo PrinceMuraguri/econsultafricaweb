@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 interface ExitPositionModalProps {
   open: boolean;
@@ -35,6 +38,7 @@ export default function ExitPositionModal({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { proMode } = useAuth();
 
   // Early exit returns original stake minus fee — never more than committed
   // Price appreciation is only realised at resolution, funded by losing stakers
@@ -102,15 +106,15 @@ export default function ExitPositionModal({
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Your committed capital</span>
-                  <span className="font-mono text-foreground">${gross.toFixed(2)}</span>
+                  <CurrencyAmount amount={gross} mode={proMode} className="text-foreground" />
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Early exit fee (3.5%)</span>
-                  <span className="font-mono text-red-500">−${fee.toFixed(2)}</span>
+                  <span>−<CurrencyAmount amount={fee} mode={proMode} className="text-red-500" /></span>
                 </div>
                 <div className="flex justify-between text-xs font-bold border-t border-border pt-1 mt-1">
                   <span className="text-foreground">You receive</span>
-                  <span className="font-mono text-green-600">${net.toFixed(2)}</span>
+                  <CurrencyAmount amount={net} mode={proMode} className="text-green-600" />
                 </div>
               </div>
 
@@ -118,8 +122,8 @@ export default function ExitPositionModal({
               <div className="bg-amber-500/5 border border-amber-500/20 rounded-md p-2.5">
                 <p className="text-[10px] text-amber-700 leading-relaxed">
                   If your forecast is correct at resolution, you would receive{" "}
-                  <span className="font-bold">${potentialPayoutIfCorrect.toFixed(2)}</span> instead of{" "}
-                  <span className="font-bold">${net.toFixed(2)}</span>. Exiting early is final.
+                  <span className="font-bold">{formatCurrency(potentialPayoutIfCorrect, proMode)}</span> instead of{" "}
+                  <span className="font-bold">{formatCurrency(net, proMode)}</span>. Exiting early is final.
                 </p>
               </div>
 
@@ -131,7 +135,7 @@ export default function ExitPositionModal({
                 {loading ? (
                   <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Processing…</>
                 ) : (
-                  `Confirm exit — receive $${net.toFixed(2)}`
+                  `Confirm exit — receive ${formatCurrency(net, proMode)}`
                 )}
               </Button>
               <Button variant="outline" className="w-full text-xs" onClick={handleClose} disabled={loading}>
@@ -152,7 +156,7 @@ export default function ExitPositionModal({
             </DialogHeader>
             <div className="space-y-3 pt-1">
               <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold font-mono text-green-600">${net.toFixed(2)}</p>
+                <p className="text-2xl font-bold"><CurrencyAmount amount={net} mode={proMode} className="text-green-600" /></p>
                 <p className="text-[10px] text-muted-foreground mt-1">credited to your wallet</p>
               </div>
               <Button className="w-full text-xs" onClick={handleClose}>Done</Button>

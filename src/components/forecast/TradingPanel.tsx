@@ -10,6 +10,8 @@ import type { Poll, PollOption } from "@/hooks/use-polls";
 import RegistrationModal from "@/components/auth/RegistrationModal";
 import LoginModal from "@/components/auth/LoginModal";
 import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 
 interface TradingPanelProps {
@@ -19,7 +21,7 @@ interface TradingPanelProps {
 }
 
 const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
-  const { user, wallet, refreshWallet, profile } = useAuth();
+  const { user, wallet, refreshWallet, profile, proMode } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"commit" | "adjust">("commit");
@@ -105,7 +107,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
 
       toast({
         title: "🎯 Capital committed!",
-        description: `${shares} shares at $${currentPrice.toFixed(2)} per share. If your forecast is correct, you receive $${shares.toFixed(2)}.`,
+        description: `${shares} shares at ${formatCurrency(currentPrice, proMode)} per share. If your forecast is correct, you receive ${formatCurrency(shares, proMode)}.`,
       });
 
       refreshWallet();
@@ -146,7 +148,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
 
       toast({
         title: "✅ Position adjusted",
-        description: `Released ${exitShares} shares — $${data.net_proceeds?.toFixed(2)} credited to your wallet.`,
+        description: `Released ${exitShares} shares — ${formatCurrency(Number(data.net_proceeds || 0), proMode)} credited to your wallet.`,
       });
 
       refreshWallet();
@@ -260,27 +262,27 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
             {/* Cost summary */}
             <div className="bg-muted/30 rounded-lg p-3 space-y-1.5 border border-border">
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">{shares} shares × ${currentPrice.toFixed(2)}</span>
-                <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
+                <span className="text-muted-foreground">{shares} shares × <CurrencyAmount amount={currentPrice} mode={proMode} showSuffixBadge={false} /></span>
+                <CurrencyAmount amount={totalCost} mode={proMode} />
               </div>
               <div className="flex justify-between text-[10px]">
                 <span className="text-muted-foreground">Platform fee (3.5%)</span>
-                <span className="font-mono text-muted-foreground">${feeAmount.toFixed(2)}</span>
+                <CurrencyAmount amount={feeAmount} mode={proMode} className="text-muted-foreground" />
               </div>
               <div className="border-t border-border pt-1.5 flex justify-between text-xs">
                 <span className="text-muted-foreground font-medium">Total commitment</span>
-                <span className="font-mono font-bold">${totalDebit.toFixed(2)}</span>
+                <CurrencyAmount amount={totalDebit} mode={proMode} />
               </div>
               <div className="flex justify-between text-xs mt-1">
                 <span className="text-muted-foreground flex items-center gap-1">
                   <TrendingUp className="w-3 h-3 text-green-600" /> If your forecast is correct
                 </span>
-                <span className="font-mono font-bold text-green-600">${potentialPayout.toFixed(2)}</span>
+                <CurrencyAmount amount={potentialPayout} mode={proMode} className="text-green-600" />
               </div>
               <div className="flex justify-between text-[10px]">
                 <span className="text-muted-foreground">Your return</span>
                 <span className={`font-mono font-bold ${potentialReturn > 0 ? "text-green-600" : "text-red-500"}`}>
-                  {potentialReturn > 0 ? "+" : ""}${potentialReturn.toFixed(2)}
+                  {potentialReturn > 0 ? "+" : ""}{formatCurrency(potentialReturn, proMode)}
                 </span>
               </div>
             </div>
@@ -289,7 +291,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
             {user && (
               <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Funds from your wallet</span>
-                <span className="font-mono font-semibold">Balance: ${(wallet?.balance_usd || 0).toFixed(2)}</span>
+                <span>Balance: <CurrencyAmount amount={Number(wallet?.balance_usd || 0)} mode={proMode} /></span>
               </div>
             )}
 
@@ -315,7 +317,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
               ) : isClosed ? (
                 "Question closed"
               ) : (
-                `Commit $${totalDebit.toFixed(2)} to my forecast`
+                `Commit ${formatCurrency(totalDebit, proMode)} to my forecast`
               )}
             </Button>
 
@@ -358,15 +360,15 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1 border border-border text-[10px] text-muted-foreground">
                     <div className="flex justify-between">
                       <span>Current share value</span>
-                      <span className="font-mono font-semibold text-foreground">${mktPrice.toFixed(2)} each</span>
+                      <span><CurrencyAmount amount={mktPrice} mode={proMode} className="text-foreground" /> each</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Market value</span>
-                      <span className="font-mono font-semibold text-foreground">${(Number(pos.shares) * mktPrice).toFixed(2)}</span>
+                      <CurrencyAmount amount={Number(pos.shares) * mktPrice} mode={proMode} className="text-foreground" />
                     </div>
                     <div className="flex justify-between">
                       <span>You originally committed</span>
-                      <span className="font-mono font-semibold text-foreground">${Number(pos.total_cost).toFixed(2)}</span>
+                      <CurrencyAmount amount={Number(pos.total_cost)} mode={proMode} className="text-foreground" />
                     </div>
                   </div>
 
@@ -380,7 +382,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                     className="w-full text-xs font-semibold"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Exit entire position — receive ${exitNet.toFixed(2)}
+                    Exit entire position — receive {formatCurrency(exitNet, proMode)}
                   </Button>
 
                   {/* Release some shares */}
@@ -423,7 +425,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
                               disabled={loading || isClosed}
                               className="w-full text-xs"
                             >
-                              Release {sellShares} shares — receive ${partialSellNet.toFixed(2)}
+                              Release {sellShares} shares — receive {formatCurrency(partialSellNet, proMode)}
                             </Button>
                           </motion.div>
                         )}

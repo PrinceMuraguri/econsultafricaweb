@@ -358,7 +358,8 @@ const ProTradingTab = ({
                   <div className="text-right shrink-0">
                     {item.amount != null && (
                       <p className={`font-mono text-xs font-semibold ${item.amountSign === '+' ? 'text-green-600' : 'text-red-500'}`}>
-                        {item.amountSign}${item.amount.toFixed(2)}
+                        {item.amountSign === '-' ? '-' : ''}
+                        <CurrencyAmount amount={item.amount} mode={proMode} />
                       </p>
                     )}
                     <p className="text-[9px] text-muted-foreground">

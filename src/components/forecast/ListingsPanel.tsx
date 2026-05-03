@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBag, Tag, X, CheckCircle } from "lucide-react";
 import type { Poll } from "@/hooks/use-polls";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 interface ListingRow {
   id: string;
@@ -25,7 +27,7 @@ interface ListingsPanelProps {
 }
 
 export default function ListingsPanel({ poll }: ListingsPanelProps) {
-  const { user } = useAuth();
+  const { user, proMode } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [buyingId, setBuyingId] = useState<string | null>(null);
@@ -94,7 +96,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
 
       toast({
         title: "Purchase complete! 🎉",
-        description: `You acquired ${Number(listing.shares).toFixed(4)} shares at $${Number(listing.price_per_share).toFixed(2)}/share`,
+        description: `You acquired ${Number(listing.shares).toFixed(4)} shares at ${formatCurrency(Number(listing.price_per_share), proMode)}/share`,
       });
       queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
@@ -148,7 +150,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
 
       {user && (
         <div className="text-[10px] text-muted-foreground">
-          Your wallet: <span className="font-mono font-semibold text-foreground">${walletBalance.toFixed(2)}</span>
+          Your wallet: <CurrencyAmount amount={walletBalance} mode={proMode} className="text-foreground" />
           {walletBalance === 0 && (
             <span className="ml-1 text-amber-600">— fund your wallet to buy</span>
           )}
@@ -193,11 +195,11 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Price/share</p>
-                  <p className="font-mono font-bold text-foreground">${Number(listing.price_per_share).toFixed(2)}</p>
+                  <CurrencyAmount amount={Number(listing.price_per_share)} mode={proMode} className="text-foreground" />
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total ask</p>
-                  <p className="font-mono font-bold text-foreground">${Number(listing.total_ask).toFixed(2)}</p>
+                  <CurrencyAmount amount={Number(listing.total_ask)} mode={proMode} className="text-foreground" />
                 </div>
               </div>
 
@@ -219,7 +221,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
                 isConfirming ? (
                   <div className="space-y-1.5">
                     <p className="text-[10px] text-foreground font-medium text-center">
-                      Confirm: pay <span className="font-mono font-bold">${Number(listing.total_ask).toFixed(2)}</span> from wallet?
+                      Confirm: pay <CurrencyAmount amount={Number(listing.total_ask)} mode={proMode} /> from wallet?
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -252,7 +254,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
                     disabled={!canAfford}
                     onClick={() => setConfirming(listing.id)}
                   >
-                    {canAfford ? "Buy these shares" : `Need $${Number(listing.total_ask).toFixed(2)} in wallet`}
+                    {canAfford ? "Buy these shares" : `Need ${formatCurrency(Number(listing.total_ask), proMode)} in wallet`}
                   </Button>
                 )
               ) : (

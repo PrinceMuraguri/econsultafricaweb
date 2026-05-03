@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import type { Poll } from "@/hooks/use-polls";
 import DualCurrency from "@/components/DualCurrency";
+import CurrencyAmount from "@/components/CurrencyAmount";
+import { formatCurrency } from "@/lib/currency";
 
 interface OrderBookModalProps {
   open: boolean;
@@ -20,7 +22,7 @@ interface OrderBookModalProps {
 }
 
 const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
-  const { user, wallet, refreshWallet } = useAuth();
+  const { user, wallet, refreshWallet, proMode } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -325,36 +327,36 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
               <>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">{shares} × ${effectivePrice.toFixed(2)}</span>
-                  <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
+                  <CurrencyAmount amount={totalCost} mode={proMode} />
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Fee (3.5%)</span>
-                  <span className="font-mono text-muted-foreground">${feeAmount.toFixed(2)}</span>
+                  <CurrencyAmount amount={feeAmount} mode={proMode} className="text-muted-foreground" />
                 </div>
                 <div className="border-t border-border pt-1.5 flex justify-between text-xs font-medium">
                   <span>Total cost</span>
-                  <span className="font-mono font-bold">${totalDebit.toFixed(2)}</span>
+                  <CurrencyAmount amount={totalDebit} mode={proMode} />
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-green-600" /> If correct
                   </span>
-                  <span className="font-mono font-bold text-green-600">${shares.toFixed(2)}</span>
+                  <CurrencyAmount amount={shares} mode={proMode} className="text-green-600" />
                 </div>
               </>
             ) : (
               <>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Sell {shares} × ${effectivePrice.toFixed(2)}</span>
-                  <span className="font-mono font-semibold">${totalCost.toFixed(2)}</span>
+                  <CurrencyAmount amount={totalCost} mode={proMode} />
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-muted-foreground">Fee (3.5%)</span>
-                  <span className="font-mono text-muted-foreground">-${feeAmount.toFixed(2)}</span>
+                  <span>−<CurrencyAmount amount={feeAmount} mode={proMode} className="text-muted-foreground" /></span>
                 </div>
                 <div className="border-t border-border pt-1.5 flex justify-between text-xs font-medium">
                   <span>Net proceeds</span>
-                  <span className="font-mono font-bold text-green-600">${sellProceeds.toFixed(2)}</span>
+                  <CurrencyAmount amount={sellProceeds} mode={proMode} className="text-green-600" />
                 </div>
               </>
             )}
@@ -364,7 +366,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
           {user && (
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Wallet</span>
-              <span className="font-mono font-semibold">${(wallet?.balance_usd || 0).toFixed(2)}</span>
+              <CurrencyAmount amount={Number(wallet?.balance_usd || 0)} mode={proMode} />
             </div>
           )}
 
@@ -384,7 +386,7 @@ const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             {side === "buy"
-              ? orderType === "limit" ? `Place Buy Order — $${totalDebit.toFixed(2)}` : `Buy ${shares} shares — $${totalDebit.toFixed(2)}`
+              ? orderType === "limit" ? `Place Buy Order — ${formatCurrency(totalDebit, proMode)}` : `Buy ${shares} shares — ${formatCurrency(totalDebit, proMode)}`
               : orderType === "limit" ? `Place Sell Order — ${shares} shares` : `Sell ${shares} shares`
             }
           </Button>

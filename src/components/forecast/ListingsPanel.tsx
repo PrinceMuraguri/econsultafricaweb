@@ -96,7 +96,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
 
       toast({
         title: "Purchase complete! 🎉",
-        description: `You acquired ${Number(listing.shares).toFixed(4)} shares at $${Number(listing.price_per_share).toFixed(2)}/share`,
+        description: `You acquired ${Number(listing.shares).toFixed(4)} shares at ${formatCurrency(Number(listing.price_per_share), proMode)}/share`,
       });
       queryClient.invalidateQueries({ queryKey: ["listings", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });

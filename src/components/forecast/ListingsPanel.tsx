@@ -254,7 +254,7 @@ export default function ListingsPanel({ poll }: ListingsPanelProps) {
                     disabled={!canAfford}
                     onClick={() => setConfirming(listing.id)}
                   >
-                    {canAfford ? "Buy these shares" : `Need $${Number(listing.total_ask).toFixed(2)} in wallet`}
+                    {canAfford ? "Buy these shares" : `Need ${formatCurrency(Number(listing.total_ask), proMode)} in wallet`}
                   </Button>
                 )
               ) : (

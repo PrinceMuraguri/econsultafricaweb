@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { getProMode } from "../_shared/pro-mode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,14 +27,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400, headers: corsHeaders });
     }
 
-    // Pro mode dispatch: fail-closed to demo
-    const { data: __cfg, error: __cfgErr } = await supabase
-      .from("platform_config")
-      .select("pro_mode")
-      .eq("id", 1)
-      .maybeSingle();
-    const proMode: "demo" | "live" =
-      !__cfgErr && __cfg?.pro_mode === "live" ? "live" : "demo";
+    const proMode = await getProMode(supabase);
 
     if (proMode === "demo") {
       // Compute current AMM price for demo execution

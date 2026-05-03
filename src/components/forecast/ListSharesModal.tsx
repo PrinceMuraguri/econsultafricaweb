@@ -226,8 +226,8 @@ export default function ListSharesModal({
             <div className="space-y-3 pt-1">
               <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-3 text-center space-y-1">
                 <p className="text-sm font-bold text-foreground">{sharesNum.toFixed(4)} shares listed</p>
-                <p className="text-[10px] text-muted-foreground">at ${priceNum.toFixed(2)}/share = ${totalAsk.toFixed(2)} total ask</p>
-                <p className="text-[10px] text-muted-foreground">You receive <span className="font-semibold text-green-600">${(totalAsk * 0.965).toFixed(2)}</span> when sold</p>
+                <p className="text-[10px] text-muted-foreground">at {formatCurrency(priceNum, proMode)}/share = {formatCurrency(totalAsk, proMode)} total ask</p>
+                <p className="text-[10px] text-muted-foreground">You receive <span className="font-semibold text-green-600">{formatCurrency(totalAsk * 0.965, proMode)}</span> when sold</p>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
                 You can cancel this listing anytime from the poll page.

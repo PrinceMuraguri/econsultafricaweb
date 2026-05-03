@@ -317,7 +317,7 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
               ) : isClosed ? (
                 "Question closed"
               ) : (
-                `Commit $${totalDebit.toFixed(2)} to my forecast`
+                `Commit ${formatCurrency(totalDebit, proMode)} to my forecast`
               )}
             </Button>
 

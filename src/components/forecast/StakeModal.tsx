@@ -271,6 +271,9 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
           {/* Wallet pay option — logged-in users only */}
           {!!user && (
             <>
+              <p className="text-[11px] text-center text-muted-foreground">
+                Buy {shares} shares: {formatCurrency(totalCost, proMode)} + {formatCurrency(platformFee, proMode)} fee = <span className="font-semibold text-foreground">{formatCurrency(totalDebit, proMode)}</span> total
+              </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-foreground flex items-center gap-1">

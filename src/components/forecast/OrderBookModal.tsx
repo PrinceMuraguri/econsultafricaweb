@@ -22,7 +22,7 @@ interface OrderBookModalProps {
 }
 
 const OrderBookModal = ({ open, onOpenChange, poll }: OrderBookModalProps) => {
-  const { user, wallet, refreshWallet } = useAuth();
+  const { user, wallet, refreshWallet, proMode } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

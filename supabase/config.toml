@@ -19,6 +19,8 @@ project_id = "iysutjnviccsgygpiqfe"
     verify_jwt = false
   [functions.settle-market]
     verify_jwt = false
+  [functions.resend-settlement-emails]
+    verify_jwt = false
   [functions.stake-checkout]
     verify_jwt = false
   [functions.verify-stake]

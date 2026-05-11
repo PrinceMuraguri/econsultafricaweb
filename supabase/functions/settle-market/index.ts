@@ -197,6 +197,10 @@ Deno.serve(async (req) => {
 
     // ── 5. Payouts (only if there are winning positions) ─────────────────────
     const payoutRecords: any[] = [];
+    let demoWinners = 0;
+    let demoTotalPaid = 0;
+    // user_id -> payout amount (used in demo mode to populate winner emails)
+    const demoPayoutMap = new Map<string, number>();
 
     if (proMode === 'demo') {
       // Demo mode: credit demo wallets via RPC, skip live payouts/wallets writes
@@ -208,6 +212,20 @@ Deno.serve(async (req) => {
         console.error('demo_settle_market error:', demoSettleErr.message);
       } else {
         console.log('demo_settle_market result:', JSON.stringify(demoSettleData));
+        demoWinners = Number((demoSettleData as any)?.winners ?? 0);
+        demoTotalPaid = Number((demoSettleData as any)?.total_paid ?? 0);
+      }
+
+      // Re-fetch demo positions on the winning side so we know each demo
+      // winner's payout (= shares × $1.00, matching demo_settle_market exactly)
+      const { data: demoWinPositions } = await supabase
+        .from('demo_positions')
+        .select('user_id, shares')
+        .eq('poll_id', poll_id)
+        .eq('option_id', winning_option_id);
+      for (const p of demoWinPositions || []) {
+        const payout = Number((Number(p.shares) * 1.0).toFixed(2));
+        if (payout > 0) demoPayoutMap.set(p.user_id, payout);
       }
     } else if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
       const grossPerShare = Math.min(1.0, totalPool / totalWinningShares);

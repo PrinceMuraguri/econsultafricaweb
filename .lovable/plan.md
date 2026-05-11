@@ -1,59 +1,87 @@
-## Batch 2.2 (revised) — PollCardPro currency sweep + Pro hero subhead
+## Your two questions, answered first
 
-Folding in the three notes from review.
+**1. Did you ever ask for emails to be suppressed in Free / demo mode?**
+No. Reviewing chat history, your only explicit instruction on settlement emails was: *"I dont want to settle a question and then no email gets sent."* The `if (proMode === 'demo') continue;` short-circuit was a defensive choice I made earlier on the assumption that demo = pretend money = don't email. That assumption was wrong for your model: Free Arena voters live entirely outside the demo/live wallet split — they never had "pretend money" to begin with — and even Pro demo participants deserve the closing-loop email. Removing the suppression entirely is the correct fix.
 
-### 1. `src/components/forecast/PollCardPro.tsx`
+**2. Can you re-settle the petrol price poll so users get emails?**
+Not directly via the existing `settle-market` function — line 60–65 hard-blocks any poll where `settled_at` is already set ("Poll already settled"). But we can do it cleanly with a one-time **resend** path that does NOT touch wallets, payouts, AI scoring, listings, or the poll status — it only re-fires the email branch for that specific poll using the existing winner/loser logic and the existing `idempotencyKey` scheme. Because the idempotency keys are deterministic (`settlement-winner-${poll_id}-${voterKey}`), a future accidental call would not double-send. Plan includes this as Part F.
 
-Add import:
-```ts
-import CurrencyAmount from "@/components/CurrencyAmount";
-```
-Pull `proMode` from auth (already calls `useAuth()` for `user`):
-```ts
-const { user, proMode } = useAuth();
-```
-(Not strictly required since `CurrencyAmount` reads proMode internally, but kept for any conditional copy.)
+---
 
-Twelve sites — full enumeration, no truncation:
+## Plan
 
-| # | Line | Current | Replacement |
-|---|------|---------|-------------|
-| 1 | 407 | `$${userPrimaryCommit.amount.toFixed(2)}` (inside `<span className="font-semibold">`) | `<CurrencyAmount amount={userPrimaryCommit.amount} />` |
-| 2 | 449 | `<span className="font-mono text-xs font-bold text-amber-600">${price.toFixed(2)}</span>` | `<CurrencyAmount amount={price} />` (drop wrapper — component owns mono/bold/amber in demo; in live we want $-foreground, which CurrencyAmount also handles) |
-| 3 | 451 | `<span className="text-[9px] text-muted-foreground font-mono">${optStake.toFixed(0)}</span>` | `<CurrencyAmount amount={optStake} decimals={0} className="text-[9px]" />` |
-| 4 | 474 | `<span className="text-[9px] text-muted-foreground font-mono">${totalStake.toFixed(0)} committed</span>` | `<span className="text-[9px] text-muted-foreground"><CurrencyAmount amount={totalStake} decimals={0} className="text-[9px]" /> committed</span>` |
-| 5 | 489 | `${(option.total_stake_amount || 0).toFixed(0)} <span className="text-[9px]">({pct}%)</span>` (inside `<span className="font-mono text-muted-foreground">`) | `<CurrencyAmount amount={option.total_stake_amount || 0} decimals={0} /> <span className="text-[9px]">({pct}%)</span>` (remove the outer `font-mono text-muted-foreground` from that wrapping span since CurrencyAmount handles its own typography; keep the parent flex layout intact) |
-| 6 | 502 | `<Users />{totalVotes} forecasts · ${totalStake.toFixed(0)} committed` | `<Users />{totalVotes} forecasts · <CurrencyAmount amount={totalStake} decimals={0} /> committed` |
-| 7 | 620 | Market price `<span className="font-mono font-semibold text-amber-600">${price.toFixed(2)}</span>` | `<CurrencyAmount amount={price} />` |
-| 8 | 621 | If correct `<span className="font-mono font-semibold text-green-600">$1.00 per share</span>` | `<span className="text-green-600"><CurrencyAmount amount={1} className="text-green-600" /> per share</span>` (green color preserved on parent) |
-| 9 | 670 | `<p className="font-mono font-bold text-foreground">${Number(stakeAmount || 0).toFixed(2)}</p>` | `<p><CurrencyAmount amount={Number(stakeAmount || 0)} /></p>` |
-| 10 | 678 | `<p className="font-mono font-bold text-green-600">${potentialGain.toFixed(2)}</p>` | `<p className="text-green-600"><CurrencyAmount amount={potentialGain} className="text-green-600" /></p>` |
-| 11 | 690 | `${Number(listing.shares).toFixed(4)} shares @ ${Number(listing.price_per_share).toFixed(2)}/share` | `{Number(listing.shares).toFixed(4)} shares @ <CurrencyAmount amount={Number(listing.price_per_share)} />/share` |
-| 12 | 692 | `${Number(listing.total_ask).toFixed(2)}` | `<CurrencyAmount amount={Number(listing.total_ask)} />` |
-| 13 | 695 | `You receive ${(Number(listing.total_ask) * 0.965).toFixed(2)} when sold (after 3.5% fee)` | `You receive <CurrencyAmount amount={Number(listing.total_ask) * 0.965} /> when sold (after 3.5% fee)` |
+### Part A — Send settlement emails in ALL circumstances
 
-(13 sites total — line 695 was already in the original twelve; previous table grouped 690 and 692 separately. All twelve enumerated lines from Batch 2.1 are covered: 407, 449, 451, 474, 489, 502, 620, 670, 678, 690, 692, 695. Confirmed.)
+In `supabase/functions/settle-market/index.ts`:
 
-Note on color overrides: where the original used `text-green-600` or similar semantic color, we keep the color on the parent `<p>` / `<span>` rather than passing it via `className` to `CurrencyAmount`, so live mode inherits foreground correctly and demo mode keeps the amber `CurrencyAmount` styling intact (no class collision).
+1. **Delete** the `if (proMode === 'demo') continue;` short-circuit at line 366. Emails fire for every voter in every mode.
+2. Build a `demoPayoutMap: Map<userId, payoutAmount>` from `winnerPositions` (already fetched at line 126) when `proMode === 'demo'`. Payout = `shares × $1.00` (matches `demo_settle_market` exactly).
+3. Inside the winner branch (line 373), resolve `payoutEntry` as:
+   - live: existing `payoutRecords.find(...)` (net of 3.5% fee)
+   - demo: `{ amount: demoPayoutMap.get(vote.user_id) ?? 0 }`
+4. Pass an `isDemo: proMode === 'demo'` flag into the email `templateData` for both winner and loser branches so the templates can render the demo banner / suffix.
+5. Free Arena voters (no stake, no position, `is_staked=false`) automatically flow through the existing `else if (isWinner)` / `else` branches — the unstaked email variants already exist in both templates. No new template work needed for Free.
 
-### 2. `src/pages/ForecastArenaPro.tsx` line 146 — hero subhead
+### Part B — Update email templates to handle `isDemo`
 
-Drop the `text-background/70` overrides per review note 1, and use `decimals={2}` on the zero amount per review note 2 for `0.00 AC` parallelism with `1.00 AC`:
+**`supabase/functions/_shared/transactional-email-templates/settlement-winner.tsx`:**
+- Add `isDemo?: boolean` to `SettlementWinnerProps`.
+- When `isDemo`:
+  - Add a one-line muted banner above the heading: *"This is a practice settlement — amounts shown are demo credits in your Arena Coin wallet, not real money."*
+  - Subject suffix: append ` (demo)` to the existing subject (e.g. `🎯 Correct prediction (demo) — $5.00 credited to your demo wallet`).
+  - For the staked variant: change "credited to your wallet" → "credited to your demo wallet".
+  - Button label unchanged.
+- When `isDemo` is false: identical to today.
+- Update `previewData` to include both `isDemo: false` baseline.
 
-```tsx
-<p className="text-background/50 text-xs mt-1">
-  Market odds adjust based on participant activity. Each position settles at{" "}
-  <CurrencyAmount amount={1} /> if correct,{" "}
-  <CurrencyAmount amount={0} decimals={2} /> if incorrect.
-</p>
-```
+**`supabase/functions/_shared/transactional-email-templates/settlement-loser.tsx`:** mirror the same banner + ` (demo)` subject suffix when `isDemo` is true.
 
-In demo mode this renders `1.00 AC ... 0.00 AC` in CurrencyAmount's native amber. In live mode `$1.00 ... $0.00` in foreground (mono semibold). Both read as deliberate emphasis inside the gray hero copy.
+### Part C — Fix the misleading "0 winners" toast
 
-### 3. ShareCalculator
+In `supabase/functions/settle-market/index.ts`:
 
-Confirmed deferred. `HowItWorksModal` is dead code (not imported anywhere). If it's ever re-wired into a Pro surface, ShareCalculator must be added to a future batch's scope.
+1. Capture `demo_settle_market`'s return value into local `demoWinners` / `demoTotalPaid` (already returned in `demoSettleData` at line 209 — currently discarded).
+2. In the response `summary` and the `admin_audit_log.details`:
+   - `winners_with_payout` = `payoutRecords.length` (live) OR `demoWinners` (demo)
+   - `total_payouts` / `total_net_payouts` = sum of `payoutRecords` (live) OR `demoTotalPaid` (demo)
+   - Add top-level `mode: proMode` so the UI can label correctly.
+3. Audit log gains the same fields.
+
+### Part D — Surface the mode in the admin settlement toast
+
+Locate the call site (likely `src/components/admin/PollManager.tsx` — confirm during implementation) and update the success toast:
+- **Live:** `Settled — N winners paid out ($X total). Emails sent to N voters.`
+- **Demo:** `Settled (demo) — N winners credited to demo wallets ($X demo). Emails sent to N voters.`
+
+Read `mode`, `winners_with_payout`, `total_payouts`, and `emails_queued` from the response. Never show "0 winners" when winners actually exist.
+
+### Part E — Deploy and verify end-to-end
+
+1. Deploy `settle-market` (the only function with logic changes). Templates are bundled into `send-transactional-email`, so deploy that too.
+2. Create a throwaway test poll, cast 2–3 demo votes (one staked Pro winner, one staked loser, one Free voter on the winning side), settle it via the admin UI in demo mode, then verify:
+   - `email_send_log` shows 3 fresh `settlement-winner`/`settlement-loser` rows with `status='sent'` and ` (demo)` in the metadata subject.
+   - Admin toast reads "Settled (demo) — N winners…", not "0 winners".
+   - In-app `notifications` count matches voter count.
+3. Paste the verification SQL output back to you.
+
+### Part F — One-time resend for the petrol price poll (your second question)
+
+Create a small **`resend-settlement-emails`** edge function (admin-key gated, `verify_jwt = false`, identical auth model to `settle-market`):
+
+- Inputs: `poll_id`, `admin_key`.
+- Refuses to run unless `polls.status = 'settled'` and `polls.winning_option_id` is set.
+- Re-runs ONLY the email-dispatch portion of the settle path:
+  - Re-derives `demoPayoutMap` from current `demo_positions` (or `payoutRecords` from past `payouts` table in live mode) so winner emails carry the correct $ amount.
+  - Loops voters via the same `voterMap` dedup as `settle-market`.
+  - Calls `send-transactional-email` with the SAME `idempotencyKey` (`settlement-winner-${poll_id}-${key}` / `settlement-loser-...`).
+- Because the idempotency key is identical to what would have been sent originally, the email service will treat any future accidental call as a no-op duplicate. So this is safe to invoke multiple times.
+- For the petrol poll specifically: the original settlement never sent emails (no rows in `email_send_log` for this poll), so the idempotency keys are unused → all 23 voters will receive their email exactly once.
+
+I'll add a one-off **"Resend settlement emails"** button in `PlatformModeTab.tsx` (or wherever the admin settle button lives) that takes a poll slug/id and calls this function. After your one-time use on the petrol poll, the button stays available for any future "I forgot to deploy before settling" recovery.
 
 ### Out of scope
-- OrderBookModal price-ladder literals (deferred per prior call).
-- Batch 3 admin Pro/Demo toggle UI + `_shared/pro-mode.ts` centralization (pending re-QA).
+
+- Switching the platform to live mode.
+- Changing how Free vs Pro winners are computed — existing logic is correct.
+- Changing AI scoring (already runs and was correct for the petrol poll).
+- Resending in-app notifications for the petrol poll — those 23 notifications were inserted correctly the first time and are already visible in users' bells.

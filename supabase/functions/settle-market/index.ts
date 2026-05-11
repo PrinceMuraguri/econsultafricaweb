@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
     );
 
     const proMode = await getProMode(supabase);
+    const isDemo = proMode === 'demo';
 
     // ── 1. Fetch poll ──────────────────────────────────────────────────────────
     const { data: poll, error: pollError } = await supabase
@@ -196,6 +197,10 @@ Deno.serve(async (req) => {
 
     // ── 5. Payouts (only if there are winning positions) ─────────────────────
     const payoutRecords: any[] = [];
+    let demoWinners = 0;
+    let demoTotalPaid = 0;
+    // user_id -> payout amount (used in demo mode to populate winner emails)
+    const demoPayoutMap = new Map<string, number>();
 
     if (proMode === 'demo') {
       // Demo mode: credit demo wallets via RPC, skip live payouts/wallets writes
@@ -207,6 +212,20 @@ Deno.serve(async (req) => {
         console.error('demo_settle_market error:', demoSettleErr.message);
       } else {
         console.log('demo_settle_market result:', JSON.stringify(demoSettleData));
+        demoWinners = Number((demoSettleData as any)?.winners ?? 0);
+        demoTotalPaid = Number((demoSettleData as any)?.total_paid ?? 0);
+      }
+
+      // Re-fetch demo positions on the winning side so we know each demo
+      // winner's payout (= shares × $1.00, matching demo_settle_market exactly)
+      const { data: demoWinPositions } = await supabase
+        .from('demo_positions')
+        .select('user_id, shares')
+        .eq('poll_id', poll_id)
+        .eq('option_id', winning_option_id);
+      for (const p of demoWinPositions || []) {
+        const payout = Number((Number(p.shares) * 1.0).toFixed(2));
+        if (payout > 0) demoPayoutMap.set(p.user_id, payout);
       }
     } else if (totalWinningShares > 0 && (winnerPositions || []).length > 0) {
       const grossPerShare = Math.min(1.0, totalPool / totalWinningShares);
@@ -308,9 +327,15 @@ Deno.serve(async (req) => {
       const stakeAmt = Number(vote.stake_amount) || 0;
 
       // Find payout amount if this user won with a stake
-      const payoutEntry = isWinner && vote.user_id
+      const livePayout = isWinner && vote.user_id
         ? payoutRecords.find(p => p.user_id === vote.user_id)
         : null;
+      const demoPayoutAmt = isWinner && isDemo && vote.user_id
+        ? (demoPayoutMap.get(vote.user_id) ?? 0)
+        : 0;
+      const payoutEntry = livePayout
+        ? livePayout
+        : (demoPayoutAmt > 0 ? { amount: demoPayoutAmt } : null);
 
       const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
 
@@ -321,7 +346,7 @@ Deno.serve(async (req) => {
         const correctLine = `Correct answer: ${winningOption.label}`;
         const pollBlock = `${pollLine}\n${predLine}\n${correctLine}`;
 
-        const demoTag = proMode === 'demo' ? ' (demo)' : '';
+        const demoTag = isDemo ? ' (demo)' : '';
 
         if (isWinner && isStaked && payoutEntry) {
           notifs.push({
@@ -362,8 +387,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Email notifications — SKIPPED entirely in demo mode (no real $ to report)
-      if (proMode === 'demo') continue;
+      // Email notifications — fire in BOTH live and demo modes.
+      // Demo emails carry an `isDemo` flag so the template can mark them clearly.
 
       const resolveEmail = async (): Promise<string | null> => {
         if (vote.user_id) return resolveUserEmail(vote.user_id);
@@ -393,6 +418,7 @@ Deno.serve(async (req) => {
                   arenaUrl:      `${siteUrl}/forecast-arena-pro`,
                   userName:      firstName,
                   isStaked,
+                  isDemo,
                 },
               },
             });
@@ -417,6 +443,7 @@ Deno.serve(async (req) => {
                   arenaUrl:      `${siteUrl}/forecast-arena-pro`,
                   userName:      firstName,
                   isStaked,
+                  isDemo,
                 },
               },
             });
@@ -443,11 +470,17 @@ Deno.serve(async (req) => {
       ? Math.min(1.0, totalPool / totalWinningShares)
       : 0;
 
+    const winnersCount = isDemo ? demoWinners : payoutRecords.length;
+    const totalPaidOut = isDemo
+      ? demoTotalPaid
+      : payoutRecords.reduce((s, p) => s + p.amount, 0);
+
     await supabase.from('admin_audit_log').insert({
       action:      'settle_market',
       entity_type: 'poll',
       entity_id:   poll_id,
       details: {
+        mode:                   proMode,
         winning_option:         winningOption.label,
         winning_option_id,
         total_pool:             totalPool,
@@ -455,10 +488,11 @@ Deno.serve(async (req) => {
         gross_per_share:        grossPerShare,
         platform_fee_rate:      platformFeeRate,
         winner_positions:       (winnerPositions || []).length,
+        winners_with_payout:    winnersCount,
         staked_loser_votes:     stakedLosers.length,
         total_voters:           allVotes.length,
         listings_cancelled:     listingsCancelled,
-        total_net_payouts:      payoutRecords.reduce((s, p) => s + p.amount, 0),
+        total_net_payouts:      totalPaidOut,
         settlement_method:      'positions_based',
         notifications_sent:     notifs.length,
         ai_agents_scored:       (aiScoring as any)?.ai_agents_scored ?? 0,
@@ -481,18 +515,22 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       summary: {
+        mode:                 proMode,
         poll_title:           poll.title,
         winning_option:       winningOption.label,
         total_pool:           totalPool,
         total_winning_shares: totalWinningShares,
         gross_per_share:      grossPerShare,
-        winners_with_payout:  payoutRecords.length,
+        winners:              winnersCount,
+        winners_with_payout:  winnersCount,
         total_voters:         allVotes.length,
         notifications_sent:   notifs.length,
         emails_queued:        emailPromises.length,
+        emails_sent:          emailsSent,
+        emails_failed:        emailsFailed,
         losers:               allVotes.filter(v => v.option_id !== winning_option_id).length,
         listings_cancelled:   listingsCancelled,
-        total_payouts:        payoutRecords.reduce((s, p) => s + p.amount, 0),
+        total_payouts:        totalPaidOut,
         ai_agents_scored:     (aiScoring as any)?.ai_agents_scored ?? 0,
         ai_agents_correct:    (aiScoring as any)?.ai_agents_correct ?? 0,
         mean_brier_this_poll: (aiScoring as any)?.mean_brier_this_poll ?? null,

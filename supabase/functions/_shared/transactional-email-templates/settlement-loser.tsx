@@ -16,6 +16,7 @@ interface SettlementLoserProps {
   arenaUrl?: string
   userName?: string
   isStaked?: boolean
+  isDemo?: boolean
 }
 
 const SettlementLoserEmail = ({
@@ -26,6 +27,7 @@ const SettlementLoserEmail = ({
   arenaUrl = 'https://econsultafricaweb.lovable.app/forecast-arena-pro',
   userName,
   isStaked = false,
+  isDemo = false,
 }: SettlementLoserProps) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -33,6 +35,13 @@ const SettlementLoserEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img src={LOGO_URL} alt="Econsult Africa" width="160" height="auto" style={logo} />
+        {isDemo && (
+          <Section style={demoBanner}>
+            <Text style={demoBannerText}>
+              This is a practice settlement — your demo stake is part of the Arena Coin sandbox, not real money.
+            </Text>
+          </Section>
+        )}
         <Heading style={h1}>
           {userName ? `Hi ${userName},` : 'Hi there,'}
         </Heading>

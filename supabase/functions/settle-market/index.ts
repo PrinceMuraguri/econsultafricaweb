@@ -327,9 +327,15 @@ Deno.serve(async (req) => {
       const stakeAmt = Number(vote.stake_amount) || 0;
 
       // Find payout amount if this user won with a stake
-      const payoutEntry = isWinner && vote.user_id
+      const livePayout = isWinner && vote.user_id
         ? payoutRecords.find(p => p.user_id === vote.user_id)
         : null;
+      const demoPayoutAmt = isWinner && isDemo && vote.user_id
+        ? (demoPayoutMap.get(vote.user_id) ?? 0)
+        : 0;
+      const payoutEntry = livePayout
+        ? livePayout
+        : (demoPayoutAmt > 0 ? { amount: demoPayoutAmt } : null);
 
       const voterOptionLabel = poll.poll_options.find((o: any) => o.id === vote.option_id)?.label ?? 'Unknown';
 
@@ -340,7 +346,7 @@ Deno.serve(async (req) => {
         const correctLine = `Correct answer: ${winningOption.label}`;
         const pollBlock = `${pollLine}\n${predLine}\n${correctLine}`;
 
-        const demoTag = proMode === 'demo' ? ' (demo)' : '';
+        const demoTag = isDemo ? ' (demo)' : '';
 
         if (isWinner && isStaked && payoutEntry) {
           notifs.push({
@@ -381,8 +387,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Email notifications — SKIPPED entirely in demo mode (no real $ to report)
-      if (proMode === 'demo') continue;
+      // Email notifications — fire in BOTH live and demo modes.
+      // Demo emails carry an `isDemo` flag so the template can mark them clearly.
 
       const resolveEmail = async (): Promise<string | null> => {
         if (vote.user_id) return resolveUserEmail(vote.user_id);
@@ -412,6 +418,7 @@ Deno.serve(async (req) => {
                   arenaUrl:      `${siteUrl}/forecast-arena-pro`,
                   userName:      firstName,
                   isStaked,
+                  isDemo,
                 },
               },
             });
@@ -436,6 +443,7 @@ Deno.serve(async (req) => {
                   arenaUrl:      `${siteUrl}/forecast-arena-pro`,
                   userName:      firstName,
                   isStaked,
+                  isDemo,
                 },
               },
             });

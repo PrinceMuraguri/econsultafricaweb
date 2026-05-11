@@ -500,13 +500,43 @@ const AdminDashboard = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "✅ Market Settled", description: `${data.summary?.winners ?? 0} winners, ${formatCurrency(data.summary?.total_payouts ?? 0, proMode)} in payouts created.` });
+      const s = data.summary || {};
+      const isDemo = s.mode === 'demo';
+      const winners = s.winners ?? s.winners_with_payout ?? 0;
+      const total = s.total_payouts ?? 0;
+      const emails = s.emails_sent ?? s.emails_queued ?? 0;
+      toast({
+        title: isDemo ? "✅ Market Settled (demo)" : "✅ Market Settled",
+        description: `${winners} winner${winners === 1 ? '' : 's'} · ${formatCurrency(total, proMode)} ${isDemo ? 'credited to demo wallets' : 'in payouts created'} · ${emails} email${emails === 1 ? '' : 's'} sent.`,
+      });
       queryClient.invalidateQueries({ queryKey: ["admin-polls"] });
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
     },
     onError: (err: any) => {
       toast({ title: "Settlement Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const resendEmailsMutation = useMutation({
+    mutationFn: async (pollId: string) => {
+      const { data, error } = await supabase.functions.invoke("resend-settlement-emails", {
+        body: { poll_id: pollId, admin_key: adminKey },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      const s = data.summary || {};
+      toast({
+        title: "📧 Settlement emails resent",
+        description: `${s.emails_sent ?? 0} sent · ${s.emails_failed ?? 0} failed · ${s.voters_processed ?? 0} voters processed.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-audit-log"] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Resend Failed", description: err.message, variant: "destructive" });
     },
   });
 

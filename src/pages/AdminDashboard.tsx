@@ -850,6 +850,18 @@ const AdminDashboard = () => {
                                 {payoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4 mr-1" />}
                                 {payoutMode === 'wallet' ? 'Credit Winner Wallets' : 'Send Mobile Money Payouts'}
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={resendEmailsMutation.isPending}
+                                onClick={() => {
+                                  if (confirm(`Resend settlement emails to all voters of "${poll.title}"? Idempotent — voters who already received the email will not be re-sent.`)) {
+                                    resendEmailsMutation.mutate(poll.id);
+                                  }
+                                }}
+                              >
+                                {resendEmailsMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "📧 Resend Emails"}
+                              </Button>
                             </div>
                           </div>
                         )}

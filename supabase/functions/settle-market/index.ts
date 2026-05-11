@@ -470,11 +470,17 @@ Deno.serve(async (req) => {
       ? Math.min(1.0, totalPool / totalWinningShares)
       : 0;
 
+    const winnersCount = isDemo ? demoWinners : payoutRecords.length;
+    const totalPaidOut = isDemo
+      ? demoTotalPaid
+      : payoutRecords.reduce((s, p) => s + p.amount, 0);
+
     await supabase.from('admin_audit_log').insert({
       action:      'settle_market',
       entity_type: 'poll',
       entity_id:   poll_id,
       details: {
+        mode:                   proMode,
         winning_option:         winningOption.label,
         winning_option_id,
         total_pool:             totalPool,
@@ -482,10 +488,11 @@ Deno.serve(async (req) => {
         gross_per_share:        grossPerShare,
         platform_fee_rate:      platformFeeRate,
         winner_positions:       (winnerPositions || []).length,
+        winners_with_payout:    winnersCount,
         staked_loser_votes:     stakedLosers.length,
         total_voters:           allVotes.length,
         listings_cancelled:     listingsCancelled,
-        total_net_payouts:      payoutRecords.reduce((s, p) => s + p.amount, 0),
+        total_net_payouts:      totalPaidOut,
         settlement_method:      'positions_based',
         notifications_sent:     notifs.length,
         ai_agents_scored:       (aiScoring as any)?.ai_agents_scored ?? 0,
@@ -508,18 +515,22 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       summary: {
+        mode:                 proMode,
         poll_title:           poll.title,
         winning_option:       winningOption.label,
         total_pool:           totalPool,
         total_winning_shares: totalWinningShares,
         gross_per_share:      grossPerShare,
-        winners_with_payout:  payoutRecords.length,
+        winners:              winnersCount,
+        winners_with_payout:  winnersCount,
         total_voters:         allVotes.length,
         notifications_sent:   notifs.length,
         emails_queued:        emailPromises.length,
+        emails_sent:          emailsSent,
+        emails_failed:        emailsFailed,
         losers:               allVotes.filter(v => v.option_id !== winning_option_id).length,
         listings_cancelled:   listingsCancelled,
-        total_payouts:        payoutRecords.reduce((s, p) => s + p.amount, 0),
+        total_payouts:        totalPaidOut,
         ai_agents_scored:     (aiScoring as any)?.ai_agents_scored ?? 0,
         ai_agents_correct:    (aiScoring as any)?.ai_agents_correct ?? 0,
         mean_brier_this_poll: (aiScoring as any)?.mean_brier_this_poll ?? null,

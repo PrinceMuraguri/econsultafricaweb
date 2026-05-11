@@ -115,8 +115,10 @@ const SettlementLoserEmail = ({
 
 export const template = {
   component: SettlementLoserEmail,
-  subject: (data: Record<string, any>) =>
-    `Forecast resolved: "${data.pollTitle || 'Question'}" → ${data.winningOption || 'settled'}`,
+  subject: (data: Record<string, any>) => {
+    const suffix = data.isDemo ? ' (demo)' : ''
+    return `Forecast resolved${suffix}: "${data.pollTitle || 'Question'}" → ${data.winningOption || 'settled'}`
+  },
   displayName: 'Forecast settlement — loser',
   previewData: {
     pollTitle: 'Will Kenya\'s inflation breach 5% in Q2 2026?',
@@ -126,6 +128,7 @@ export const template = {
     arenaUrl: 'https://econsultafricaweb.lovable.app/forecast-arena-pro',
     userName: 'John',
     isStaked: true,
+    isDemo: false,
   },
 } satisfies TemplateEntry
 
@@ -141,3 +144,5 @@ const pollInfoValue = { fontSize: '14px', color: '#1a2744', fontWeight: 'bold' a
 const button = { backgroundColor: '#3660be', color: '#ffffff', fontSize: '14px', borderRadius: '4px', padding: '12px 24px', textDecoration: 'none' }
 const hr = { borderColor: '#e5e7eb', margin: '30px 0' }
 const footer = { fontSize: '12px', color: '#999999', margin: '0 0 8px' }
+const demoBanner = { backgroundColor: '#fff7ed', border: '1px solid #fdba74', borderRadius: '6px', padding: '10px 14px', margin: '0 0 20px' }
+const demoBannerText = { fontSize: '12px', color: '#9a3412', margin: 0, lineHeight: '1.5' }

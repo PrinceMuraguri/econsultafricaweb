@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
     );
 
     const proMode = await getProMode(supabase);
+    const isDemo = proMode === 'demo';
 
     // ── 1. Fetch poll ──────────────────────────────────────────────────────────
     const { data: poll, error: pollError } = await supabase

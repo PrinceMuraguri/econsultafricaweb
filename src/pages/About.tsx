@@ -31,6 +31,11 @@ const team = [
 const About = () => {
   return (
     <Layout>
+      <SEO
+        title="About Econsult Africa — Team & Mission"
+        description="Econsult Africa is a strategic economic intelligence firm translating macro trends into actionable decisions for organisations operating across African markets."
+        path="/about"
+      />
       {/* Hero */}
       <section className="section-padding">
         <div className="container-page">

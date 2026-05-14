@@ -57,6 +57,26 @@ const Kenya2026 = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Kenya 2026 Economic Outlook — Econsult Africa"
+        description="120+ page macroeconomic outlook for Kenya in 2026: GDP, inflation, currency, fiscal policy and 10 sector deep-dives. Quarterly updates included."
+        path="/kenya-2026"
+        ogType="product"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "Kenya 2026 Economic Outlook",
+          description: "120+ page comprehensive economic analysis covering GDP, inflation, currency, fiscal policy, and sector deep-dives for Kenya's economy in 2026.",
+          brand: { "@type": "Brand", name: "Econsult Africa" },
+          offers: {
+            "@type": "Offer",
+            price: "495",
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url: "https://econsult.africa/kenya-2026",
+          },
+        }}
+      />
       <section className="section-padding">
         <div className="container-page">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">

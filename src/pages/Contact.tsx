@@ -25,6 +25,11 @@ const Contact = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Contact Econsult Africa — Briefings & Inquiries"
+        description="Book an executive briefing, purchase the Kenya 2026 Outlook, or explore retainers. Econsult Africa responds within 24 hours."
+        path="/contact"
+      />
       <section className="section-padding">
         <div className="container-page">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">

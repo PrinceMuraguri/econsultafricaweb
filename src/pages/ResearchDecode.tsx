@@ -42,6 +42,11 @@ const papers = [
 const ResearchDecode = () => {
   return (
     <Layout>
+      <SEO
+        title="Research Decode — African Economics Papers Made Simple"
+        description="Plain-language summaries of academic economics papers on mobile money, climate, exchange rates and African development — with the Econsult Take."
+        path="/research-decode"
+      />
       <section className="section-padding">
         <div className="container-page">
           <div className="max-w-3xl mb-16">

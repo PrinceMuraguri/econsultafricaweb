@@ -60,6 +60,11 @@ const SampleReport = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Sample Report — Kenya 2026 Economic Outlook Preview"
+        description="Free preview of the Kenya 2026 Economic Outlook. See the depth, structure and analytical rigour of the full 120+ page report."
+        path="/sample-report"
+      />
       {/* Hero */}
       <section className="pt-16 pb-10 md:pt-24 md:pb-16">
         <div className="container-page">

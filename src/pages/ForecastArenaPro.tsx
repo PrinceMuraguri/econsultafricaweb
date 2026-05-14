@@ -120,6 +120,11 @@ const ForecastArenaPro = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Forecast Arena PRO — Capital-Weighted African Prediction Markets"
+        description="Trade capital-weighted prediction markets on African macro events. Forecast inflation, currencies, fiscal policy and more across 10+ African economies."
+        path="/forecast-arena-pro"
+      />
       <DemoBanner />
       {/* Pro Hero */}
       <section className="py-6 md:py-8 bg-foreground overflow-hidden relative">

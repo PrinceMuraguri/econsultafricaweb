@@ -110,6 +110,11 @@ const IntelligenceMarketplace = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Intelligence Marketplace — African Country Reports & Sector Briefs"
+        description="Decision-grade economic intelligence on African markets. Country outlooks, sector briefs and audience-specific notes for investors, corporates and partners."
+        path="/intelligence-marketplace"
+      />
       {/* Hero — compact */}
       <section className="pt-10 pb-3 md:pt-14 md:pb-4 px-4 md:px-8">
         <div className="container-page flex items-center justify-between">

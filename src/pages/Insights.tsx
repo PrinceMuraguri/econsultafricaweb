@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { BookOpen, Search, ArrowRight, Calendar, Clock, Mic, Video, FileText, Newspaper } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,11 @@ const Insights = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Insights — African Economic Analysis & Commentary"
+        description="Articles, podcasts, videos and research on Kenya, East Africa and Pan-African economics. Inflation, currency, fiscal policy and sector deep-dives."
+        path="/insights"
+      />
       <section className="section-padding">
         <div className="container-page">
           <div className="max-w-3xl mb-12">

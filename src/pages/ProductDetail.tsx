@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { getProductBySlug } from "@/data/marketplace-products";
 import { useCart } from "@/contexts/CartContext";
@@ -78,6 +79,30 @@ const ProductDetail = () => {
 
   return (
     <Layout>
+      <SEO
+        title={`${product.title} — Econsult Africa`}
+        description={product.description.slice(0, 158)}
+        path={`/product/${product.slug}`}
+        ogType="product"
+        image={product.cover ? `https://econsult.africa${product.cover}` : undefined}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.title,
+          description: product.description,
+          image: product.cover ? `https://econsult.africa${product.cover}` : undefined,
+          brand: { "@type": "Brand", name: "Econsult Africa" },
+          offers: {
+            "@type": "Offer",
+            price: String(product.price),
+            priceCurrency: "USD",
+            availability: product.available
+              ? "https://schema.org/InStock"
+              : "https://schema.org/PreOrder",
+            url: `https://econsult.africa/product/${product.slug}`,
+          },
+        }}
+      />
       <section className="py-8 md:py-12 px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
           <Link to="/intelligence-marketplace" className="inline-flex items-center gap-1 text-sm text-primary hover:text-accent mb-6">

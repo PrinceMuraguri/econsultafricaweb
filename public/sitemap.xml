@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://econsult.africa/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://econsult.africa/kenya-2026</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://econsult.africa/forecast-arena</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://econsult.africa/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
   <url><loc>https://econsult.africa/forecast-arena-pro</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://econsult.africa/products</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://econsult.africa/services</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://econsult.africa/kenya-2026</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://econsult.africa/intelligence-marketplace</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://econsult.africa/insights</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://econsult.africa/our-philosophy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/research-decode</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://econsult.africa/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://econsult.africa/contact</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://econsult.africa/forecast-arena/how-it-works</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://econsult.africa/sample-report</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/leaderboard</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://econsult.africa/how-it-works</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://econsult.africa/api-docs</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://econsult.africa/terms-of-use</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://econsult.africa/kenya-genz-2026</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://econsult.africa/FIAT_whitepaper</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+
+  <!-- Insight articles -->
   <url><loc>https://econsult.africa/insights/three-inflations</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
   <url><loc>https://econsult.africa/insights/ten-cuts-zero-relief</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
   <url><loc>https://econsult.africa/insights/borrowing-to-pay-borrowing</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
@@ -20,4 +28,24 @@
   <url><loc>https://econsult.africa/insights/agoa-last-breath</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
   <url><loc>https://econsult.africa/insights/shilling-strange-stillness</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
   <url><loc>https://econsult.africa/insights/five-billion-lifeline</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+
+  <!-- Country reports -->
+  <url><loc>https://econsult.africa/product/kenya-2026-outlook</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://econsult.africa/product/kenya-2026-genz</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Sector briefs -->
+  <url><loc>https://econsult.africa/product/banking-financial-services</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/agriculture-food-security</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/energy-infrastructure</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/manufacturing-industry</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/digital-economy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/tourism-hospitality</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/real-estate-construction</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/retail-consumer</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- Audience notes -->
+  <url><loc>https://econsult.africa/product/investor-strategy-note</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/development-partner-brief</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/corporate-strategy-brief</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://econsult.africa/product/startup-sme-scan</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>

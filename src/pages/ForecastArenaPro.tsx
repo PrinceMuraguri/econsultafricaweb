@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import PollCardPro from "@/components/forecast/PollCardPro";
 import { usePolls } from "@/hooks/use-polls";
 import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flame, Wallet, TrendingUp } from "lucide-react";
@@ -119,6 +120,11 @@ const ForecastArenaPro = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Forecast Arena PRO — Capital-Weighted African Prediction Markets"
+        description="Trade capital-weighted prediction markets on African macro events. Forecast inflation, currencies, fiscal policy and more across 10+ African economies."
+        path="/forecast-arena-pro"
+      />
       <DemoBanner />
       {/* Pro Hero */}
       <section className="py-6 md:py-8 bg-foreground overflow-hidden relative">

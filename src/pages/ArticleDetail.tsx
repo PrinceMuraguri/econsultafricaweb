@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Calendar, ArrowRight, ImageIcon } from "lucide-react";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { articles } from "@/data/articles";
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +36,35 @@ const ArticleDetail = () => {
 
   return (
     <Layout>
+      <SEO
+        title={`${article.title} — Econsult Africa Insights`}
+        description={article.excerpt.slice(0, 158)}
+        path={`/insights/${article.slug}`}
+        ogType="article"
+        image={article.heroImage}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: article.title,
+          description: article.excerpt,
+          image: article.heroImage,
+          datePublished: article.date,
+          author: {
+            "@type": "Person",
+            name: "Prince Muraguri",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Econsult Africa",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://econsultafricaweb.lovable.app/favicon.png",
+            },
+          },
+          mainEntityOfPage: `https://econsult.africa/insights/${article.slug}`,
+          articleSection: article.category,
+        }}
+      />
       <article className="section-padding">
         <div className="container-page max-w-3xl">
           <Link

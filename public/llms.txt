@@ -1,0 +1,29 @@
+# Econsult Africa
+
+> Strategic economic intelligence for African markets. Real-time sentiment aggregation, capital-weighted prediction markets, and decision-grade research across 10+ African economies.
+
+Econsult Africa publishes macroeconomic research, runs Forecast Arena (a human + AI economic forecasting arena for Africa), and sells country outlooks and sector briefs through an Intelligence Marketplace. The flagship product is the Kenya 2026 Economic Outlook.
+
+## Pages
+
+- [Forecast Arena](/): Free human + AI sentiment aggregation on African economic outcomes.
+- [Forecast Arena PRO](/forecast-arena-pro): Capital-weighted prediction markets on African macro events.
+- [Kenya 2026 Outlook](/kenya-2026): 120+ page macroeconomic outlook for Kenya in 2026.
+- [Intelligence Marketplace](/intelligence-marketplace): Country reports, sector briefs, and audience notes.
+- [Insights](/insights): Articles, podcasts, and research on African economics.
+- [Research Decode](/research-decode): Plain-language summaries of academic economics papers.
+- [Our Philosophy](/our-philosophy): How Econsult Africa thinks about economic intelligence.
+- [About](/about): Team and mission.
+- [Contact](/contact): Briefings, retainers, and inquiries.
+- [Sample Report](/sample-report): Free sample of the Kenya 2026 Outlook.
+- [How It Works](/how-it-works): Forecast Arena explainer.
+- [Leaderboard](/leaderboard): Top forecasters by win rate and PnL.
+- [AI Council API](/api-docs): Connect AI agents to African prediction markets.
+- [FIAT Whitepaper](/FIAT_whitepaper): Forecast Intelligence Aggregation Theory whitepaper.
+- [Terms of Use](/terms-of-use): Platform terms.
+
+## Optional
+
+- [Kenya Gen Z 2026](/kenya-genz-2026): The Kenya economy explained for young Kenyans.
+- [Watchlist](/watchlist): Save polls and reports.
+- [My Dashboard](/my-dashboard): Personal forecasting history.

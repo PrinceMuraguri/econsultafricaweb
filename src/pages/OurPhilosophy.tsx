@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import LaunchCountdown from "@/components/LaunchCountdown";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import AfricaMapSection from "@/components/AfricaMapSection";
 import WhoThisIsFor from "@/components/WhoThisIsFor";
@@ -62,6 +63,25 @@ const advisors = [
 const OurPhilosophy = () => {
   return (
     <Layout>
+      <SEO
+        title="Our Philosophy — How Econsult Africa Thinks"
+        description="How Econsult Africa approaches economic intelligence: rigorous analysis, ground-truth signals, and decision-focused output for African market leaders."
+        path="/our-philosophy"
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Econsult Africa",
+            url: "https://econsult.africa",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Econsult Africa",
+            url: "https://econsult.africa",
+          },
+        ]}
+      />
 
       {/* Hero */}
       <section className="section-padding overflow-hidden">

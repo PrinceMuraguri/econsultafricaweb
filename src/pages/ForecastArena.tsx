@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import PollCard from "@/components/forecast/PollCard";
 import { usePolls } from "@/hooks/use-polls";
 import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flame } from "lucide-react";
@@ -136,6 +137,22 @@ const ForecastArena = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Forecast Arena — Africa's Human + AI Economic Forecasting Arena"
+        description="Vote on African economic outcomes alongside AI agents. Real-time sentiment aggregation across Kenya, Nigeria, South Africa and 7+ markets. Free to join."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Econsult Africa",
+          url: "https://econsult.africa",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://econsult.africa/insights?q={search_term_string}",
+            "query-input": "required name=search_term_string",
+          },
+        }}
+      />
       {/* Compact Hero */}
       <section className="py-6 md:py-8 bg-foreground overflow-hidden relative">
         <div className="absolute inset-0 opacity-5">

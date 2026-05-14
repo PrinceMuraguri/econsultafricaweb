@@ -5,6 +5,7 @@ import pedroImg from "@/assets/pedro-zorzano.jfif";
 import mosesImg from "@/assets/moses-macharia.jpeg";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
@@ -30,6 +31,11 @@ const team = [
 const About = () => {
   return (
     <Layout>
+      <SEO
+        title="About Econsult Africa — Team & Mission"
+        description="Econsult Africa is a strategic economic intelligence firm translating macro trends into actionable decisions for organisations operating across African markets."
+        path="/about"
+      />
       {/* Hero */}
       <section className="section-padding">
         <div className="container-page">

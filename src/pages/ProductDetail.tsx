@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { getProductBySlug } from "@/data/marketplace-products";
 import { useCart } from "@/contexts/CartContext";

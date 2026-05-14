@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import LaunchCountdown from "@/components/LaunchCountdown";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import AfricaMapSection from "@/components/AfricaMapSection";
 import WhoThisIsFor from "@/components/WhoThisIsFor";

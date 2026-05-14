@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import PollCardPro from "@/components/forecast/PollCardPro";
 import { usePolls } from "@/hooks/use-polls";
 import { Shield, Zap, Globe, ChevronDown, ChevronUp, ArrowRight, Search, X, Flame, Wallet, TrendingUp } from "lucide-react";

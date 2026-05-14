@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, FileText, BarChart3, Shield, Lock, Users, ShieldCheck, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

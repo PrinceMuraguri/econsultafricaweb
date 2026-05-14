@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import SampleReportViewer from "@/components/SampleReportViewer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";

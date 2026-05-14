@@ -5,6 +5,7 @@ import pedroImg from "@/assets/pedro-zorzano.jfif";
 import mosesImg from "@/assets/moses-macharia.jpeg";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 

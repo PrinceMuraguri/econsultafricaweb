@@ -73,41 +73,46 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
 
   // Comments query
   const { data: comments = [] } = useQuery({
-    queryKey: ["poll-comments", poll.id, holderFilter],
+    queryKey: ["poll-comments", poll.id, holderFilter, sortMode],
     queryFn: async () => {
       let q = supabase
         .from("poll_comments")
         .select("*")
-        .eq("poll_id", poll.id)
-        .order("created_at", { ascending: false });
+        .eq("poll_id", poll.id);
+
+      if (sortMode === "top") {
+        q = q.order("score", { ascending: false }).order("created_at", { ascending: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
 
       if (holderFilter) q = q.eq("is_holder", true);
 
       const { data, error } = await q;
       if (error) throw error;
       const rows = data || [];
-      
-      // Fetch usernames for comment authors
+
+      // Fetch anonymized handles for comment authors
       const userIds = [...new Set(rows.map((r: any) => r.user_id))];
       if (userIds.length === 0) return [];
       const { data: profiles } = await supabase
         .from("user_profiles")
-        .select("user_id, username, full_name")
+        .select("user_id, display_handle")
         .in("user_id", userIds);
-      const profileMap: Record<string, { username: string; full_name: string }> = {};
-      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = { username: p.username, full_name: p.full_name }; });
-      
+      const profileMap: Record<string, { display_handle: string }> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = { display_handle: p.display_handle }; });
+
       return rows.map((r: any) => ({ ...r, user_profiles: profileMap[r.user_id] || null })) as Comment[];
     },
   });
 
-  // Realtime comments
+  // Realtime comments + vote-count refresh
   useEffect(() => {
+    const refresh = () => queryClient.invalidateQueries({ queryKey: ["poll-comments", poll.id] });
     const channel = supabase
       .channel(`comments-${poll.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "poll_comments", filter: `poll_id=eq.${poll.id}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ["poll-comments", poll.id] });
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "poll_comments", filter: `poll_id=eq.${poll.id}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "comment_votes" }, refresh)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [poll.id, queryClient]);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,6 +15,9 @@ import type { Poll } from "@/hooks/use-polls";
 import { useAIComments, type AIAgentComment } from "@/hooks/use-ai-council";
 import LoginModal from "@/components/auth/LoginModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
+import CommentVoteButtons from "./CommentVoteButtons";
+import PostVoteCommentPrompt from "./PostVoteCommentPrompt";
+import { consumePostVotePrompt, type PostVoteSignal } from "@/lib/post-vote-prompt";
 
 interface Props {
   poll: Poll;
@@ -28,8 +31,13 @@ interface Comment {
   created_at: string;
   user_id: string;
   parent_id: string | null;
-  user_profiles?: { username: string; full_name: string } | null;
+  score: number;
+  upvotes: number;
+  downvotes: number;
+  user_profiles?: { display_handle: string } | null;
 }
+
+const COLLAPSE_THRESHOLD = -4;
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -51,46 +59,60 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
   const [replyBody, setReplyBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [holderFilter, setHolderFilter] = useState(false);
+  const [sortMode, setSortMode] = useState<"top" | "new">("top");
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [expandedCollapsed, setExpandedCollapsed] = useState<Set<string>>(new Set());
+  const [promptSignal, setPromptSignal] = useState<PostVoteSignal | null>(null);
+
+  // Pick up post-vote prompt queued from PollCard / StakeModal
+  useEffect(() => {
+    const sig = consumePostVotePrompt(poll.id);
+    if (sig) setPromptSignal(sig);
+  }, [poll.id]);
 
   // Comments query
   const { data: comments = [] } = useQuery({
-    queryKey: ["poll-comments", poll.id, holderFilter],
+    queryKey: ["poll-comments", poll.id, holderFilter, sortMode],
     queryFn: async () => {
       let q = supabase
         .from("poll_comments")
         .select("*")
-        .eq("poll_id", poll.id)
-        .order("created_at", { ascending: false });
+        .eq("poll_id", poll.id);
+
+      if (sortMode === "top") {
+        q = q.order("score", { ascending: false }).order("created_at", { ascending: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
 
       if (holderFilter) q = q.eq("is_holder", true);
 
       const { data, error } = await q;
       if (error) throw error;
       const rows = data || [];
-      
-      // Fetch usernames for comment authors
+
+      // Fetch anonymized handles for comment authors
       const userIds = [...new Set(rows.map((r: any) => r.user_id))];
       if (userIds.length === 0) return [];
       const { data: profiles } = await supabase
         .from("user_profiles")
-        .select("user_id, username, full_name")
+        .select("user_id, display_handle")
         .in("user_id", userIds);
-      const profileMap: Record<string, { username: string; full_name: string }> = {};
-      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = { username: p.username, full_name: p.full_name }; });
-      
+      const profileMap: Record<string, { display_handle: string }> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = { display_handle: p.display_handle }; });
+
       return rows.map((r: any) => ({ ...r, user_profiles: profileMap[r.user_id] || null })) as Comment[];
     },
   });
 
-  // Realtime comments
+  // Realtime comments + vote-count refresh
   useEffect(() => {
+    const refresh = () => queryClient.invalidateQueries({ queryKey: ["poll-comments", poll.id] });
     const channel = supabase
       .channel(`comments-${poll.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "poll_comments", filter: `poll_id=eq.${poll.id}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ["poll-comments", poll.id] });
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "poll_comments", filter: `poll_id=eq.${poll.id}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "comment_votes" }, refresh)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [poll.id, queryClient]);
@@ -160,12 +182,12 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
       if (fps.length === 0) return [];
       const { data: profiles } = await supabase
         .from("user_profiles")
-        .select("username, voter_fingerprint")
+        .select("display_handle, voter_fingerprint")
         .in("voter_fingerprint", fps);
 
       const profileMap: Record<string, string> = {};
-      (profiles || []).forEach((p) => {
-        if (p.voter_fingerprint) profileMap[p.voter_fingerprint] = p.username;
+      (profiles || []).forEach((p: any) => {
+        if (p.voter_fingerprint) profileMap[p.voter_fingerprint] = p.display_handle;
       });
 
       return (data || []).map((d) => ({
@@ -191,12 +213,12 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
       if (fps.length === 0) return [];
       const { data: profiles } = await supabase
         .from("user_profiles")
-        .select("username, voter_fingerprint")
+        .select("display_handle, voter_fingerprint")
         .in("voter_fingerprint", fps);
 
       const profileMap: Record<string, string> = {};
-      (profiles || []).forEach((p) => {
-        if (p.voter_fingerprint) profileMap[p.voter_fingerprint] = p.username;
+      (profiles || []).forEach((p: any) => {
+        if (p.voter_fingerprint) profileMap[p.voter_fingerprint] = p.display_handle;
       });
 
       const optionMap: Record<string, string> = {};
@@ -286,9 +308,13 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
             </div>
           )}
 
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-2 mb-3 items-center">
             <Button size="sm" variant={!holderFilter ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setHolderFilter(false)}>All</Button>
             <Button size="sm" variant={holderFilter ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setHolderFilter(true)}>Holders Only</Button>
+            <div className="ml-auto flex gap-1">
+              <Button size="sm" variant={sortMode === "top" ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setSortMode("top")}>Top</Button>
+              <Button size="sm" variant={sortMode === "new" ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setSortMode("new")}>New</Button>
+            </div>
           </div>
 
           <ScrollArea className="max-h-[500px]">
@@ -346,24 +372,43 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
               {topComments.length === 0 && aiComments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">No comments yet. Be the first to share your analysis.</p>
               ) : topComments.length === 0 ? null : (
-                topComments.map((c) => (
+                topComments.map((c) => {
+                  const handle = (c.user_profiles as any)?.display_handle || "user";
+                  const collapsed = c.score <= COLLAPSE_THRESHOLD && !expandedCollapsed.has(c.id);
+                  return (
                   <div key={c.id} className="space-y-2">
                     <div className="flex gap-2">
                       <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                        {(c.user_profiles as any)?.full_name?.[0] || "?"}
+                        {handle.slice(-1).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Link to={`/profile/${(c.user_profiles as any)?.username || "user"}`} className="text-xs font-semibold text-foreground hover:text-primary">
-                            {(c.user_profiles as any)?.username || "User"}
+                          <Link to={`/profile/${handle}`} className="text-xs font-semibold text-foreground hover:text-primary">
+                            {handle}
                           </Link>
                           {c.is_holder && <Badge variant="outline" className="text-[9px] h-4 bg-green-500/10 text-green-600 border-green-500/30">Holder</Badge>}
                           <span className="text-[10px] text-muted-foreground">{timeAgo(c.created_at)}</span>
                         </div>
-                        <p className="text-sm text-foreground mt-1">{c.body}</p>
-                        {user && (
-                          <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className="text-[10px] text-primary hover:text-accent mt-1">Reply</button>
+                        {collapsed ? (
+                          <button
+                            className="text-[11px] text-muted-foreground italic mt-1 hover:text-foreground"
+                            onClick={() => setExpandedCollapsed((s) => new Set(s).add(c.id))}
+                          >
+                            [comment hidden — score {c.score}, click to show]
+                          </button>
+                        ) : (
+                          <p className="text-sm text-foreground mt-1 whitespace-pre-line">{c.body}</p>
                         )}
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <CommentVoteButtons
+                            commentId={c.id}
+                            initialScore={c.score ?? 0}
+                            onRequireAuth={() => setLoginOpen(true)}
+                          />
+                          {user && (
+                            <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className="text-[10px] text-primary hover:text-accent">Reply</button>
+                          )}
+                        </div>
 
                         {replyTo === c.id && (
                           <div className="mt-2 flex gap-2">
@@ -379,27 +424,39 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
                         )}
 
                         {/* Replies */}
-                        {replies(c.id).map((r) => (
+                        {replies(c.id).map((r) => {
+                          const rHandle = (r.user_profiles as any)?.display_handle || "user";
+                          return (
                           <div key={r.id} className="flex gap-2 mt-2 ml-4 pl-3 border-l-2 border-border">
                             <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground shrink-0">
-                              {(r.user_profiles as any)?.full_name?.[0] || "?"}
+                              {rHandle.slice(-1).toUpperCase()}
                             </div>
-                            <div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <Link to={`/profile/${(r.user_profiles as any)?.username || "user"}`} className="text-[11px] font-semibold text-foreground hover:text-primary">
-                                  {(r.user_profiles as any)?.username || "User"}
+                                <Link to={`/profile/${rHandle}`} className="text-[11px] font-semibold text-foreground hover:text-primary">
+                                  {rHandle}
                                 </Link>
                                 {r.is_holder && <Badge variant="outline" className="text-[8px] h-3.5 bg-green-500/10 text-green-600 border-green-500/30">Holder</Badge>}
                                 <span className="text-[9px] text-muted-foreground">{timeAgo(r.created_at)}</span>
                               </div>
-                              <p className="text-xs text-foreground mt-0.5">{r.body}</p>
+                              <p className="text-xs text-foreground mt-0.5 whitespace-pre-line">{r.body}</p>
+                              <div className="mt-1">
+                                <CommentVoteButtons
+                                  commentId={r.id}
+                                  initialScore={r.score ?? 0}
+                                  onRequireAuth={() => setLoginOpen(true)}
+                                  size="sm"
+                                />
+                              </div>
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </ScrollArea>

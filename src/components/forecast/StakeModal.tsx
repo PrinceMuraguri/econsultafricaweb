@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 import { CurrencyAmount } from "@/components/CurrencyAmount";
 import { formatCurrency } from "@/lib/currency";
+import { queuePostVotePrompt } from "@/lib/post-vote-prompt";
 
 interface StakeModalProps {
   open: boolean;
@@ -105,6 +106,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         title: "Shares purchased! 🎉",
         description: `You bought ${shares} shares of "${selectedOption.label}" — ${formatCurrency(totalDebit, proMode)} debited.`,
       });
+      queuePostVotePrompt({ pollId: poll.id, optionLabel: selectedOption.label, isHolder: true });
       queryClient.invalidateQueries({ queryKey: ["wallet-balance", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });

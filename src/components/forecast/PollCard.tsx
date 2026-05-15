@@ -15,6 +15,7 @@ import LoginModal from "@/components/auth/LoginModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";
+import { queuePostVotePrompt } from "@/lib/post-vote-prompt";
 import { useAIPredictions } from "@/hooks/use-ai-council";
 import { Bot } from "lucide-react";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates poll-card Pro CTAs
@@ -123,6 +124,8 @@ const PollCard = ({ poll, compact = false, isTrending = false, interactionMode =
       setHasVoted(true);
       setVotedOptionId(optionId);
       setLocalOptions(prev => prev.map(o => o.id === optionId ? { ...o, total_votes_count: o.total_votes_count + 1 } : o));
+      const optLabel = localOptions.find((o) => o.id === optionId)?.label ?? "your choice";
+      queuePostVotePrompt({ pollId: poll.id, optionLabel: optLabel, isHolder: false });
       toast({ title: "🎯 Forecast recorded", description: "Your view has been added to the collective sentiment." });
     } catch {
       toast({ title: "Error", description: "Could not record forecast. Try again.", variant: "destructive" });

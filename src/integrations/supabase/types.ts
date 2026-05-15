@@ -292,6 +292,41 @@ export type Database = {
           },
         ]
       }
+      comment_votes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_votes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "poll_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_listings: {
         Row: {
           buyer_id: string | null
@@ -1018,31 +1053,40 @@ export type Database = {
         Row: {
           body: string
           created_at: string | null
+          downvotes: number
           id: string
           is_holder: boolean | null
           parent_id: string | null
           poll_id: string
+          score: number
           updated_at: string | null
+          upvotes: number
           user_id: string
         }
         Insert: {
           body: string
           created_at?: string | null
+          downvotes?: number
           id?: string
           is_holder?: boolean | null
           parent_id?: string | null
           poll_id: string
+          score?: number
           updated_at?: string | null
+          upvotes?: number
           user_id: string
         }
         Update: {
           body?: string
           created_at?: string | null
+          downvotes?: number
           id?: string
           is_holder?: boolean | null
           parent_id?: string | null
           poll_id?: string
+          score?: number
           updated_at?: string | null
+          upvotes?: number
           user_id?: string
         }
         Relationships: [
@@ -1548,6 +1592,7 @@ export type Database = {
           age_bracket: string | null
           country: string | null
           created_at: string | null
+          display_handle: string
           full_name: string
           has_acknowledged_demo: boolean
           id: string
@@ -1565,6 +1610,7 @@ export type Database = {
           age_bracket?: string | null
           country?: string | null
           created_at?: string | null
+          display_handle?: string
           full_name: string
           has_acknowledged_demo?: boolean
           id?: string
@@ -1582,6 +1628,7 @@ export type Database = {
           age_bracket?: string | null
           country?: string | null
           created_at?: string | null
+          display_handle?: string
           full_name?: string
           has_acknowledged_demo?: boolean
           id?: string
@@ -1991,6 +2038,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_display_handle: { Args: never; Returns: string }
       get_money_reconciliation: {
         Args: never
         Returns: {

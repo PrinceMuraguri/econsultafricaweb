@@ -153,11 +153,11 @@ const UserProfile = () => {
             {/* Profile header */}
             <div className="flex items-start gap-4 mb-6">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary shrink-0">
-                {profileData.full_name?.[0]?.toUpperCase() || "?"}
+                {(profileData.display_handle || profileData.full_name)?.[0]?.toUpperCase() || "?"}
               </div>
               <div>
-                <h1 className="text-2xl font-display font-bold text-foreground">{profileData.username}</h1>
-                <p className="text-sm text-muted-foreground">{profileData.full_name}</p>
+                <h1 className="text-2xl font-display font-bold text-foreground">{profileData.display_handle || profileData.username}</h1>
+                <p className="text-sm text-muted-foreground">Anonymous community member</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {profileData.country && (
                     <Badge variant="secondary" className="text-[10px] gap-1"><MapPin className="w-3 h-3" />{profileData.country}</Badge>

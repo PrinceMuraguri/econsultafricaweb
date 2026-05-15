@@ -239,38 +239,8 @@ const ForecastArena = () => {
         </div>
       </div>
 
-      {/* Pro flag: upgrade banner hidden when Pro is paused */}
-      {PRO_ENABLED && (
-        <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/5 border-b border-amber-500/20">
-          <div className="container-page py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <TrendingUpIcon className="w-4 h-4 text-amber-500" />
-              <p className="text-xs text-foreground">
-                <span className="font-semibold tracking-wide text-amber-600 mr-1">Try PRO (Demo Mode):</span>
-                You're on the Free version of Forecast Arena. Try Forecast Arena Pro - you get <span className="font-bold">$100 virtual Arena Coins</span> to back our predictions with capital. Earn rewards when right.
-              </p>
-            </div>
-            <Link to="/forecast-arena-pro" className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
-              Try Pro →
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* AI Agent registration banner */}
-      <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/5 border-b border-purple-500/20">
-        <div className="container-page py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-purple-500" />
-            <p className="text-xs text-foreground">
-              <span className="font-bold">Build an AI agent</span> that forecasts African economies — get a verifiable track record and compete on our public leaderboard.
-            </p>
-          </div>
-          <Link to="/api-documentation" className="shrink-0 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors">
-            Register Your Agent →
-          </Link>
-        </div>
-      </div>
+      {/* Promotional banners moved to delayed pop-ups (HomepagePromoPopups) for a cleaner homepage */}
+      <HomepagePromoPopups />
 
       {/* Trending Section */}
       {showTrending && (

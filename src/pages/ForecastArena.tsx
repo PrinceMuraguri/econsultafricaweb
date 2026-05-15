@@ -13,6 +13,7 @@ import { TrendingUp as TrendingUpIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates homepage Pro banners
+import HomepagePromoPopups from "@/components/forecast/HomepagePromoPopups";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },

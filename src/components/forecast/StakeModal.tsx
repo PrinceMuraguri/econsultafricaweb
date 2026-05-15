@@ -106,6 +106,7 @@ const StakeModal = ({ open, onOpenChange, poll, selectedOption }: StakeModalProp
         title: "Shares purchased! 🎉",
         description: `You bought ${shares} shares of "${selectedOption.label}" — ${formatCurrency(totalDebit, proMode)} debited.`,
       });
+      queuePostVotePrompt({ pollId: poll.id, optionLabel: selectedOption.label, isHolder: true });
       queryClient.invalidateQueries({ queryKey: ["wallet-balance", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["positions-card", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["user-stake", poll.id] });

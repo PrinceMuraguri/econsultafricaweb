@@ -562,6 +562,16 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
 
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} onSwitchToRegister={() => { setLoginOpen(false); setRegisterOpen(true); }} />
       <RegistrationModal open={registerOpen} onOpenChange={setRegisterOpen} onSwitchToLogin={() => { setRegisterOpen(false); setLoginOpen(true); }} />
+      {promptSignal && user && (
+        <PostVoteCommentPrompt
+          open={!!promptSignal}
+          onOpenChange={(v) => { if (!v) setPromptSignal(null); }}
+          pollId={poll.id}
+          pollTitle={poll.title}
+          optionLabel={promptSignal.optionLabel}
+          isHolder={promptSignal.isHolder}
+        />
+      )}
     </>
   );
 };

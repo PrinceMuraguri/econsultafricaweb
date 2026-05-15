@@ -12,6 +12,7 @@ import LoginModal from "@/components/auth/LoginModal";
 import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 import CurrencyAmount from "@/components/CurrencyAmount";
 import { formatCurrency } from "@/lib/currency";
+import { queuePostVotePrompt } from "@/lib/post-vote-prompt";
 
 
 interface TradingPanelProps {
@@ -109,6 +110,11 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
         title: "🎯 Capital committed!",
         description: `${shares} shares at ${formatCurrency(currentPrice, proMode)} per share. If your forecast is correct, you receive ${formatCurrency(shares, proMode)}.`,
       });
+
+      const committedOpt = poll.poll_options?.find((o) => o.id === selectedOptionId);
+      if (committedOpt) {
+        queuePostVotePrompt({ pollId: poll.id, optionLabel: committedOpt.label, isHolder: true });
+      }
 
       refreshWallet();
       queryClient.invalidateQueries({ queryKey: ["positions", poll.id] });

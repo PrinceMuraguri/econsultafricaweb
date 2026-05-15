@@ -25,29 +25,38 @@ const UserProfile = () => {
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ["user-profile", username],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try display_handle first (anonymized public links), fall back to username for back-compat.
+      const byHandle = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("display_handle", username!)
+        .maybeSingle();
+      if (byHandle.error) throw byHandle.error;
+      if (byHandle.data) return byHandle.data;
+
+      const byUsername = await supabase
         .from("user_profiles")
         .select("*")
         .eq("username", username!)
         .maybeSingle();
-      if (error) throw error;
-      return data;
+      if (byUsername.error) throw byUsername.error;
+      return byUsername.data;
     },
     enabled: !!username,
   });
 
   const { data: leaderboardEntry } = useQuery({
-    queryKey: ["user-leaderboard", username],
+    queryKey: ["user-leaderboard", profileData?.username],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("leaderboard_view" as any)
         .select("*")
-        .eq("username", username!)
+        .eq("username", profileData!.username)
         .maybeSingle();
       if (error) throw error;
       return data as any;
     },
-    enabled: !!username,
+    enabled: !!profileData?.username,
   });
 
   // Staked positions (public)
@@ -144,11 +153,11 @@ const UserProfile = () => {
             {/* Profile header */}
             <div className="flex items-start gap-4 mb-6">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary shrink-0">
-                {profileData.full_name?.[0]?.toUpperCase() || "?"}
+                {(profileData.display_handle || profileData.full_name)?.[0]?.toUpperCase() || "?"}
               </div>
               <div>
-                <h1 className="text-2xl font-display font-bold text-foreground">{profileData.username}</h1>
-                <p className="text-sm text-muted-foreground">{profileData.full_name}</p>
+                <h1 className="text-2xl font-display font-bold text-foreground">{profileData.display_handle || profileData.username}</h1>
+                <p className="text-sm text-muted-foreground">Anonymous community member</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {profileData.country && (
                     <Badge variant="secondary" className="text-[10px] gap-1"><MapPin className="w-3 h-3" />{profileData.country}</Badge>

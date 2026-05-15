@@ -290,10 +290,10 @@ const Leaderboard = () => {
               {/* Mobile cards */}
               <div className="md:hidden space-y-2">
                 {filtered.map((l, i) => (
-                  <Link key={l.user_id || i} to={`/profile/${l.username}`} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:border-primary/30 transition-colors">
+                  <Link key={l.user_id || i} to={`/profile/${l.display_handle || l.username}`} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:border-primary/30 transition-colors">
                     <span className="text-lg font-bold font-mono w-8 text-center">{rankBadge(Number(l.rank))}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-foreground truncate">{l.username}</p>
+                      <p className="font-semibold text-sm text-foreground truncate">{l.display_handle || l.username}</p>
                       <p className="text-[10px] text-muted-foreground">{FLAGS[l.country] || ""} {l.country || "—"} {l.occupation ? `· ${l.occupation}` : ""}</p>
                     </div>
                     <div className="text-right">

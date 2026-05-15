@@ -263,8 +263,8 @@ const Leaderboard = () => {
                       <TableRow key={l.user_id || i}>
                         <TableCell className="font-mono font-bold text-lg">{rankBadge(Number(l.rank))}</TableCell>
                         <TableCell>
-                          <Link to={`/profile/${l.username}`} className="font-semibold text-foreground hover:text-primary transition-colors">
-                            {l.username}
+                          <Link to={`/profile/${l.display_handle || l.username}`} className="font-semibold text-foreground hover:text-primary transition-colors">
+                            {l.display_handle || l.username}
                           </Link>
                           {l.occupation && <p className="text-[10px] text-muted-foreground">{l.occupation}</p>}
                         </TableCell>

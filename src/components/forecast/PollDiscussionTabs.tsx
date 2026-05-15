@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,6 +15,9 @@ import type { Poll } from "@/hooks/use-polls";
 import { useAIComments, type AIAgentComment } from "@/hooks/use-ai-council";
 import LoginModal from "@/components/auth/LoginModal";
 import RegistrationModal from "@/components/auth/RegistrationModal";
+import CommentVoteButtons from "./CommentVoteButtons";
+import PostVoteCommentPrompt from "./PostVoteCommentPrompt";
+import { consumePostVotePrompt, type PostVoteSignal } from "@/lib/post-vote-prompt";
 
 interface Props {
   poll: Poll;
@@ -28,8 +31,13 @@ interface Comment {
   created_at: string;
   user_id: string;
   parent_id: string | null;
-  user_profiles?: { username: string; full_name: string } | null;
+  score: number;
+  upvotes: number;
+  downvotes: number;
+  user_profiles?: { display_handle: string } | null;
 }
+
+const COLLAPSE_THRESHOLD = -4;
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -51,8 +59,17 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
   const [replyBody, setReplyBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [holderFilter, setHolderFilter] = useState(false);
+  const [sortMode, setSortMode] = useState<"top" | "new">("top");
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [expandedCollapsed, setExpandedCollapsed] = useState<Set<string>>(new Set());
+  const [promptSignal, setPromptSignal] = useState<PostVoteSignal | null>(null);
+
+  // Pick up post-vote prompt queued from PollCard / StakeModal
+  useEffect(() => {
+    const sig = consumePostVotePrompt(poll.id);
+    if (sig) setPromptSignal(sig);
+  }, [poll.id]);
 
   // Comments query
   const { data: comments = [] } = useQuery({

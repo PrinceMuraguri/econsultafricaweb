@@ -15,6 +15,7 @@ import LoginModal from "@/components/auth/LoginModal";
 import BookmarkToggle from "./BookmarkToggle";
 import SharePopover from "./SharePopover";
 import type { Poll, PollOption } from "@/hooks/use-polls";
+import { queuePostVotePrompt } from "@/lib/post-vote-prompt";
 import { useAIPredictions } from "@/hooks/use-ai-council";
 import { Bot } from "lucide-react";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates poll-card Pro CTAs

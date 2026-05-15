@@ -308,9 +308,13 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
             </div>
           )}
 
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-2 mb-3 items-center">
             <Button size="sm" variant={!holderFilter ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setHolderFilter(false)}>All</Button>
             <Button size="sm" variant={holderFilter ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setHolderFilter(true)}>Holders Only</Button>
+            <div className="ml-auto flex gap-1">
+              <Button size="sm" variant={sortMode === "top" ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setSortMode("top")}>Top</Button>
+              <Button size="sm" variant={sortMode === "new" ? "default" : "ghost"} className="h-6 text-[10px]" onClick={() => setSortMode("new")}>New</Button>
+            </div>
           </div>
 
           <ScrollArea className="max-h-[500px]">

@@ -372,24 +372,43 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
               {topComments.length === 0 && aiComments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">No comments yet. Be the first to share your analysis.</p>
               ) : topComments.length === 0 ? null : (
-                topComments.map((c) => (
+                topComments.map((c) => {
+                  const handle = (c.user_profiles as any)?.display_handle || "user";
+                  const collapsed = c.score <= COLLAPSE_THRESHOLD && !expandedCollapsed.has(c.id);
+                  return (
                   <div key={c.id} className="space-y-2">
                     <div className="flex gap-2">
                       <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                        {(c.user_profiles as any)?.full_name?.[0] || "?"}
+                        {handle.slice(-1).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Link to={`/profile/${(c.user_profiles as any)?.username || "user"}`} className="text-xs font-semibold text-foreground hover:text-primary">
-                            {(c.user_profiles as any)?.username || "User"}
+                          <Link to={`/profile/${handle}`} className="text-xs font-semibold text-foreground hover:text-primary">
+                            {handle}
                           </Link>
                           {c.is_holder && <Badge variant="outline" className="text-[9px] h-4 bg-green-500/10 text-green-600 border-green-500/30">Holder</Badge>}
                           <span className="text-[10px] text-muted-foreground">{timeAgo(c.created_at)}</span>
                         </div>
-                        <p className="text-sm text-foreground mt-1">{c.body}</p>
-                        {user && (
-                          <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className="text-[10px] text-primary hover:text-accent mt-1">Reply</button>
+                        {collapsed ? (
+                          <button
+                            className="text-[11px] text-muted-foreground italic mt-1 hover:text-foreground"
+                            onClick={() => setExpandedCollapsed((s) => new Set(s).add(c.id))}
+                          >
+                            [comment hidden — score {c.score}, click to show]
+                          </button>
+                        ) : (
+                          <p className="text-sm text-foreground mt-1 whitespace-pre-line">{c.body}</p>
                         )}
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <CommentVoteButtons
+                            commentId={c.id}
+                            initialScore={c.score ?? 0}
+                            onRequireAuth={() => setLoginOpen(true)}
+                          />
+                          {user && (
+                            <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className="text-[10px] text-primary hover:text-accent">Reply</button>
+                          )}
+                        </div>
 
                         {replyTo === c.id && (
                           <div className="mt-2 flex gap-2">
@@ -405,27 +424,39 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
                         )}
 
                         {/* Replies */}
-                        {replies(c.id).map((r) => (
+                        {replies(c.id).map((r) => {
+                          const rHandle = (r.user_profiles as any)?.display_handle || "user";
+                          return (
                           <div key={r.id} className="flex gap-2 mt-2 ml-4 pl-3 border-l-2 border-border">
                             <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[9px] font-bold text-muted-foreground shrink-0">
-                              {(r.user_profiles as any)?.full_name?.[0] || "?"}
+                              {rHandle.slice(-1).toUpperCase()}
                             </div>
-                            <div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <Link to={`/profile/${(r.user_profiles as any)?.username || "user"}`} className="text-[11px] font-semibold text-foreground hover:text-primary">
-                                  {(r.user_profiles as any)?.username || "User"}
+                                <Link to={`/profile/${rHandle}`} className="text-[11px] font-semibold text-foreground hover:text-primary">
+                                  {rHandle}
                                 </Link>
                                 {r.is_holder && <Badge variant="outline" className="text-[8px] h-3.5 bg-green-500/10 text-green-600 border-green-500/30">Holder</Badge>}
                                 <span className="text-[9px] text-muted-foreground">{timeAgo(r.created_at)}</span>
                               </div>
-                              <p className="text-xs text-foreground mt-0.5">{r.body}</p>
+                              <p className="text-xs text-foreground mt-0.5 whitespace-pre-line">{r.body}</p>
+                              <div className="mt-1">
+                                <CommentVoteButtons
+                                  commentId={r.id}
+                                  initialScore={r.score ?? 0}
+                                  onRequireAuth={() => setLoginOpen(true)}
+                                  size="sm"
+                                />
+                              </div>
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </ScrollArea>

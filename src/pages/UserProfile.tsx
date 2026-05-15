@@ -25,29 +25,38 @@ const UserProfile = () => {
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ["user-profile", username],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try display_handle first (anonymized public links), fall back to username for back-compat.
+      const byHandle = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("display_handle", username!)
+        .maybeSingle();
+      if (byHandle.error) throw byHandle.error;
+      if (byHandle.data) return byHandle.data;
+
+      const byUsername = await supabase
         .from("user_profiles")
         .select("*")
         .eq("username", username!)
         .maybeSingle();
-      if (error) throw error;
-      return data;
+      if (byUsername.error) throw byUsername.error;
+      return byUsername.data;
     },
     enabled: !!username,
   });
 
   const { data: leaderboardEntry } = useQuery({
-    queryKey: ["user-leaderboard", username],
+    queryKey: ["user-leaderboard", profileData?.username],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("leaderboard_view" as any)
         .select("*")
-        .eq("username", username!)
+        .eq("username", profileData!.username)
         .maybeSingle();
       if (error) throw error;
       return data as any;
     },
-    enabled: !!username,
+    enabled: !!profileData?.username,
   });
 
   // Staked positions (public)

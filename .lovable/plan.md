@@ -1,87 +1,121 @@
-## Your two questions, answered first
 
-**1. Did you ever ask for emails to be suppressed in Free / demo mode?**
-No. Reviewing chat history, your only explicit instruction on settlement emails was: *"I dont want to settle a question and then no email gets sent."* The `if (proMode === 'demo') continue;` short-circuit was a defensive choice I made earlier on the assumption that demo = pretend money = don't email. That assumption was wrong for your model: Free Arena voters live entirely outside the demo/live wallet split — they never had "pretend money" to begin with — and even Pro demo participants deserve the closing-loop email. Removing the suppression entirely is the correct fix.
+# Post-vote comment prompt + anonymized handles + comment voting
 
-**2. Can you re-settle the petrol price poll so users get emails?**
-Not directly via the existing `settle-market` function — line 60–65 hard-blocks any poll where `settled_at` is already set ("Poll already settled"). But we can do it cleanly with a one-time **resend** path that does NOT touch wallets, payouts, AI scoring, listings, or the poll status — it only re-fires the email branch for that specific poll using the existing winner/loser logic and the existing `idempotencyKey` scheme. Because the idempotency keys are deterministic (`settlement-winner-${poll_id}-${voterKey}`), a future accidental call would not double-send. Plan includes this as Part F.
+Three connected pieces, applied to both Forecast Arena Free and Pro.
 
 ---
 
-## Plan
+## 1. Post-vote "Why?" prompt
 
-### Part A — Send settlement emails in ALL circumstances
+A small modal that appears immediately after a human commits a choice.
 
-In `supabase/functions/settle-market/index.ts`:
+**When it fires**
+- **Free arena** — after `PollCard.handleVote` succeeds (the toast "🎯 Forecast recorded" point).
+- **Pro arena** — after `StakeModal` confirms a stake, and after `TradingPanel` / `buy-shares` returns success. (First commitment per poll only — we won't re-prompt every trade.)
 
-1. **Delete** the `if (proMode === 'demo') continue;` short-circuit at line 366. Emails fire for every voter in every mode.
-2. Build a `demoPayoutMap: Map<userId, payoutAmount>` from `winnerPositions` (already fetched at line 126) when `proMode === 'demo'`. Payout = `shares × $1.00` (matches `demo_settle_market` exactly).
-3. Inside the winner branch (line 373), resolve `payoutEntry` as:
-   - live: existing `payoutRecords.find(...)` (net of 3.5% fee)
-   - demo: `{ amount: demoPayoutMap.get(vote.user_id) ?? 0 }`
-4. Pass an `isDemo: proMode === 'demo'` flag into the email `templateData` for both winner and loser branches so the templates can render the demo banner / suffix.
-5. Free Arena voters (no stake, no position, `is_staked=false`) automatically flow through the existing `else if (isWinner)` / `else` branches — the unstaked email variants already exist in both templates. No new template work needed for Free.
+**What it shows**
+```
+┌──────────────────────────────────────────── X ┐
+│  Let the community know why you think         │
+│  "<poll title>" will be <selected option>     │
+│                                               │
+│  [ Add comment ]                              │
+└───────────────────────────────────────────────┘
+```
+- Click **Add comment** → expands inline into a textarea + Post button (reuses the same insert path as `PollDiscussionTabs`, writing to `poll_comments` with `is_holder = true` since the user just committed).
+- Click **X** (top-right) or backdrop → dismisses. We remember dismissal per `(user, poll)` in `localStorage` so it doesn't re-prompt on the next page view.
+- Subtle styling: small centered card, no full-screen overlay block — uses `Dialog` with `max-w-md` so it never blanks the screen.
 
-### Part B — Update email templates to handle `isDemo`
+**New file:** `src/components/forecast/PostVoteCommentPrompt.tsx`
+**Wired into:** `PollCard.tsx`, `StakeModal.tsx`, `TradingPanel.tsx`.
 
-**`supabase/functions/_shared/transactional-email-templates/settlement-winner.tsx`:**
-- Add `isDemo?: boolean` to `SettlementWinnerProps`.
-- When `isDemo`:
-  - Add a one-line muted banner above the heading: *"This is a practice settlement — amounts shown are demo credits in your Arena Coin wallet, not real money."*
-  - Subject suffix: append ` (demo)` to the existing subject (e.g. `🎯 Correct prediction (demo) — $5.00 credited to your demo wallet`).
-  - For the staked variant: change "credited to your wallet" → "credited to your demo wallet".
-  - Button label unchanged.
-- When `isDemo` is false: identical to today.
-- Update `previewData` to include both `isDemo: false` baseline.
+---
 
-**`supabase/functions/_shared/transactional-email-templates/settlement-loser.tsx`:** mirror the same banner + ` (demo)` subject suffix when `isDemo` is true.
+## 2. Anonymized "userXXXX" display handles
 
-### Part C — Fix the misleading "0 winners" toast
+**Problem:** `user_profiles.username` is currently seeded from email local-part or self-chosen, so it can leak real names in the comment thread.
 
-In `supabase/functions/settle-market/index.ts`:
+**Fix:** introduce a separate **display handle** used everywhere comments / public activity render — never replace `username` itself (it's used for profile URLs and many other places, and changing it is risky).
 
-1. Capture `demo_settle_market`'s return value into local `demoWinners` / `demoTotalPaid` (already returned in `demoSettleData` at line 209 — currently discarded).
-2. In the response `summary` and the `admin_audit_log.details`:
-   - `winners_with_payout` = `payoutRecords.length` (live) OR `demoWinners` (demo)
-   - `total_payouts` / `total_net_payouts` = sum of `payoutRecords` (live) OR `demoTotalPaid` (demo)
-   - Add top-level `mode: proMode` so the UI can label correctly.
-3. Audit log gains the same fields.
+**Schema change** (migration):
+- Add `user_profiles.display_handle text unique`.
+- Backfill: `'user' || lpad((floor(random()*9000)+1000)::text, 4, '0')` with a uniqueness retry, for every existing row.
+- Trigger on insert: auto-generate `display_handle` if null.
 
-### Part D — Surface the mode in the admin settlement toast
+**Code change:**
+- `PollDiscussionTabs.tsx` selects and renders `display_handle` instead of `username` / `full_name` initial.
+- Avatar initial becomes the last digit of the handle (or a generic icon).
+- Profile link `/profile/:handle` now resolves by `display_handle` — `UserProfile.tsx` query updated to look up by `display_handle` first, falling back to `username` for back-compat.
+- Top-holders / activity feed sections in the same file also switched to `display_handle`.
 
-Locate the call site (likely `src/components/admin/PollManager.tsx` — confirm during implementation) and update the success toast:
-- **Live:** `Settled — N winners paid out ($X total). Emails sent to N voters.`
-- **Demo:** `Settled (demo) — N winners credited to demo wallets ($X demo). Emails sent to N voters.`
+I'm **not** changing the user's own dashboard / settings — they still see their real name there.
 
-Read `mode`, `winners_with_payout`, `total_payouts`, and `emails_queued` from the response. Never show "0 winners" when winners actually exist.
+---
 
-### Part E — Deploy and verify end-to-end
+## 3. Reddit-style upvote / downvote on comments
 
-1. Deploy `settle-market` (the only function with logic changes). Templates are bundled into `send-transactional-email`, so deploy that too.
-2. Create a throwaway test poll, cast 2–3 demo votes (one staked Pro winner, one staked loser, one Free voter on the winning side), settle it via the admin UI in demo mode, then verify:
-   - `email_send_log` shows 3 fresh `settlement-winner`/`settlement-loser` rows with `status='sent'` and ` (demo)` in the metadata subject.
-   - Admin toast reads "Settled (demo) — N winners…", not "0 winners".
-   - In-app `notifications` count matches voter count.
-3. Paste the verification SQL output back to you.
+**Schema change** (same migration):
 
-### Part F — One-time resend for the petrol price poll (your second question)
+```sql
+create table comment_votes (
+  id uuid primary key default gen_random_uuid(),
+  comment_id uuid not null references poll_comments(id) on delete cascade,
+  user_id uuid not null,
+  value smallint not null check (value in (-1, 1)),
+  created_at timestamptz not null default now(),
+  unique (comment_id, user_id)
+);
+alter table comment_votes enable row level security;
 
-Create a small **`resend-settlement-emails`** edge function (admin-key gated, `verify_jwt = false`, identical auth model to `settle-market`):
+-- read: public; insert/update/delete: own row only
+create policy cv_read on comment_votes for select using (true);
+create policy cv_write on comment_votes for insert with check (auth.uid() = user_id);
+create policy cv_update on comment_votes for update using (auth.uid() = user_id);
+create policy cv_delete on comment_votes for delete using (auth.uid() = user_id);
 
-- Inputs: `poll_id`, `admin_key`.
-- Refuses to run unless `polls.status = 'settled'` and `polls.winning_option_id` is set.
-- Re-runs ONLY the email-dispatch portion of the settle path:
-  - Re-derives `demoPayoutMap` from current `demo_positions` (or `payoutRecords` from past `payouts` table in live mode) so winner emails carry the correct $ amount.
-  - Loops voters via the same `voterMap` dedup as `settle-market`.
-  - Calls `send-transactional-email` with the SAME `idempotencyKey` (`settlement-winner-${poll_id}-${key}` / `settlement-loser-...`).
-- Because the idempotency key is identical to what would have been sent originally, the email service will treat any future accidental call as a no-op duplicate. So this is safe to invoke multiple times.
-- For the petrol poll specifically: the original settlement never sent emails (no rows in `email_send_log` for this poll), so the idempotency keys are unused → all 23 voters will receive their email exactly once.
+-- denormalized score on poll_comments for cheap sorting
+alter table poll_comments
+  add column upvotes int not null default 0,
+  add column downvotes int not null default 0,
+  add column score int not null default 0;
 
-I'll add a one-off **"Resend settlement emails"** button in `PlatformModeTab.tsx` (or wherever the admin settle button lives) that takes a poll slug/id and calls this function. After your one-time use on the petrol poll, the button stays available for any future "I forgot to deploy before settling" recovery.
+-- trigger keeps counts in sync on insert/update/delete of comment_votes
+```
 
-### Out of scope
+A `recompute_comment_score()` trigger updates `upvotes / downvotes / score` on the parent comment whenever `comment_votes` changes.
 
-- Switching the platform to live mode.
-- Changing how Free vs Pro winners are computed — existing logic is correct.
-- Changing AI scoring (already runs and was correct for the petrol poll).
-- Resending in-app notifications for the petrol poll — those 23 notifications were inserted correctly the first time and are already visible in users' bells.
+**UI** (in `PollDiscussionTabs.tsx`, on each comment + reply row):
+- Left rail with ▲ score ▼ (orange when active up, blue when active down, muted otherwise).
+- Click ▲ → upserts `value=+1`; click again → deletes (toggle off). Same for ▼. Switching sides replaces the row.
+- Anonymous users: clicking either arrow opens the existing login modal.
+- Sort dropdown: **Top** (default, by `score desc`), **New** (by `created_at desc`).
+- Auto-collapse comments with `score <= -4` behind a "Show comment" link, matching Reddit's threshold.
+
+Voting itself stays anonymous — we never show *who* voted, only the totals.
+
+---
+
+## Files
+
+**New**
+- `src/components/forecast/PostVoteCommentPrompt.tsx`
+- `src/components/forecast/CommentVoteButtons.tsx`
+
+**Edited**
+- `src/components/forecast/PollCard.tsx` — fire prompt after Free vote.
+- `src/components/forecast/StakeModal.tsx` — fire prompt after Pro stake.
+- `src/components/forecast/TradingPanel.tsx` — fire prompt after first Buy.
+- `src/components/forecast/PollDiscussionTabs.tsx` — render `display_handle`, mount `CommentVoteButtons`, add Top/New sort, collapsed-comment behaviour.
+- `src/pages/UserProfile.tsx` — resolve route param by `display_handle` with `username` fallback.
+
+**Migration**
+- `display_handle` column + backfill + insert trigger.
+- `comment_votes` table + RLS + score trigger on `poll_comments`.
+
+---
+
+## Open questions (sensible defaults applied unless you say otherwise)
+
+1. **Pro re-prompts on every trade?** Default: **no — only the first commitment per poll** (we check for an existing position/comment by this user on this poll). Tell me if you want it on every buy.
+2. **Handle format.** Default: `userNNNN` (4 digits, e.g. `user4821`). I can switch to `user` + 4 alphanumeric (`user7k2x`) — slightly larger keyspace, similar feel.
+3. **Existing usernames.** Left untouched in the DB; only the *display* in comments switches to the new handle. Profile URLs migrate to the handle but keep a fallback so old links still work.

@@ -12,6 +12,7 @@ import LoginModal from "@/components/auth/LoginModal";
 import PhoneCollectionModal from "@/components/auth/PhoneCollectionModal";
 import CurrencyAmount from "@/components/CurrencyAmount";
 import { formatCurrency } from "@/lib/currency";
+import { queuePostVotePrompt } from "@/lib/post-vote-prompt";
 
 
 interface TradingPanelProps {

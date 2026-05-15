@@ -1832,7 +1832,7 @@ export type Database = {
         Row: {
           active_positions: number | null
           country: string | null
-          full_name: string | null
+          display_handle: string | null
           losses: number | null
           member_since: string | null
           occupation: string | null

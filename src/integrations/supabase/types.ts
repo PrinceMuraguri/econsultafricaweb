@@ -1610,7 +1610,7 @@ export type Database = {
           age_bracket?: string | null
           country?: string | null
           created_at?: string | null
-          display_handle: string
+          display_handle?: string
           full_name: string
           has_acknowledged_demo?: boolean
           id?: string

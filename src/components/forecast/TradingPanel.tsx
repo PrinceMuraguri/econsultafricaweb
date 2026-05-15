@@ -111,6 +111,11 @@ const TradingPanel = ({ poll, votedOptionId, hasVoted }: TradingPanelProps) => {
         description: `${shares} shares at ${formatCurrency(currentPrice, proMode)} per share. If your forecast is correct, you receive ${formatCurrency(shares, proMode)}.`,
       });
 
+      const committedOpt = poll.poll_options?.find((o) => o.id === selectedOptionId);
+      if (committedOpt) {
+        queuePostVotePrompt({ pollId: poll.id, optionLabel: committedOpt.label, isHolder: true });
+      }
+
       refreshWallet();
       queryClient.invalidateQueries({ queryKey: ["positions", poll.id] });
       queryClient.invalidateQueries({ queryKey: ["poll", poll.slug] });

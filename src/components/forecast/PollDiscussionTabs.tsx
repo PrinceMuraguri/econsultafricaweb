@@ -213,12 +213,12 @@ const PollDiscussionTabs = ({ poll, basePath = "/forecast-arena" }: Props) => {
       if (fps.length === 0) return [];
       const { data: profiles } = await supabase
         .from("user_profiles")
-        .select("username, voter_fingerprint")
+        .select("display_handle, voter_fingerprint")
         .in("voter_fingerprint", fps);
 
       const profileMap: Record<string, string> = {};
-      (profiles || []).forEach((p) => {
-        if (p.voter_fingerprint) profileMap[p.voter_fingerprint] = p.username;
+      (profiles || []).forEach((p: any) => {
+        if (p.voter_fingerprint) profileMap[p.voter_fingerprint] = p.display_handle;
       });
 
       const optionMap: Record<string, string> = {};

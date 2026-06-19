@@ -109,12 +109,12 @@ const OurPhilosophy = () => {
                 className="space-y-4 mb-6 max-w-xl">
                 
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  We believe in the power of collective intelligence.
+                  We believe in the wisdom of crowds.
                   <br />
                   <span className="font-medium text-foreground">Where expectations become insight.</span>
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Econsult Africa exists to bridge the gap between data and decision-making. We translate macroeconomic signals across Africa into clear, decision-focused intelligence — surfacing real-time economic sentiment from the ground, not just headlines.
+                  Econsult Africa exists to bridge the gap between data and decision-making. We translate data signals across Africa into clear, decision-focused intelligence — surfacing real-time collective sentiment from the ground, not just headlines.
                 </p>
               </motion.div>
 

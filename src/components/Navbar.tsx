@@ -13,22 +13,22 @@ import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates Pro nav link
 // Pro flag: the Pro entry is only included in navLinks when PRO_ENABLED is true.
 const navLinks = PRO_ENABLED
   ? [
-      { label: "Forecast Arena", href: "/" },
+      { label: "Why Econsult", href: "/" },
+      { label: "Forecast Arena", href: "/forecast-arena" },
       { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
       { label: "Leaderboard", href: "/leaderboard" },
       { label: "AI Council API", href: "/api-docs" },
       { label: "Shop", href: "/intelligence-marketplace" },
-      { label: "Philosophy", href: "/our-philosophy" },
       { label: "Insights", href: "/insights" },
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
     ]
   : [
-      { label: "Forecast Arena", href: "/" },
+      { label: "Why Econsult", href: "/" },
+      { label: "Forecast Arena", href: "/forecast-arena" },
       { label: "Leaderboard", href: "/leaderboard" },
       { label: "AI Council API", href: "/api-docs" },
       { label: "Shop", href: "/intelligence-marketplace" },
-      { label: "Philosophy", href: "/our-philosophy" },
       { label: "Insights", href: "/insights" },
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },

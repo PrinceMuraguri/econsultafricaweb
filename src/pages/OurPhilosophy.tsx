@@ -100,7 +100,7 @@ const OurPhilosophy = () => {
                 transition={{ duration: 0.6, ease: [0.2, 0, 0, 1] as const }}
                 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] text-foreground mb-6">
                 
-                Africa's Economies.{" "}
+                Collective Intelligence.{" "}
                 <span className="text-primary">Explained for Real Decisions.</span>
               </motion.h1>
               <motion.div

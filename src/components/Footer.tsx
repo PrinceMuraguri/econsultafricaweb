@@ -14,7 +14,7 @@ const footerLinks = [
   {
     title: "Explore",
     links: [
-      { label: "Our Philosophy", href: "/our-philosophy" },
+      { label: "Why Econsult", href: "/" },
       { label: "Insights & Media", href: "/insights" },
       { label: "About Us", href: "/about" },
       { label: "Contact", href: "/contact" },

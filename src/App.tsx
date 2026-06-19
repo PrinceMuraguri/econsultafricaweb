@@ -60,8 +60,9 @@ const App = () => (
             {/* Single, app-wide mount — fires on any Pro surface when proMode === 'demo' */}
             <DemoOnboardingModal />
             <Routes>
-              <Route path="/" element={<ForecastArena />} />
-              <Route path="/our-philosophy" element={<OurPhilosophy />} />
+              <Route path="/" element={<OurPhilosophy />} />
+              <Route path="/forecast-arena" element={<ForecastArena />} />
+              <Route path="/our-philosophy" element={<Navigate to="/" replace />} />
               <Route path="/intelligence-marketplace" element={<IntelligenceMarketplace />} />
               <Route path="/kenya-2026" element={<Kenya2026 />} />
               <Route path="/insights" element={<Insights />} />
@@ -97,7 +98,7 @@ const App = () => (
               <Route path="/fiat_whitepaper" element={<FiatWhitepaper />} />
               <Route path="/fiat-whitepaper" element={<FiatWhitepaper />} />
               {/* Redirects */}
-              <Route path="/forecast-arena" element={<Navigate to="/" replace />} />
+              
               <Route path="/forecast-arena/stake-result" element={<Navigate to="/stake-result" replace />} />
               <Route path="/forecast-arena/how-it-works" element={<Navigate to="/how-it-works" replace />} />
               <Route path="/products" element={<Navigate to="/intelligence-marketplace" replace />} />

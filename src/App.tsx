@@ -60,8 +60,9 @@ const App = () => (
             {/* Single, app-wide mount — fires on any Pro surface when proMode === 'demo' */}
             <DemoOnboardingModal />
             <Routes>
-              <Route path="/" element={<ForecastArena />} />
-              <Route path="/our-philosophy" element={<OurPhilosophy />} />
+              <Route path="/" element={<OurPhilosophy />} />
+              <Route path="/forecast-arena" element={<ForecastArena />} />
+              <Route path="/our-philosophy" element={<Navigate to="/" replace />} />
               <Route path="/intelligence-marketplace" element={<IntelligenceMarketplace />} />
               <Route path="/kenya-2026" element={<Kenya2026 />} />
               <Route path="/insights" element={<Insights />} />

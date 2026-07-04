@@ -88,7 +88,7 @@ const WorldCup2026 = () => {
             </div>
             <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight uppercase">
               World Cup <span className="text-amber-400">2026</span><br />
-              <span className="text-white/80 text-3xl md:text-5xl">Predictions</span>
+              <span className="text-white/80 text-3xl md:text-5xl">FREE&nbsp; PREDICTIONS</span>
             </h1>
             <p className="mt-3 text-white/70 text-base md:text-lg max-w-2xl">
               Predict every match. See what the crowd believes. Vote for free — no signup.

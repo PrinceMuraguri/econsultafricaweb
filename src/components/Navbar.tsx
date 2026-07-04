@@ -15,6 +15,7 @@ const navLinks = PRO_ENABLED
   ? [
       { label: "Why Econsult", href: "/" },
       { label: "Forecast Arena", href: "/forecast-arena" },
+      { label: "World Cup 2026", href: "/world-cup-2026" },
       { label: "Forecast Arena", href: "/forecast-arena-pro", isPro: true },
       { label: "Leaderboard", href: "/leaderboard" },
       { label: "AI Council API", href: "/api-docs" },
@@ -26,6 +27,7 @@ const navLinks = PRO_ENABLED
   : [
       { label: "Why Econsult", href: "/" },
       { label: "Forecast Arena", href: "/forecast-arena" },
+      { label: "World Cup 2026", href: "/world-cup-2026" },
       { label: "Leaderboard", href: "/leaderboard" },
       { label: "AI Council API", href: "/api-docs" },
       { label: "Shop", href: "/intelligence-marketplace" },

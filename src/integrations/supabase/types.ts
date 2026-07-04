@@ -1110,6 +1110,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_url: string | null
           label: string
           poll_id: string
           total_stake_amount: number
@@ -1118,6 +1119,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          image_url?: string | null
           label: string
           poll_id: string
           total_stake_amount?: number
@@ -1126,6 +1128,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          image_url?: string | null
           label?: string
           poll_id?: string
           total_stake_amount?: number
@@ -1195,6 +1198,7 @@ export type Database = {
           fts: unknown
           id: string
           index_number: number | null
+          metadata: Json | null
           outcome: string | null
           question_type: string | null
           resolution_criteria: string | null
@@ -1218,6 +1222,7 @@ export type Database = {
           fts?: unknown
           id?: string
           index_number?: number | null
+          metadata?: Json | null
           outcome?: string | null
           question_type?: string | null
           resolution_criteria?: string | null
@@ -1241,6 +1246,7 @@ export type Database = {
           fts?: unknown
           id?: string
           index_number?: number | null
+          metadata?: Json | null
           outcome?: string | null
           question_type?: string | null
           resolution_criteria?: string | null
@@ -2034,6 +2040,7 @@ export type Database = {
         }
         Returns: Json
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number

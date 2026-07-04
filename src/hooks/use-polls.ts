@@ -7,6 +7,7 @@ export interface PollOption {
   label: string;
   total_votes_count: number;
   total_stake_amount: number;
+  image_url?: string | null;
 }
 
 export interface Poll {
@@ -25,21 +26,21 @@ export interface Poll {
   winning_option_id?: string | null;
   settled_at?: string | null;
   settled_by?: string | null;
+  metadata?: Record<string, any> | null;
   poll_options: PollOption[];
 }
 
-export function usePolls(status?: string) {
+export function usePolls(status?: string, category?: string) {
   return useQuery({
-    queryKey: ["polls", status],
+    queryKey: ["polls", status, category],
     queryFn: async () => {
       let query = supabase
         .from("polls")
         .select("*, poll_options!poll_options_poll_id_fkey(*)")
         .order("created_at", { ascending: false });
 
-      if (status) {
-        query = query.eq("status", status);
-      }
+      if (status) query = query.eq("status", status);
+      if (category) query = query.eq("category", category);
 
       const { data, error } = await query;
       if (error) throw error;

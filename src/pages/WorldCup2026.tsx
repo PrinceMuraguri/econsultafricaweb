@@ -26,20 +26,6 @@ function useCountdown(target: Date | null) {
 const WorldCup2026 = () => {
   const { data: activePolls = [], isLoading: loadingActive } = usePolls("active", "Football");
   const { data: resolvedPolls = [], isLoading: loadingResolved } = usePolls("resolved", "Football");
-  const [onlineUsers, setOnlineUsers] = useState(0);
-
-  useEffect(() => {
-    const channel = supabase.channel("wc-online", {
-      config: { presence: { key: Math.random().toString(36).slice(2) } },
-    });
-    channel.on("presence", { event: "sync" }, () => {
-      setOnlineUsers(Object.keys(channel.presenceState()).length);
-    });
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") await channel.track({ online_at: new Date().toISOString() });
-    });
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
   const nextKickoff = useMemo(() => {
     const upcoming = [...activePolls]
@@ -106,16 +92,6 @@ const WorldCup2026 = () => {
               <div className="rounded-xl border border-white/15 bg-white/5 backdrop-blur px-4 py-3">
                 <p className="text-[10px] uppercase tracking-widest text-white/50 flex items-center gap-1"><Zap className="w-3 h-3" /> Active matches</p>
                 <p className="text-2xl font-mono font-black tabular-nums">{activePolls.length}</p>
-              </div>
-              <div className="rounded-xl border border-white/15 bg-white/5 backdrop-blur px-4 py-3">
-                <p className="text-[10px] uppercase tracking-widest text-white/50 flex items-center gap-1">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                  </span>
-                  Online
-                </p>
-                <p className="text-2xl font-mono font-black tabular-nums">{onlineUsers || "—"}</p>
               </div>
             </div>
           </div>

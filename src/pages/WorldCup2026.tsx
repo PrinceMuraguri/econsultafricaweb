@@ -4,7 +4,7 @@ import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import MatchPollCard from "@/components/forecast/MatchPollCard";
 import { usePolls, type Poll } from "@/hooks/use-polls";
-import { supabase } from "@/integrations/supabase/client";
+
 import { Trophy, Zap, Users, Clock } from "lucide-react";
 
 function useCountdown(target: Date | null) {

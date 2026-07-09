@@ -13,9 +13,10 @@ interface PdfPageViewerProps {
   backLink?: string;
   backLabel?: string;
   extraActions?: React.ReactNode;
+  hideDownload?: boolean;
 }
 
-const PdfPageViewer = ({ pdfUrl, title, backLink = "/", backLabel = "Back", extraActions }: PdfPageViewerProps) => {
+const PdfPageViewer = ({ pdfUrl, title, backLink = "/", backLabel = "Back", extraActions, hideDownload = false }: PdfPageViewerProps) => {
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,11 +55,13 @@ const PdfPageViewer = ({ pdfUrl, title, backLink = "/", backLabel = "Back", extr
             </Link>
             <div className="flex gap-2">
               {extraActions}
-              <a href={pdfUrl} download>
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Download className="w-3.5 h-3.5" /> Download PDF
-                </Button>
-              </a>
+              {!hideDownload && (
+                <a href={pdfUrl} download>
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <Download className="w-3.5 h-3.5" /> Download PDF
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
 

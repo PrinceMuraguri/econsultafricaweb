@@ -43,6 +43,7 @@ import ProPaused from "./pages/ProPaused.tsx";
 import AboutDemoMode from "./pages/AboutDemoMode.tsx";
 import FiatWhitepaper from "./pages/FiatWhitepaper.tsx";
 import WorldCup2026 from "./pages/WorldCup2026.tsx";
+import SmtVpay from "./pages/SmtVpay.tsx";
 import DemoOnboardingModal from "@/components/forecast/DemoOnboardingModal";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates Pro routes
 
@@ -64,6 +65,8 @@ const App = () => (
               <Route path="/" element={<OurPhilosophy />} />
               <Route path="/forecast-arena" element={<ForecastArena />} />
               <Route path="/world-cup-2026" element={<WorldCup2026 />} />
+              <Route path="/section/smt-vpay" element={<SmtVpay />} />
+              <Route path="/smt-vpay" element={<SmtVpay />} />
               <Route path="/our-philosophy" element={<Navigate to="/" replace />} />
               <Route path="/intelligence-marketplace" element={<IntelligenceMarketplace />} />
               <Route path="/kenya-2026" element={<Kenya2026 />} />

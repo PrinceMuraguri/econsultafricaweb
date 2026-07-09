@@ -13,9 +13,10 @@ interface PdfPageViewerProps {
   backLink?: string;
   backLabel?: string;
   extraActions?: React.ReactNode;
+  hideDownload?: boolean;
 }
 
-const PdfPageViewer = ({ pdfUrl, title, backLink = "/", backLabel = "Back", extraActions }: PdfPageViewerProps) => {
+const PdfPageViewer = ({ pdfUrl, title, backLink = "/", backLabel = "Back", extraActions, hideDownload = false }: PdfPageViewerProps) => {
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 

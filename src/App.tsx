@@ -44,6 +44,7 @@ import AboutDemoMode from "./pages/AboutDemoMode.tsx";
 import FiatWhitepaper from "./pages/FiatWhitepaper.tsx";
 import WorldCup2026 from "./pages/WorldCup2026.tsx";
 import SmtVpay from "./pages/SmtVpay.tsx";
+import SmtPresentation from "./pages/SmtPresentation.tsx";
 import DemoOnboardingModal from "@/components/forecast/DemoOnboardingModal";
 import { PRO_ENABLED } from "@/lib/features"; // Pro flag: gates Pro routes
 

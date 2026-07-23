@@ -77,6 +77,39 @@ Deno.serve(async (req) => {
     const event = JSON.parse(body);
     console.log('Webhook event:', event.event, 'reference:', event.data?.reference);
 
+    // ── FAN-OUT: Forward Forecast Arena events to FA webhook ──
+    const faRef = typeof event?.data?.reference === 'string' && event.data.reference.startsWith('fa_');
+    const faMeta = event?.data?.metadata?.project === 'forecast-arena';
+    if (faRef || faMeta) {
+      const forwardPromise = (async () => {
+        try {
+          await fetch('https://forecast-arena-africa.lovable.app/api/public/webhooks/paystack', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'x-paystack-signature': signature ?? '',
+            },
+            body,
+          });
+        } catch (fwdErr) {
+          console.log('FA webhook forward failed (non-blocking):', (fwdErr as Error).message);
+        }
+      })();
+      try {
+        // @ts-ignore — EdgeRuntime is available in Supabase Edge runtime
+        if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime?.waitUntil) {
+          // @ts-ignore
+          EdgeRuntime.waitUntil(forwardPromise);
+        }
+      } catch (_) { /* ignore */ }
+
+      console.log('Forwarded FA event to forecast-arena; skipping local Econsult handlers.');
+      return new Response(JSON.stringify({ received: true, forwarded: 'forecast-arena' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
